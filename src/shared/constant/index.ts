@@ -1,6 +1,4 @@
-import { isTestnet } from "@/ui/utils";
-import { Network, networks } from "belcoinjs-lib";
-import { AddressType } from "bellhdw/src/hd/types";
+import { AddressType } from "@/background/services/keyring/hdw/types";
 
 export const KEYRING_TYPE = {
   HdKeyring: "HD Key Tree",
@@ -14,10 +12,7 @@ export const IS_LINUX = /linux/i.test(navigator.userAgent);
 
 export const IS_WINDOWS = /windows/i.test(navigator.userAgent);
 
-export const NETOWRKS: { name: string; network: Network }[] = [
-  { name: "MAINNET", network: networks.bellcoin },
-  { name: "TESTNET", network: networks.testnet },
-];
+export { NETWORKS } from "../networks";
 
 export const ADDRESS_TYPES: {
   value: AddressType;
@@ -56,38 +51,11 @@ export const EVENTS = {
   },
 };
 
-const NINTONDO_API_URL = process.env.API_URL ?? "https://api.nintondo.io/api";
-
-const CONTENT_URL =
-  process.env.CONTENT_URL ?? "https://content.nintondo.io/api/pub";
-const HISTORY_URL =
-  process.env.HISTORY_URL ?? "https://history.nintondo.io/pub";
-
-export const NINTONDO_URL = "https://nintondo.io";
-export const SPLITTER_URL = NINTONDO_URL + "/belinals/splitter";
-
-const TESTNET_NINTONDO_API_URL =
-  process.env.TESTNET_API_URL ?? "https://testnet.nintondo.io/electrs";
-const TESTNET_CONTENT_URL =
-  process.env.TESTNET_CONTENT_URL ?? "https://testnet.nintondo.io/api/pub";
-
-export const getContentUrl = (network: Network) =>
-  isTestnet(network) ? TESTNET_CONTENT_URL : CONTENT_URL;
-
-export const getApiUrl = (network: Network) =>
-  isTestnet(network) ? TESTNET_NINTONDO_API_URL : NINTONDO_API_URL;
-
-export const getHistoryUrl = (network: Network) =>
-  isTestnet(network) ? TESTNET_HISTORY_URL : HISTORY_URL;
-
-const TESTNET_HISTORY_URL =
-  process.env.TESTNET_HISTORY_URL ?? "https://testnet.nintondo.io/history/pub";
+export const ESPO_URL = "https://espo.sh";
 
 export const DEFAULT_FEES = {
-  fast: 500,
-  slow: 20,
+  fast: 5,
+  slow: 2,
 };
 
-export const DEFAULT_SERVICE_FEE = 1_000_000;
-
-export const DEFAULT_HD_PATH = "m/44'/0'/0'/0";
+export const DEFAULT_HD_PATH = "m/84'/0'/0'/0";

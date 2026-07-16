@@ -1,11 +1,37 @@
 .btn {
-  @apply cursor-pointer border-none outline-none rounded-xl px-3 py-1;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  border-radius: var(--radius);
+  padding: 5px 11px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn:hover {
+  background: var(--panel2);
+  color: var(--text);
 }
 
 .arrow {
-  @apply px-3 rounded-xl border-none;
+  padding: 5px 11px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+}
+
+.arrow:hover {
+  background: var(--panel2);
+  color: var(--text);
 }
 
 .pagination {
-  @apply flex gap-2;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
 }

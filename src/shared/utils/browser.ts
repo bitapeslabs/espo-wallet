@@ -26,6 +26,10 @@ export async function browserStorageLocalGet<T>(val: any): Promise<T> {
   return (await browser.storage.local.get(val)) as T;
 }
 
+export async function browserStorageLocalClear() {
+  return await browser.storage.local.clear();
+}
+
 export async function browserStorageLocalSet(val: StorageInterface) {
   return await browser.storage.local.set(
     val as unknown as Record<string, unknown>

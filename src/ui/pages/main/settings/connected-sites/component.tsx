@@ -2,7 +2,7 @@ import type { ConnectedSite } from "@/background/services/permission";
 import { useControllersState } from "@/ui/states/controllerState";
 import { useEffect, useState } from "react";
 import s from "./styles.module.scss";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XIcon } from "@/ui/icons/phosphor";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
 
@@ -27,27 +27,36 @@ const ConnectedSites = () => {
   };
 
   return (
-    <>
+    <div className={s.wrapper}>
       {connectedSites.length > 0 ? (
-        <div className={s.sites}>
-          {connectedSites.map((f, i) => (
-            <div key={i} className={s.site}>
-              <img src={f.icon} className="rounded-full w-6" />
-              <p className="text-sm">{niceUrl(f.origin)}</p>
-              <XMarkIcon
-                className={s.icon}
-                onClick={() => {
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  removeSite(f.origin);
-                }}
-              />
-            </div>
-          ))}
+        <div className={`panel ${s.sitesPanel}`}>
+          <div className="svc-list">
+            {connectedSites.map((f, i) => (
+              <div key={i} className="svc-row">
+                <div className="svc-id">
+                  <div className="svc-name">
+                    <img src={f.icon} className={s.favicon} alt="" />
+                    <span>{niceUrl(f.origin)}</span>
+                  </div>
+                </div>
+                <button
+                  className={s.remove}
+                  type="button"
+                  onClick={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    removeSite(f.origin);
+                  }}
+                >
+                  <XIcon size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <p>{t("connected_sites.no_sites_message")}</p>
+        <p className={s.empty}>{t("connected_sites.no_sites_message")}</p>
       )}
-    </>
+    </div>
   );
 };
 

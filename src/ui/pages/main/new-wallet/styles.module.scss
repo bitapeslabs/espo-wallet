@@ -1,15 +1,15 @@
 .container {
-  @apply w-full h-full flex justify-center py-6;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
 }
 
 .choice {
-  @apply flex flex-col text-base w-full px-6 gap-3;
-
-  .choiceDiv {
-    @apply w-full flex justify-center flex-col items-center;
-
-    .variant {
-      @apply border-none transition-colors hover:bg-text hover:text-bg pl-5 py-4 cursor-pointer w-full;
-    }
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 0 16px;
 }

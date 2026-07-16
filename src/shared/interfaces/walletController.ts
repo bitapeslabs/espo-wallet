@@ -6,12 +6,13 @@ import type {
   IWallet,
   SaveWalletsPayload,
 } from "./wallets";
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 
 export interface IWalletController {
   createNewWallet(props: INewWalletProps): Promise<IWallet>;
   saveWallets(payload?: SaveWalletsPayload): Promise<void>;
   isVaultEmpty(): Promise<boolean>;
+  wipeWallet(): Promise<void>;
   importWallets(password: string): Promise<Omit<IPrivateWallet, "data">[]>;
   loadAccountsData(walletId: number, accounts: IAccount[]): Promise<IAccount[]>;
   createNewAccount(name?: string): Promise<IAccount | undefined>;

@@ -1,5 +1,5 @@
 import type { ConnectedSite } from "@/background/services/permission";
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 import type { EthereumProviderError } from "eth-rpc-errors";
 
 export interface INotificationController {

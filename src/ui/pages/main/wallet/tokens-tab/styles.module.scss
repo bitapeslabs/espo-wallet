@@ -1,0 +1,57 @@
+.clickable {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.clickable:hover {
+  transition: none;
+  filter: brightness(1.12);
+}
+
+.assetMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.assetName {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assetAmount {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.assetAmount :global(.alk-amt) {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.assetAmount :global(.alk-sym) {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.clickable :global(.alk-icon-wrap) {
+  width: 28px;
+  height: 28px;
+}
+
+.assetUsd {
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-left: auto;
+}

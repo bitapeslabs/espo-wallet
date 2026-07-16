@@ -1,21 +1,38 @@
 .receive {
-  @apply h-full pt-4 gap-6 flex flex-col justify-between;
-}
-
-.accTitle {
-  @apply text-lg mx-auto mb-3 text-center font-medium;
-}
-
-.copyButton {
-  svg {
-    @apply hidden;
-  }
+  width: 100%;
+  height: 100%;
+  padding: 0 16px 88px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .container {
-  @apply flex items-center flex-col gap-3 p-3 h-3/4 justify-center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 16px;
+}
 
-  @media screen and (min-width: 420px) {
-    @apply h-full;
-  }
+.qr {
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.qr svg {
+  display: block;
+  max-width: 100%;
+}
+
+.address {
+  width: 100%;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.copyButton svg {
+  display: none;
 }

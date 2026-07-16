@@ -7,13 +7,14 @@ import PushEventHandlers from "./pushEventHandlers";
 import ReadyPromise from "./readyPromise";
 import { $, domReadyCall } from "./utils";
 import type {
-  SendBEL,
+  CreateTxPayload,
+  IEspoProvider,
+  NetworkType,
   SignPsbtOptions,
-} from "@/background/services/keyring/types";
-import { INintondoProvider, NetworkType } from "nintondo-sdk";
+} from "@/shared/interfaces/providerApi";
 
 const script = document.currentScript;
-const channelName = script?.getAttribute("channel") || "NINTONDOWALLET";
+const channelName = script?.getAttribute("channel") || "ESPOWALLET";
 
 export interface Interceptor {
   onRequest?: (data: any) => any;
@@ -28,15 +29,12 @@ interface StateProvider {
   isPermanentlyDisconnected: boolean;
 }
 
-interface NintondoProviderProps {
+interface EspoProviderProps {
   maxListeners?: number;
   onInit?: () => void;
 }
 
-export class NintondoProvider
-  extends EventEmitter
-  implements INintondoProvider
-{
+export class EspoProvider extends EventEmitter implements IEspoProvider {
   _selectedAddress: string | null = null;
   _network: string | null = null;
   _isConnected = false;
@@ -56,7 +54,7 @@ export class NintondoProvider
 
   private _bcm = new BroadcastChannelMessage(channelName);
 
-  constructor({ maxListeners = 100, onInit }: NintondoProviderProps) {
+  constructor({ maxListeners = 100, onInit }: EspoProviderProps) {
     super();
     this.setMaxListeners(maxListeners);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -97,9 +95,8 @@ export class NintondoProvider
 
     try {
       const { network, accounts, isUnlocked }: any = await this._request({
-        // @ts-expect-error method is hidden
         method: "getProviderState",
-      });
+      } as any);
       if (isUnlocked) {
         this._isUnlocked = true;
         this._state.isUnlocked = true;
@@ -148,8 +145,8 @@ export class NintondoProvider
   };
 
   async _request<
-    K extends keyof INintondoProvider = keyof INintondoProvider,
-    T extends INintondoProvider[K] = INintondoProvider[K]
+    K extends keyof IEspoProvider = keyof IEspoProvider,
+    T extends IEspoProvider[K] = IEspoProvider[K]
   >(data: { method: K; params?: Parameters<T> }) {
     if (!data) {
       throw ethErrors.rpc.invalidRequest();
@@ -203,7 +200,7 @@ export class NintondoProvider
     });
   };
 
-  createTx = async (data: SendBEL) => {
+  createTx = async (data: CreateTxPayload) => {
     return this._request({
       method: "createTx",
       params: [data],
@@ -228,13 +225,6 @@ export class NintondoProvider
     return this._request({
       method: "signPsbt",
       params: [psbtBase64, options],
-    });
-  };
-
-  inscribeTransfer = async (tick: string) => {
-    return this._request({
-      method: "inscribeTransfer",
-      params: [tick],
     });
   };
 
@@ -269,18 +259,20 @@ export class NintondoProvider
 
 declare global {
   interface Window {
-    nintondo: INintondoProvider;
+    espo: IEspoProvider;
   }
 }
 
-const provider = new NintondoProvider({
-  onInit: () => {
-    Object.defineProperty(window, "nintondo", {
-      value: new Proxy(provider, {
-        deleteProperty: () => true,
-      }),
-      writable: false,
-    });
-    window.dispatchEvent(new Event("nintondo#initialized"));
-  },
-});
+export function initPageProvider() {
+  const provider = new EspoProvider({
+    onInit: () => {
+      Object.defineProperty(window, "espo", {
+        value: new Proxy(provider, {
+          deleteProperty: () => true,
+        }),
+        writable: false,
+      });
+      window.dispatchEvent(new Event("espo#initialized"));
+    },
+  });
+}

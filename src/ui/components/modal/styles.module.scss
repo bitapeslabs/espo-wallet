@@ -1,0 +1,106 @@
+.dialog {
+  position: relative;
+  z-index: 30;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.scroller {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+}
+
+.centerer {
+  display: flex;
+  min-height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+@media (min-width: 455px) {
+  .centerer {
+    align-items: center;
+  }
+}
+
+.panel {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  transform: translateZ(0);
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  /* app base color, no topographic pattern */
+  background: var(--panel3);
+  padding: 20px;
+  text-align: left;
+  vertical-align: middle;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 455px) {
+  .panel {
+    border-radius: var(--radius);
+  }
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 4px;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: transparent;
+  color: var(--danger);
+}
+
+/* transition hooks (headlessui applies these as classes) */
+.fadeEnter {
+  transition: opacity 0.2s ease-out;
+}
+.fadeLeave {
+  transition: opacity 0.15s ease-in;
+}
+.fadeFrom {
+  opacity: 0;
+}
+.fadeTo {
+  opacity: 1;
+}
+.slideEnter {
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+.slideLeave {
+  transition: transform 0.15s ease-in, opacity 0.15s ease-in;
+}
+.slideFrom {
+  opacity: 0;
+  transform: translateY(100%);
+}
+.slideTo {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -3,10 +3,8 @@ import { FC } from "react";
 import { IField } from "@/shared/interfaces/provider";
 import { t } from "i18next";
 import cn from "classnames";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useAppState } from "@/ui/states/appState";
-import { ss } from "@/ui/utils";
-import { getContentUrl } from "@/shared/constant";
+import { WarningIcon } from "@/ui/icons/phosphor";
+import s from "./styles.module.scss";
 
 interface SignPsbtFiledsProps {
   fields: IField[];
@@ -17,70 +15,37 @@ const SignPsbtFileds: FC<SignPsbtFiledsProps> = ({
   fields,
   setModalInputIndexHandler,
 }) => {
-  const { network } = useAppState(ss(["network"]));
-
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className={s.list}>
       {fields.map((f, i) => (
-        <div key={i}>
-          <label className="mb-2 flex text-gray-300 pl-2 justify-between">
-            <span>
-              {f.label}{" "}
-              {f.important && f.input ? (
-                <span className="text-light-orange border-2 rounded-lg border-light-orange p-1 ml-2">
-                  To sign
-                </span>
-              ) : undefined}
-            </span>
+        <div
+          key={i}
+          className={cn("review-card", { [s.important]: f.important })}
+        >
+          <div className={s.head}>
+            <span className="stat-label">{f.label}</span>
+            {f.important && f.input ? (
+              <span className={s.toSign}>{t("provider.to_sign")}</span>
+            ) : undefined}
             {f.value.anyonecanpay && f.important && (
-              <span>
-                <ExclamationTriangleIcon
-                  className="w-6 h-6 text-light-orange cursor-pointer"
-                  onClick={() => {
-                    setModalInputIndexHandler(i);
-                  }}
-                />
-              </span>
+              <WarningIcon
+                size={18}
+                className={s.warn}
+                onClick={() => {
+                  setModalInputIndexHandler(i);
+                }}
+              />
             )}
-          </label>
-          <div
-            className={cn(
-              "rounded-xl px-5 py-2 break-all w-full flex justify-center border-2 bg-input-bg",
-              {
-                "border-input-bg": true,
-              }
-            )}
-          >
-            {f.value.inscriptions !== undefined ? (
-              <div className="flex justify-center rounded-xl w-33 h-33 overflow-hidden">
-                {f.value.inscriptions.map((k, j) => (
-                  <div
-                    key={j}
-                    className="flex flex-col items-center justify-center p-2"
-                  >
-                    <img
-                      src={`${getContentUrl(network)}/preview/${k}`}
-                      className="object-cover w-full rounded-xl"
-                    />
-                    <p className="text-xs">
-                      {t("inscription_details.value") + ": "}
-                      {f.value.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div>
-                <p>
-                  {f.input ? "Utxo txid: " : t("provider.to_address") + ": "}
-                  {f.value.text}
-                </p>
-                <p>
-                  {t("inscription_details.value") + ": "}
-                  {f.value.value}
-                </p>
-              </div>
-            )}
+          </div>
+          <div className="stat-value">
+            <p>
+              {f.input ? t("provider.utxo_txid") : t("provider.to_address") + ": "}
+              {f.value.text}
+            </p>
+            <p>
+              {t("inscription_details.value") + ": "}
+              {f.value.value}
+            </p>
           </div>
         </div>
       ))}

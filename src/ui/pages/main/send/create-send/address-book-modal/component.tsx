@@ -1,7 +1,7 @@
 import { shortAddress } from "@/shared/utils/transactions";
 import Modal from "@/ui/components/modal";
 import { useAppState } from "@/ui/states/appState";
-import { MinusCircleIcon } from "@heroicons/react/24/outline";
+import { MinusCircleIcon } from "@/ui/icons/phosphor";
 import { FC } from "react";
 
 import s from "./styles.module.scss";
@@ -48,7 +48,7 @@ const AddressBookModal: FC<Props> = ({ isOpen, onClose, setAddress }) => {
               {shortAddress(i, 17)}
             </div>
             <div className={s.remove} onClick={() => onRemove(i)}>
-              <MinusCircleIcon className="w-5 h-5" />
+              <MinusCircleIcon size={20} />
             </div>
           </div>
         ))}

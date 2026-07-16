@@ -1,72 +1,70 @@
-# Nintondo Wallet
+# Espo Wallet
 
-Nintondo Wallet for Bells - A New Horizon for Your Crypto Adventures!
+A Bitcoin browser extension wallet with the espo / b8 look: dark panels, Inter,
+status dots, and the topographic waves background. Forked from the Nintondo
+(Bells) extension and converted to Bitcoin.
 
-🌿 Version 0.2.2 - Bringing the Charm of Animal Crossing to Cryptocurrency
+## Features
 
-## 🍃 Welcome to Nintondo Wallet! 🍃
+- Bitcoin mainnet and regtest, switchable in Settings > Wallet > Network
+- Esplora-compatible API backends: mainnet defaults to
+  `https://mempool.space/api`, regtest defaults to `http://localhost:3002`
+  (a Blockstream electrs esplora endpoint, e.g. the one a local
+  [b8](https://github.com/) stack runs). Both URLs are editable per network
+  in the network settings.
+- HD wallets (BIP39 mnemonic) and single private key (WIF/hex) imports
+- Native segwit (P2WPKH, default), legacy (P2PKH), and taproot (P2TR)
+  address types
+- Fees from mempool.space `fees/recommended` on mainnet; manual sat/vB
+  everywhere
+- dApp provider injected as `window.espo` (fires `espo#initialized`):
+  `connect`, `getAccount`, `getBalance`, `signMessage`, `signPsbt`,
+  `multiPsbtSign`, `createTx`, `switchNetwork`, `getNetwork`, and more
 
-We're thrilled to introduce Nintondo Wallet, your newest companion in the whimsical world of Bells cryptocurrency. Inspired by the beloved universe of Animal Crossing, our wallet is more than just a tool; it's a delightful journey into the heart of a community where fun meets finance.
+There is no migration from the Bells-era wallet: on first run any old
+storage is wiped and the wallet starts from onboarding.
 
-## 🌸 Key Features:
+## Development
 
-- Village Marketplace: Just like your favorite Animal Crossing marketplace, trade and manage your Bells with ease and charm.
-- Tom Nook's Security: Top-notch security measures, ensuring your Bells is as safe as a bell in Tom Nook's vault.
-- Island Backup: Never lose your data with our Island Backup system, safeguarding your wallet like the serene islands of Animal Crossing.
-- Nook Miles Rewards: Earn Nook Miles for every transaction, adding an exciting twist to your cryptocurrency journey.
-- Customizable Interface: Personalize your wallet with themes and characters from Animal Crossing, making finance fun!
-
-## 🍂 What's New in 0.2.2:
-
-- Launch of Nintondo Wallet: A fresh start with a familiar feel for all Bells enthusiasts and Animal Crossing fans.
-- Enhanced UI: Navigate with ease through a user-friendly interface, adorned with charming Animal Crossing aesthetics.
-- Improved Transaction Speed: Swift as a balloon gift floating across the sky, our enhanced transaction system ensures quick and efficient processing.
-- Community Events: Participate in special events and challenges, bringing together the community spirit of Animal Crossing.
-
-## 🌟 Join Our Community:
-
-Step into a world where your financial journey is intertwined with the charm and simplicity of Animal Crossing. Join our community, share tips, and make new friends, all while managing your Bells cryptocurrency. Let's create a community as heartwarming and supportive as the townsfolk of Animal Crossing!
-
-## 📥 Download Now:
-
-Ready to embark on this enchanting crypto adventure? Download Nintondo Wallet for Bells and turn your cryptocurrency experience into an idyllic escapade. Let's make our financial journey not just profitable, but also delightful!
-
-*Note: Nintondo Wallet is not affiliated with Nintendo or the Animal Crossing franchise. Bells is a meme cryptocurrency and should be enjoyed as part of a balanced financial portfolio.*
-
-Happy Bell Hunting! 🛎️
-
-
-## Testing
-
-##### Install bun.sh:
+The extension is built with [WXT](https://wxt.dev/).
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+bun i                  # install (runs `wxt prepare`)
+bun run dev            # dev server with hot reload (Chrome)
+bun run dev:firefox    # same, Firefox
 ```
 
-##### Install dependencies:
-```bash
-bun i
-```
+If the browser cannot be opened automatically (e.g. under WSL), load the
+`.output/chrome-mv3-dev` (or `.output/firefox-mv3-dev`) folder manually as
+described below.
 
-#### Chrome
+### Chrome
 
-1. Build extension using command
-```
-bun chrome
-```
+1. `bun run build`
 2. Go to extensions in your browser and click on "Manage Extensions"
 3. In top right corner activate "developer mode"
-4. In top left corner click on  "Load unpacked"
-5. Select `dist/chrome` folder from the project folder
+4. In top left corner click on "Load unpacked"
+5. Select the `.output/chrome-mv3` folder
 
-#### Firefox
+### Firefox
 
-1. Build extension using command
-```
-bun firefox
-```
+1. `bun run build:firefox`
 2. Go to `about:debugging#/runtime/this-firefox`
-3. Click on the button "Load temporary Add-on..."
-4. Select `dist/firefox` folder from the project folder
+3. Click "Load temporary Add-on..."
+4. Select the `.output/firefox-mv3` folder
 
+### Regtest against a local b8 stack
+
+1. Start the b8 regtest stack (bitcoind, electrs, metashrew, espo)
+2. In the wallet: Settings > Wallet > Network, switch to Regtest and set the
+   Electrs (esplora) URL to your electrs REST endpoint
+3. Fund the wallet from the b8 faucet
+
+### Other commands
+
+```bash
+bun run zip            # production build + store-ready zip (Chrome)
+bun run zip:firefox    # production build + zips + sources zip (Firefox)
+bun run release        # both of the above
+bun run compile        # TypeScript typecheck
+```

@@ -1,4 +1,4 @@
-import { TagIcon, KeyIcon } from "@heroicons/react/24/outline";
+import { TagIcon, KeyIcon } from "@/ui/icons/phosphor";
 import s from "./styles.module.scss";
 import { shortAddress } from "@/shared/utils/transactions";
 import cn from "classnames";
@@ -52,7 +52,7 @@ const SwitchAccount = () => {
 
   return (
     <div className={s.switchAccDiv}>
-      <div className={s.accounts}>
+      <div className={cn("panel", s.accounts)}>
         {currentWallet?.accounts.map((acc, i) => (
           <Card
             key={`account-${i}`}
@@ -63,8 +63,7 @@ const SwitchAccount = () => {
                   <CopyBtn
                     title={t("switch_account.copy_address")}
                     value={acc.address}
-                    className={cn(s.copy)}
-                    iconClassName="text-bg w-8 h-8"
+                    className={s.copy}
                   />
                 ),
               },
@@ -75,7 +74,7 @@ const SwitchAccount = () => {
                 icon: (
                   <TagIcon
                     title={t("switch_account.rename_account")}
-                    className="w-8 h-8 cursor-pointer text-bg"
+                    size={20}
                   />
                 ),
               },
@@ -86,7 +85,7 @@ const SwitchAccount = () => {
                 icon: (
                   <KeyIcon
                     title={t("switch_account.export_private_key")}
-                    className="w-8 h-8 cursor-pointer text-bg"
+                    size={20}
                   />
                 ),
               },

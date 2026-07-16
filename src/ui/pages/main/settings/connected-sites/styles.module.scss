@@ -1,15 +1,42 @@
-.sites {
-    @apply w-full h-full flex flex-col gap-4 py-4 items-center;
+.wrapper {
+  width: 100%;
+  padding: 0 16px 16px;
 }
 
-.site {
-    @apply bg-input-bg p-4 rounded-xl w-11/12 flex justify-between items-center;
+/* the panel holds bare svc-rows, so shrink its inner padding */
+.sitesPanel {
+  padding: 4px 6px;
 }
 
-.icon {
-    @apply w-5 h-5;
+.favicon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex: 0 0 20px;
+  object-fit: cover;
+}
 
-    &:hover {
-        @apply cursor-pointer;
-    }
+.remove {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: var(--radius);
+  color: var(--muted2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remove:hover {
+  background: var(--panel2);
+  color: var(--danger);
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 13.5px;
+  text-align: center;
+  padding: 24px 0;
 }

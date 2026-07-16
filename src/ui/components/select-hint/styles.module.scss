@@ -1,23 +1,81 @@
-.input {
-  &Box {
-    @apply relative w-full cursor-default overflow-hidden text-left shadow-md focus:outline-none sm:text-sm;
-  }
-
-  @apply w-full border border-transparent p-2 text-sm leading-5 bg-input-bg text-text rounded-lg;
-
-  &.error {
-    @apply border-red-600;
-  }
+.wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
 }
 
+.inputBox {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid transparent;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13.5px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--link-dark);
+}
+
+.input.error {
+  border-color: var(--danger);
+}
+
+/* b8 dropdown-panel look */
+.optionsBox {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 90px;
+  max-height: 200px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 5px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  outline: none;
+}
+
+.optionsBox:empty {
+  display: none;
+}
+
+/* b8 dropdown-item look */
 .options {
-  &Box {
-    @apply absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-bg py-0.5 text-base shadow-lg outline-none sm:text-sm z-10;
-  }
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13.5px;
+  cursor: pointer;
+  user-select: none;
+}
 
-  @apply relative cursor-default select-none p-2 text-text;
+.optionsActive {
+  background: var(--panel2);
+}
 
-  &Active {
-    @apply bg-input-bg text-white;
-  }
+.optionWord {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.optionSelected {
+  font-weight: 600;
 }

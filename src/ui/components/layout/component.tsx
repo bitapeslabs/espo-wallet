@@ -1,17 +1,13 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import s from "./styles.module.scss";
 import cn from "classnames";
-import {
-  ChevronLeftIcon,
-  PlusCircleIcon,
-  ArrowsUpDownIcon,
-} from "@heroicons/react/24/outline";
+import { CaretLeftBoldIcon, PlusCircleIcon } from "@/ui/icons/phosphor";
 import { useMemo } from "react";
 import { useGetCurrentAccount, useWalletState } from "@/ui/states/walletState";
 import { useControllersState } from "@/ui/states/controllerState";
 import { t } from "i18next";
-import SearchInscriptions from "../search-inscriptions";
 import { useCreateNewAccount } from "@/ui/hooks/wallet";
+import { useAppState } from "@/ui/states/appState";
 import toast from "react-hot-toast";
 import { ss } from "@/ui/utils";
 
@@ -32,6 +28,7 @@ export default function PagesLayout() {
   const currentRoute = useLocation();
   const navigate = useNavigate();
   const { wallets } = useWalletState(ss(["wallets"]));
+  const { updateAppState } = useAppState(ss(["updateAppState"]));
   const createNewAccount = useCreateNewAccount();
   const currentAccount = useGetCurrentAccount();
 
@@ -69,7 +66,7 @@ export default function PagesLayout() {
           route: "/pages/switch-wallet",
           title: t("components.layout.switch_wallet"),
           action: {
-            icon: <PlusCircleIcon className="w-8 h-8" />,
+            icon: <PlusCircleIcon size={22} />,
             link: "/pages/create-new-wallet",
           },
         },
@@ -143,7 +140,18 @@ export default function PagesLayout() {
         {
           route: "/pages/create-new-wallet",
           title: t("components.layout.create_new_wallet"),
-          disableBack: wallets.length <= 0,
+          // during first onboarding there is no wallet yet: back returns to
+          // the create-password screen (the password only persists once the
+          // first wallet is saved)
+          backAction:
+            wallets.length <= 0
+              ? async () => {
+                  await updateAppState({
+                    password: undefined,
+                    isUnlocked: false,
+                  });
+                }
+              : undefined,
         },
         {
           route: "/pages/new-mnemonic",
@@ -176,7 +184,8 @@ export default function PagesLayout() {
           action: {
             icon: (
               <PlusCircleIcon
-                className="w-8 h-8 cursor-pointer"
+                size={22}
+                style={{ cursor: "pointer" }}
                 onClick={async () => {
                   navigate("/");
                   await createNewAccount();
@@ -187,29 +196,8 @@ export default function PagesLayout() {
           },
         },
         {
-          route: /\/pages\/(inscriptions|bel-20)/,
-          title: (
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => {
-                if (currentRoute.pathname === "/pages/inscriptions") {
-                  navigate("/pages/bel-20");
-                } else {
-                  navigate("/pages/inscriptions");
-                }
-              }}
-            >
-              <span>
-                {currentRoute.pathname === "/pages/inscriptions"
-                  ? "Inscriptions"
-                  : "BEL-20"}
-              </span>
-              <ArrowsUpDownIcon className="w-4 h-4" />
-            </div>
-          ),
-          action: {
-            icon: <SearchInscriptions />,
-          },
+          route: /\/pages\/inscriptions/,
+          title: t("components.layout.assets"),
           backAction: () => {
             navigate("/home");
           },
@@ -222,6 +210,7 @@ export default function PagesLayout() {
       wallets.length,
       defaultTitles,
       createNewAccount,
+      updateAppState,
     ]
   );
 
@@ -248,14 +237,14 @@ export default function PagesLayout() {
         <div className={s.header}>
           {!currentRouteTitle?.disableBack ? (
             <div
-              className={cn(s.controlElem, s.back)}
+              className="header-icon-btn"
               onClick={() => {
                 if (currentRouteTitle?.backAction)
                   currentRouteTitle.backAction();
                 else navigate(-1);
               }}
             >
-              <ChevronLeftIcon className="w-6 h-6" />
+              <CaretLeftBoldIcon size={18} />
             </div>
           ) : undefined}
 

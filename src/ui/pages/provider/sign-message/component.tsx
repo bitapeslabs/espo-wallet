@@ -1,10 +1,10 @@
 import { useControllersState } from "@/ui/states/controllerState";
 import { useEffect, useState } from "react";
 
-import { KeyIcon } from "@heroicons/react/24/outline";
 import Layout from "../layout";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
+import s from "./styles.module.scss";
 
 const SignMessage = () => {
   const [message, setMessage] = useState<string>();
@@ -28,21 +28,14 @@ const SignMessage = () => {
   return (
     <Layout
       documentTitle={t("provider.sign_request")}
-      resolveBtnClassName="bg-text text-bg hover:bg-orange-500 hover:text-bg"
+      resolveBtnClassName="btn primary"
       resolveBtnText={t("provider.sign")}
     >
-      <>
-        <KeyIcon className="w-10 h-10 text-orange-500" />
-        <h4 className="text-xl font-medium">{t("provider.sign_request")}</h4>
-        <div className="text-sm text-gray-400">
-          {t("provider.you_are_signing")}
-        </div>
-        <div className="p-2 bg-input-bg rounded-xl max-h-full w-full">
-          <div className="break-words whitespace-pre-wrap max-h-60 overflow-y-auto px-1 text-base">
-            {message}
-          </div>
-        </div>
-      </>
+      <div className="panel">
+        <div className="panel-head">{t("provider.sign_request")}</div>
+        <div className="panel-sub">{t("provider.you_are_signing")}</div>
+        <div className={s.message}>{message}</div>
+      </div>
     </Layout>
   );
 };

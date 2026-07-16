@@ -1,22 +1,26 @@
 import type {
+  AccountBalanceResponse,
   ApiUTXO,
   IAccountStats,
   ITransaction,
 } from "@/shared/interfaces/api";
-import {
-  ContentDetailedInscription,
-  ContentInscriptionResopnse,
-  FindInscriptionsByOutpointResponseItem,
-} from "@/shared/interfaces/inscriptions";
-import { IToken } from "@/shared/interfaces/token";
 import { customFetch, fetchProps } from "@/shared/utils";
 import { storageService } from "../services";
 import { DEFAULT_FEES } from "@/shared/constant";
 import { isValidTXID } from "@/ui/utils";
+import { networkInfo, networkSlug } from "@/shared/networks";
 
 export interface UtxoQueryParams {
   hex?: boolean;
   amount?: number;
+}
+
+interface MempoolFeesRecommended {
+  fastestFee: number;
+  halfHourFee: number;
+  hourFee: number;
+  economyFee: number;
+  minimumFee: number;
 }
 
 export interface IApiController {
@@ -30,44 +34,40 @@ export interface IApiController {
     address: string,
     txid: string
   ): Promise<ITransaction[] | undefined>;
-  getBELPrice(): Promise<{ bellscoin?: { usd: number } } | undefined>;
-  getLastBlockBEL(): Promise<number | undefined>;
+  getBTCPrice(): Promise<number | undefined>;
+  getLastBlock(): Promise<number | undefined>;
   getFees(): Promise<{ fast: number; slow: number } | undefined>;
   getAccountStats(address: string): Promise<IAccountStats | undefined>;
-  getTokens(address: string): Promise<IToken[] | undefined>;
   getTransactionHex(txid: string): Promise<string | undefined>;
   getTransaction(txid: string): Promise<ITransaction | undefined>;
   getUtxoValues(outpoints: string[]): Promise<number[] | undefined>;
-  getContentPaginatedInscriptions(
-    address: string,
-    page: number
-  ): Promise<ContentInscriptionResopnse | undefined>;
-  searchContentInscriptionByInscriptionId(
-    inscriptionId: string
-  ): Promise<ContentDetailedInscription | undefined>;
-  searchContentInscriptionByInscriptionNumber(
-    address: string,
-    number: number
-  ): Promise<ContentInscriptionResopnse | undefined>;
-  getLocationByInscriptionId(
-    inscriptionId: string
-  ): Promise<{ location: string; owner: string } | undefined>;
-  findInscriptionsByOutpoint(data: {
-    outpoint: string;
-    address: string;
-  }): Promise<FindInscriptionsByOutpointResponseItem[] | undefined>;
 }
 
 type FetchType = <T>(
-  props: Omit<fetchProps, "network">
+  props: Omit<fetchProps, "baseUrl">
 ) => Promise<T | undefined>;
 
 class ApiController implements IApiController {
-  private fetch: FetchType = async (p: Omit<fetchProps, "network">) => {
+  /** The active network's esplora base URL: the user's override or default */
+  private get baseUrl(): string {
+    const network = storageService.appState.network;
+    const slug = networkSlug(network);
+    const override = storageService.appState.esploraUrl?.[slug];
+    if (override && override.trim().length) {
+      return override.trim().replace(/\/+$/, "");
+    }
+    return networkInfo(network).esploraUrl;
+  }
+
+  private get isMainnet(): boolean {
+    return networkSlug(storageService.appState.network) === "mainnet";
+  }
+
+  private fetch: FetchType = async (p: Omit<fetchProps, "baseUrl">) => {
     try {
       return await customFetch({
         ...p,
-        network: storageService.appState.network,
+        baseUrl: this.baseUrl,
       });
     } catch {
       return;
@@ -77,26 +77,56 @@ class ApiController implements IApiController {
   async getUtxos(address: string, params?: UtxoQueryParams) {
     const data = await this.fetch<ApiUTXO[]>({
       path: `/address/${address}/utxo`,
-      params: params as Record<string, string>,
-      service: "electrs",
     });
-    if (Array.isArray(data)) {
-      return data;
+    if (!Array.isArray(data)) return;
+
+    // esplora returns every utxo; emulate the old server-side selection by
+    // greedily picking the largest utxos until the requested amount is covered
+    let utxos = data.sort((a, b) => b.value - a.value);
+    if (params?.amount !== undefined) {
+      const selected: ApiUTXO[] = [];
+      let sum = 0;
+      for (const utxo of utxos) {
+        selected.push(utxo);
+        sum += utxo.value;
+        if (sum >= params.amount) break;
+      }
+      utxos = selected;
     }
+
+    if (params?.hex) {
+      await Promise.all(
+        utxos.map(async (utxo) => {
+          utxo.hex = await this.getTransactionHex(utxo.txid);
+        })
+      );
+    }
+
+    return utxos;
   }
 
   async getFees() {
+    if (this.isMainnet) {
+      const data = await this.fetch<MempoolFeesRecommended>({
+        path: "/v1/fees/recommended",
+      });
+      if (data) {
+        return {
+          fast: data.fastestFee,
+          slow: data.hourFee,
+        };
+      }
+    }
     const data = await this.fetch<Record<string, number>>({
       path: "/fee-estimates",
-      service: "electrs",
     });
-    if (data) {
+    if (data && "2" in data && "6" in data) {
       return {
-        slow: "6" in data ? Number(data["6"].toFixed(0)) : DEFAULT_FEES.slow,
-        fast:
-          "2" in data ? Number(data["2"].toFixed(0)) + 1 : DEFAULT_FEES.fast,
+        slow: Math.max(Number(data["6"].toFixed(0)), 1),
+        fast: Math.max(Number(data["2"].toFixed(0)), 1),
       };
     }
+    return DEFAULT_FEES;
   }
 
   async pushTx(rawTx: string) {
@@ -108,7 +138,6 @@ class ApiController implements IApiController {
       },
       json: false,
       body: rawTx,
-      service: "electrs",
     });
     if (isValidTXID(data) && data) {
       return {
@@ -124,7 +153,6 @@ class ApiController implements IApiController {
   async getTransactions(address: string): Promise<ITransaction[] | undefined> {
     return await this.fetch<ITransaction[]>({
       path: `/address/${address}/txs`,
-      service: "electrs",
     });
   }
 
@@ -135,60 +163,63 @@ class ApiController implements IApiController {
     try {
       return await this.fetch<ITransaction[]>({
         path: `/address/${address}/txs/chain/${txid}`,
-        service: "electrs",
       });
-    } catch (e) {
+    } catch {
       return undefined;
     }
   }
 
-  async getLastBlockBEL() {
+  async getLastBlock() {
     const data = await this.fetch<string>({
       path: "/blocks/tip/height",
-      service: "electrs",
+      json: false,
     });
     if (data) {
       return Number(data);
     }
   }
 
-  async getBELPrice() {
-    const data = await this.fetch<{ price_usd: number }>({
-      path: "/last-price",
-      service: "electrs",
-    });
-    if (!data) {
+  async getBTCPrice(): Promise<number | undefined> {
+    // always the real BTC price from mempool.space; regtest coins are
+    // valued the same as mainnet BTC
+    try {
+      const data = await customFetch<{ USD: number }>({
+        path: "/v1/prices",
+        baseUrl: "https://mempool.space/api",
+      });
+      if (!data || typeof data.USD !== "number") return undefined;
+      return data.USD;
+    } catch {
       return undefined;
     }
-    return {
-      bellscoin: {
-        usd: data.price_usd,
-      },
-    };
   }
 
   async getAccountStats(address: string): Promise<IAccountStats | undefined> {
     try {
-      return await this.fetch({
-        path: `/address/${address}/stats`,
-        service: "electrs",
+      const data = await this.fetch<AccountBalanceResponse>({
+        path: `/address/${address}`,
       });
+      if (!data) return { amount: 0, count: 0, balance: 0 };
+      const chain = data.chain_stats;
+      const mempool = data.mempool_stats;
+      const balance =
+        chain.funded_txo_sum -
+        chain.spent_txo_sum +
+        mempool.funded_txo_sum -
+        mempool.spent_txo_sum;
+      return {
+        balance,
+        amount: 0,
+        count: chain.tx_count + mempool.tx_count,
+      };
     } catch {
       return { amount: 0, count: 0, balance: 0 };
     }
   }
 
-  async getTokens(address: string): Promise<IToken[] | undefined> {
-    return await this.fetch<IToken[]>({
-      path: `/address/${address}/tokens`,
-      service: "electrs",
-    });
-  }
-
   async getTransaction(txid: string) {
     return await this.fetch<ITransaction>({
       path: "/tx/" + txid,
-      service: "electrs",
     });
   }
 
@@ -196,62 +227,25 @@ class ApiController implements IApiController {
     return await this.fetch<string>({
       path: "/tx/" + txid + "/hex",
       json: false,
-      service: "electrs",
     });
   }
 
   async getUtxoValues(outpoints: string[]) {
-    const result = await this.fetch<{ values: number[] }>({
-      path: "/prev",
-      body: JSON.stringify({ locations: outpoints }),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      service: "electrs",
-    });
-    return result?.values;
-  }
+    // esplora has no batch endpoint; look prev-tx outputs up one by one,
+    // deduplicating txids
+    const txids = [...new Set(outpoints.map((o) => o.split(":")[0]))];
+    const txs = await Promise.all(txids.map((txid) => this.getTransaction(txid)));
+    const byTxid = new Map(txids.map((txid, i) => [txid, txs[i]]));
 
-  async getContentPaginatedInscriptions(address: string, page: number) {
-    return await this.fetch<ContentInscriptionResopnse>({
-      path: `/search?account=${address}&page_size=6&page=${page}`,
-      service: "content",
+    const values = outpoints.map((outpoint) => {
+      const [txid, voutStr] = outpoint.split(":");
+      const tx = byTxid.get(txid);
+      if (!tx) return undefined;
+      return tx.vout[Number(voutStr)]?.value;
     });
-  }
 
-  async searchContentInscriptionByInscriptionId(inscriptionId: string) {
-    return await this.fetch<ContentDetailedInscription>({
-      path: `/${inscriptionId}/info`,
-      service: "content",
-    });
-  }
-
-  async searchContentInscriptionByInscriptionNumber(
-    address: string,
-    number: number
-  ) {
-    return await this.fetch<ContentInscriptionResopnse>({
-      path: `/search?account=${address}&page_size=6&page=1&from=${number}&to=${number}`,
-      service: "content",
-    });
-  }
-
-  async getLocationByInscriptionId(inscriptionId: string) {
-    return await this.fetch<{ location: string; owner: string }>({
-      path: `/location/${inscriptionId}`,
-      service: "electrs",
-    });
-  }
-
-  async findInscriptionsByOutpoint(data: {
-    outpoint: string;
-    address: string;
-  }) {
-    return await this.fetch<FindInscriptionsByOutpointResponseItem[]>({
-      path: `/find_meta/${data.outpoint}?address=${data.address}`,
-      service: "electrs",
-    });
+    if (values.some((v) => v === undefined)) return undefined;
+    return values as number[];
   }
 }
 

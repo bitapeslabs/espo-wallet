@@ -1,9 +1,18 @@
 {
   "wallet_page": {
     "transactions": "거래",
-    "no_transactions": "거래 없음",
+    "no_transactions": "아직 거래가 없습니다",
     "receive": "받기",
-    "send": "보내기"
+    "send": "보내기",
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed",
+    "root_account": "Root account",
+    "activity": "활동",
+    "alkanes": "Alkanes",
+    "no_alkanes": "아직 alkanes가 없습니다",
+    "tokens": "토큰",
+    "collectibles": "수집품",
+    "bitcoin": "비트코인"
   },
   "settings": {
     "language": "언어",
@@ -11,7 +20,8 @@
     "connected_sites": "연결된 사이트",
     "expand_view": "보기 확대",
     "change_password": "비밀번호 변경",
-    "address_type": "주소 유형"
+    "address_type": "주소 유형",
+    "wallets": "지갑"
   },
   "components": {
     "layout": {
@@ -23,14 +33,16 @@
       "change_address_type": "주소 유형 변경",
       "create_new_account": "새 계정 생성",
       "change_password": "비밀번호 변경",
-      "receive_bel": "BEL 받기",
+      "receive_bel": "BTC 받기",
       "switch_wallet": "지갑 전환",
       "transaction_info": "거래 정보",
       "settings": "설정",
       "show_mnemonic": "니모닉 표시",
       "show_private_key": "비밀 키 표시",
       "restore_from_mnemonic": "니모닉에서 복원",
-      "restore_from_private_key": "개인 키에서 복원"
+      "restore_from_private_key": "개인 키에서 복원",
+      "assets": "Assets",
+      "confirmation": "확인"
     },
     "check_password": {
       "incorrect_password_error": "잘못된 비밀번호",
@@ -50,6 +62,22 @@
     },
     "card": {
       "close": "닫기"
+    },
+    "token_card": {
+      "transfers": "전송"
+    },
+    "breadcrumbs": {
+      "password": "비밀번호",
+      "recovery_phrase": "복구 문구",
+      "import_phrase": "문구 가져오기",
+      "private_key": "개인 키",
+      "preferences": "설정"
+    },
+    "password_strength": {
+      "too_weak": "너무 약함",
+      "weak": "약함",
+      "good": "좋음",
+      "strong": "강함"
     }
   },
   "change_password": {
@@ -64,11 +92,16 @@
   "create_password": {
     "password": "비밀번호",
     "confirm_password": "비밀번호 확인",
-    "create_password": "비밀번호 생성"
+    "create_password": "비밀번호 생성",
+    "passwords_mismatch": "Passwords do not match"
   },
   "login": {
     "password": "비밀번호",
-    "login": "로그인"
+    "login": "로그인",
+    "welcome_back": "다시 오신 것을 환영합니다",
+    "enter_password": "비밀번호를 입력하세요",
+    "unlock": "잠금 해제",
+    "forgot_password": "비밀번호를 잊으셨나요"
   },
   "new_account": {
     "max_length_error": "이름의 최대 길이는 10입니다",
@@ -86,7 +119,7 @@
     "continue": "계속",
     "new_mnemonic": {
       "error_phrase_blank": "니모닉 구절이 비어있습니다",
-      "warning": "이 단어를 잃어버리면 계정을 복구할 수 없습니다",
+      "warning": "안전하게 보관하세요. 이 단어들을 잃어버리면 계정을 영원히 복구할 수 없습니다.",
       "i_saved_this_phrase": "이 구절을 저장했습니다",
       "copy": "복사"
     },
@@ -98,7 +131,8 @@
       "private_key": "비밀 키",
       "recover": "복구",
       "invalid_private_key_error": "유효하지 않은 비밀 키"
-    }
+    },
+    "import_wallet_label": "Import wallet"
   },
   "receive": {
     "click_to_copy": "클릭하여 복사",
@@ -115,7 +149,7 @@
       "confirm": "확인"
     },
     "create_send": {
-      "minimum_amount_error": "최소 금액은 0.00001 BEL입니다",
+      "minimum_amount_error": "최소 금액은 0.00001 BTC입니다",
       "address_error": "수신자의 주소 입력",
       "not_enough_money_error": "계정에 잔액이 부족합니다",
       "not_enough_fee_error": "수수료를 늘려주세요",
@@ -165,7 +199,10 @@
     "are_you_sure": "정말로 삭제하시겠습니까?",
     "yes": "예",
     "no": "아니오",
-    "copy": "복사"
+    "copy": "복사",
+    "title": "지갑 관리",
+    "add_wallet": "지갑 추가",
+    "add_account": "계정 추가"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -181,11 +218,42 @@
   "hooks": {
     "transaction": {
       "insufficient_balance_0": "잔액이 부족합니다. 비등기 잔액",
-      "insufficient_balance_1": "BEL)는 다음보다 낮습니다",
-      "insufficient_balance_2": "BEL"
+      "insufficient_balance_1": "BTC)는 다음보다 낮습니다",
+      "insufficient_balance_2": "BTC"
     },
     "wallet": {
       "last_wallet_error": "마지막 지갑을 삭제할 수 없습니다"
     }
+  },
+  "network_settings": {
+    "esplora_url": "Electrs (esplora) URL",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "welcome": {
+    "tagline": "당신의 비트코인에 생명을."
+  },
+  "provider": {
+    "to_sign": "서명 대상",
+    "utxo_txid": "UTXO 거래 ID: "
+  },
+  "nav": {
+    "home": "홈",
+    "swap": "스왑",
+    "activity": "활동",
+    "search": "검색"
+  },
+  "forgot": {
+    "description": "비밀번호를 재설정하려면 지갑을 초기화해야 합니다. Espo Wallet은 비밀번호를 복구할 수 없습니다.",
+    "wipe_wallet": "지갑 초기화",
+    "type_confirm": "계속하려면 CONFIRM을 입력하세요",
+    "wipe_warning": "이 작업은 기기에서 이 지갑을 영구적으로 삭제합니다. 복구 문구로만 복원할 수 있습니다. 저장해 두지 않았다면 자금을 영원히 잃게 됩니다."
+  },
+  "edit_wallet": {
+    "title": "지갑 편집",
+    "wallet_name": "지갑 이름",
+    "address_type": "주소 유형",
+    "show_mnemonic": "니모닉 보기",
+    "advanced": "고급"
   }
 }

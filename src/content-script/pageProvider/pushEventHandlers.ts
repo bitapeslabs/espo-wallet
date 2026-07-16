@@ -1,11 +1,11 @@
 import { ethErrors } from "eth-rpc-errors";
 
-import type { NintondoProvider } from "./index";
+import type { EspoProvider } from "./index";
 
 class PushEventHandlers {
-  provider: NintondoProvider;
+  provider: EspoProvider;
 
-  constructor(provider: NintondoProvider) {
+  constructor(provider: EspoProvider) {
     this.provider = provider;
   }
 

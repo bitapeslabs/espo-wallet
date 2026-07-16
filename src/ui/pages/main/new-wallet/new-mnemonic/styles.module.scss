@@ -1,48 +1,96 @@
 .newMnemonic {
-  @apply w-full h-full flex flex-col items-center gap-4 standard:gap-8 text-base;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0 76px;
 }
 
-.phrase {
-  @apply grid grid-cols-3 text-sm gap-x-2 gap-y-6;
-}
-
-.stepTitle {
-  @apply flex justify-between w-1/2;
-}
-
-.active {
-  @apply text-orange-600 font-medium;
-}
-
-.word {
-  @apply flex justify-between items-center gap-2;
-
-  .wordWord {
-    @apply bg-input-bg rounded-lg flex justify-center w-full py-2;
+@media (min-width: 455px) {
+  .newMnemonic {
+    padding-bottom: 16px;
   }
 }
 
-.savePhrase,
-.saveToClipboard {
-  @apply flex items-center w-full justify-center cursor-pointer select-none;
+.stepTitle {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
 }
 
-.warning {
-  @apply w-full flex justify-center text-red-400 text-opacity-70 mb-5 text-sm text-center;
+.stepTitle p {
+  color: var(--muted2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stepTitle p.active {
+  color: var(--text);
 }
 
 .step {
-  @apply h-full flex flex-col justify-between w-full;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.savePhraseWrapper {
-  @apply flex flex-col gap-7 mt-6;
+.stepBody {
+  width: 100%;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.warning {
+  margin-top: 0;
+  text-align: center;
+  border: none;
+}
+
+/* 12 words, three per row */
+.phrase {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.word {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  min-width: 0;
+}
+
+.wordNum {
+  color: var(--muted2);
+  font-size: 11.5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.wordText {
+  font-weight: 650;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .savePhrase {
-  @apply flex items-center gap-4;
+  justify-content: center;
+  margin: 2px auto 0;
 }
 
-.wordIndex {
-  @apply w-4 text-end;
+.crumbs {
+  margin: 12px 0 14px !important;
 }

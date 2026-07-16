@@ -1,6 +1,5 @@
 import type { ApiUTXO } from "@/shared/interfaces/api";
-import { ApiOrdUTXO } from "@/shared/interfaces/inscriptions";
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 
 export type Json = any;
 export type Hex = string;
@@ -20,12 +19,8 @@ interface SendBase {
   network: Network;
 }
 
-export interface SendBEL extends SendBase {
+export interface SendBTC extends SendBase {
   utxos: ApiUTXO[];
-}
-
-export interface SendOrd extends SendBase {
-  utxos: ((ApiOrdUTXO & { isOrd?: boolean }) | ApiUTXO)[];
 }
 
 interface BaseUserToSignInput {

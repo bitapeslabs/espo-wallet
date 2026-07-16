@@ -1,9 +1,18 @@
 {
   "wallet_page": {
     "transactions": "交易",
-    "no_transactions": "没有交易",
+    "no_transactions": "暂无交易",
     "receive": "接收",
-    "send": "发送"
+    "send": "发送",
+    "confirmed": "已确认",
+    "unconfirmed": "未确认",
+    "root_account": "根账户",
+    "activity": "活动",
+    "alkanes": "Alkanes",
+    "no_alkanes": "暂无 Alkanes 资产",
+    "tokens": "代币",
+    "collectibles": "收藏品",
+    "bitcoin": "比特币"
   },
   "settings": {
     "language": "语言",
@@ -11,7 +20,8 @@
     "connected_sites": "已连接的网站",
     "expand_view": "扩大视图",
     "change_password": "更改密码",
-    "address_type": "地址类型"
+    "address_type": "地址类型",
+    "wallets": "钱包"
   },
   "components": {
     "layout": {
@@ -23,14 +33,16 @@
       "change_address_type": "更改地址类型",
       "create_new_account": "创建新的账户",
       "change_password": "更改密码",
-      "receive_bel": "接收 BEL",
+      "receive_bel": "接收 BTC",
       "switch_wallet": "切换钱包",
       "transaction_info": "交易信息",
       "settings": "设置",
       "show_mnemonic": "显示助记词",
       "show_private_key": "显示私钥",
       "restore_from_mnemonic": "从助记词恢复",
-      "restore_from_private_key": "从私钥恢复"
+      "restore_from_private_key": "从私钥恢复",
+      "assets": "资产",
+      "confirmation": "确认"
     },
     "check_password": {
       "incorrect_password_error": "密码错误",
@@ -50,6 +62,22 @@
     },
     "card": {
       "close": "关闭"
+    },
+    "token_card": {
+      "transfers": "转账"
+    },
+    "breadcrumbs": {
+      "password": "密码",
+      "recovery_phrase": "助记词",
+      "import_phrase": "导入助记词",
+      "private_key": "私钥",
+      "preferences": "偏好设置"
+    },
+    "password_strength": {
+      "too_weak": "太弱",
+      "weak": "较弱",
+      "good": "良好",
+      "strong": "强"
     }
   },
   "change_password": {
@@ -64,11 +92,16 @@
   "create_password": {
     "password": "密码",
     "confirm_password": "确认密码",
-    "create_password": "创建密码"
+    "create_password": "创建密码",
+    "passwords_mismatch": "两次输入的密码不一致"
   },
   "login": {
     "password": "密码",
-    "login": "登录"
+    "login": "登录",
+    "welcome_back": "欢迎回来",
+    "enter_password": "输入您的密码",
+    "unlock": "解锁",
+    "forgot_password": "忘记密码"
   },
   "new_account": {
     "max_length_error": "名称的最大长度 - 10",
@@ -78,15 +111,15 @@
     "create_new_account": "创建新的账户"
   },
   "new_wallet": {
-    "new_mnemonic_label": "新的助记词",
-    "restore_mnemonic_label": "恢复助记词",
-    "restore_from_private_key_label": "通过私钥恢复",
+    "new_mnemonic_label": "创建新钱包",
+    "restore_mnemonic_label": "从助记词恢复",
+    "restore_from_private_key_label": "从私钥恢复",
     "step_1": "步骤 1",
     "step_2": "步骤 2",
     "continue": "继续",
     "new_mnemonic": {
       "error_phrase_blank": "助记词为空",
-      "warning": "如果你丢失了这些单词，你将无法恢复你的账户",
+      "warning": "请妥善保管。如果丢失这些助记词，您将永远无法恢复您的账户。",
       "i_saved_this_phrase": "我已保存这个短语",
       "copy": "复制"
     },
@@ -98,7 +131,8 @@
       "private_key": "私密钥",
       "recover": "恢复",
       "invalid_private_key_error": "私钥错误"
-    }
+    },
+    "import_wallet_label": "导入钱包"
   },
   "receive": {
     "click_to_copy": "点击复制",
@@ -115,7 +149,7 @@
       "confirm": "确认"
     },
     "create_send": {
-      "minimum_amount_error": "最小金额 - 0.00001 BEL",
+      "minimum_amount_error": "最小金额 - 0.00001 BTC",
       "address_error": "请输入收件人地址",
       "not_enough_money_error": "你的账户资金不足",
       "not_enough_fee_error": "请提升费用",
@@ -165,10 +199,13 @@
     "are_you_sure": "你确定吗?",
     "yes": "是",
     "no": "否",
-    "copy": "复制"
+    "copy": "复制",
+    "title": "管理钱包",
+    "add_wallet": "添加钱包",
+    "add_account": "添加账户"
   },
   "transaction_info": {
-    "txid": "TxId",
+    "txid": "交易 ID",
     "confirmations_label": "确认：",
     "fee_label": "费用：",
     "value_label": "价值：",
@@ -181,11 +218,42 @@
   "hooks": {
     "transaction": {
       "insufficient_balance_0": "余额不足. 非注册余额",
-      "insufficient_balance_1": "BEL) 小于",
-      "insufficient_balance_2": "BEL"
+      "insufficient_balance_1": "BTC) 小于",
+      "insufficient_balance_2": "BTC"
     },
     "wallet": {
       "last_wallet_error": "你不能删除你的最后一个钱包"
     }
+  },
+  "network_settings": {
+    "esplora_url": "Electrs (esplora) 地址",
+    "save": "保存",
+    "saved": "已保存"
+  },
+  "welcome": {
+    "tagline": "赋予你的比特币生命。"
+  },
+  "provider": {
+    "to_sign": "待签名",
+    "utxo_txid": "UTXO 交易 ID："
+  },
+  "nav": {
+    "home": "首页",
+    "swap": "兑换",
+    "activity": "活动",
+    "search": "搜索"
+  },
+  "forgot": {
+    "description": "要重置密码，您需要清除您的钱包。Espo Wallet 无法为您找回密码。",
+    "wipe_wallet": "清除钱包",
+    "type_confirm": "输入 CONFIRM 以继续",
+    "wipe_warning": "此操作将从您的设备中永久删除此钱包。您只能使用助记词恢复它。如果您没有保存助记词，您的资金将永远丢失。"
+  },
+  "edit_wallet": {
+    "title": "编辑钱包",
+    "wallet_name": "钱包名称",
+    "address_type": "地址类型",
+    "show_mnemonic": "显示助记词",
+    "advanced": "高级"
   }
 }

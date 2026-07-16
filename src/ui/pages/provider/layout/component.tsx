@@ -20,6 +20,7 @@ const Layout: FC<Props> = ({
 }) => {
   const [origin, setOrigin] = useState<string>("");
   const [iconUrl, setIconUrl] = useState<string>("");
+  const [siteName, setSiteName] = useState<string>("");
 
   const { notificationController } = useControllersState(
     ss(["notificationController"])
@@ -36,12 +37,13 @@ const Layout: FC<Props> = ({
       }
       setOrigin(approval.params.session.origin);
       setIconUrl(approval.params.session.icon);
+      setSiteName(approval.params.session.name);
     })();
   }, [documentTitle, notificationController]);
 
   if (!origin) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className={s.loader}>
         <TailSpin className="animate-spin" />
       </div>
     );
@@ -57,17 +59,20 @@ const Layout: FC<Props> = ({
 
   return (
     <div className={s.container}>
-      <div className={s.originWrapper}>
-        <img src={iconUrl} className="w-6 h-6 rounded-xl" alt="icon" />
-        <span>{origin}</span>
+      <div className={s.siteCard}>
+        {iconUrl ? (
+          <img src={iconUrl} className={s.siteIcon} alt="" />
+        ) : undefined}
+        {siteName ? <div className={s.siteName}>{siteName}</div> : undefined}
+        <div className={s.siteOrigin}>{origin}</div>
       </div>
       <div className={s.content}>{children}</div>
-      <div className={s.btnContainer}>
+      <div className={s.actions}>
+        <button className="btn ghost" onClick={onReject}>
+          {t("provider.reject")}
+        </button>
         <button className={resolveBtnClassName} onClick={onResolve}>
           {resolveBtnText ?? t("provider.resolve")}
-        </button>
-        <button className={s.reject} onClick={onReject}>
-          {t("provider.reject")}
         </button>
       </div>
     </div>

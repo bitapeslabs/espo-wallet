@@ -1,7 +1,103 @@
-.form {
-  @apply w-full flex flex-col gap-8 px-6;
+.wrap {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 24px 24px;
+  /* same vignette as the welcome screen */
+  background: radial-gradient(
+    ellipse 130% 100% at 50% 40%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.03) 30%,
+    rgba(0, 0, 0, 0.09) 45%,
+    rgba(0, 0, 0, 0.17) 58%,
+    rgba(0, 0, 0, 0.27) 70%,
+    rgba(0, 0, 0, 0.38) 82%,
+    rgba(0, 0, 0, 0.48) 92%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
 
-  .formTitle {
-    @apply text-center text-lg;
-  }
+.topBar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+/* glyph centered in the free space above the centered form group */
+.upper {
+  flex: 1.15;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.glyph {
+  color: var(--text);
+}
+
+/* the header + input land at (slightly below) the screen center */
+.group {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.lower {
+  flex: 1;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+}
+
+.inputWrap {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.inputWrap :global(.field) {
+  margin-bottom: 0;
+}
+
+.unlock {
+  width: 100%;
+  max-width: 400px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.forgot {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13.5px;
+  height: auto;
+  padding: 8px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.forgot:hover {
+  background: transparent;
+  color: var(--text);
 }

@@ -63,12 +63,14 @@ const Advanced = () => {
   return (
     <div className={s.wrapper}>
       {currentWallet?.type === "root" ? (
-        <Switch
-          label={t("advanced.root_acc_warning")}
-          value={!currentWallet?.hideRoot}
-          onChange={toggleRootAccount}
-          locked={false}
-        />
+        <div className="panel">
+          <Switch
+            label={t("advanced.root_acc_warning")}
+            value={!currentWallet?.hideRoot}
+            onChange={toggleRootAccount}
+            locked={false}
+          />
+        </div>
       ) : (
         <div className={s.blank}>{t("advanced.blank")}</div>
       )}

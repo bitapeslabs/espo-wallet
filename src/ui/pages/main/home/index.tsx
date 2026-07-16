@@ -4,6 +4,7 @@ import { ss } from "@/ui/utils";
 import { useEffect, useState } from "react";
 import { TailSpin } from "react-loading-icons";
 import { Navigate, useNavigate } from "react-router-dom";
+import { ONBOARDING_NEXT_KEY } from "../welcome/component";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
@@ -32,12 +33,28 @@ const Home = () => {
           pending,
         },
       });
-    } else if (currentWallet) {
+      return;
+    }
+    if (currentWallet) {
       navigate("/home", { state: { force: true } });
+      return;
+    }
+    // first onboarding: continue to the flow picked on the welcome screen
+    const next = sessionStorage.getItem(ONBOARDING_NEXT_KEY);
+    if (next) {
+      sessionStorage.removeItem(ONBOARDING_NEXT_KEY);
+      navigate(next);
     }
   }, [pending, navigate, currentWallet, loading]);
 
-  if (!currentWallet) return <Navigate to={"/pages/create-new-wallet"} />;
+  if (loading) return <TailSpin className="animate-spin" />;
+
+  // the effect above handles pending wallets and the flow picked on the
+  // welcome screen; only fall back to the wallet wizard menu when neither
+  // applies
+  const onboardingNext = sessionStorage.getItem(ONBOARDING_NEXT_KEY);
+  if (!currentWallet && !pending && !onboardingNext)
+    return <Navigate to={"/pages/create-new-wallet"} />;
 
   return <TailSpin className="animate-spin" />;
 };

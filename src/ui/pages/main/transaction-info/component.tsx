@@ -3,18 +3,18 @@ import { TailSpin } from "react-loading-icons";
 import { browserTabsCreate } from "@/shared/utils/browser";
 import { useLocation, useParams } from "react-router-dom";
 import { ITransaction } from "@/shared/interfaces/api";
-import { LinkIcon } from "@heroicons/react/24/outline";
+import { LinkIcon } from "@/ui/icons/phosphor";
 import { FC, useEffect, useId, useState } from "react";
 import Modal from "@/ui/components/modal";
-import cn from "classnames";
 import { shortAddress } from "@/shared/utils/transactions";
 import toast from "react-hot-toast";
 import { t } from "i18next";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
-import { NINTONDO_URL } from "@/shared/constant";
+import { explorerTxUrl } from "@/shared/networks";
 import { useControllersState } from "@/ui/states/controllerState";
 import { ss } from "@/ui/utils";
 import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
+import { useAppState } from "@/ui/states/appState";
 
 const TransactionInfo = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -29,9 +29,13 @@ const TransactionInfo = () => {
       transactions?.find((i) => i.txid === txId)
   );
 
+  const { network } = useAppState(ss(["network"]));
+  const explorerUrl = txId ? explorerTxUrl(network, txId) : undefined;
+
   const onOpenExplorer = async () => {
+    if (!explorerUrl) return;
     await browserTabsCreate({
-      url: `${NINTONDO_URL}/explorer/tx/${txId}`,
+      url: explorerUrl,
       active: true,
     });
   };
@@ -47,38 +51,41 @@ const TransactionInfo = () => {
       {tx ? (
         <>
           <div className={s.transaction}>
-            <div className={s.group}>
-              <p className={s.transactionP}>{t("transaction_info.txid")}</p>
+            <div className="panel">
+              <div className={s.group}>
+                <p className={s.transactionP}>{t("transaction_info.txid")}</p>
 
-              <span>{tx.txid}</span>
-            </div>
-            <div className={s.group}>
-              <p className={s.transactionP}>
-                {t("transaction_info.confirmations_label")}
-              </p>
-              <span>
-                {tx.status.confirmed && lastBlock
-                  ? lastBlock - tx.status.block_height + 1
-                  : "Unconfirmed"}
-              </span>
-            </div>
-            <div className={s.group}>
-              <p className={s.transactionP}>
-                {t("transaction_info.fee_label")}
-              </p>
-              <span>{tx.fee / 10 ** 8} BEL</span>
-            </div>
-            <div className={s.group}>
-              <p className={s.transactionP}>
-                {t("transaction_info.value_label")}
-              </p>
-              <span>
-                {tx.vout.reduce((acc, cur) => cur.value + acc, 0) / 10 ** 8} BEL
-              </span>
-            </div>
+                <span>{tx.txid}</span>
+              </div>
+              <div className={s.group}>
+                <p className={s.transactionP}>
+                  {t("transaction_info.confirmations_label")}
+                </p>
+                <span>
+                  {tx.status.confirmed && lastBlock
+                    ? lastBlock - tx.status.block_height + 1
+                    : "Unconfirmed"}
+                </span>
+              </div>
+              <div className={s.group}>
+                <p className={s.transactionP}>
+                  {t("transaction_info.fee_label")}
+                </p>
+                <span>{tx.fee / 10 ** 8} BTC</span>
+              </div>
+              <div className={s.group}>
+                <p className={s.transactionP}>
+                  {t("transaction_info.value_label")}
+                </p>
+                <span>
+                  {tx.vout.reduce((acc, cur) => cur.value + acc, 0) / 10 ** 8}{" "}
+                  BTC
+                </span>
+              </div>
 
-            <div className={s.summary} onClick={() => setOpenModal(true)}>
-              <LinkIcon className="w-4 h-4" /> {t("transaction_info.details")}
+              <div className={s.summary} onClick={() => setOpenModal(true)}>
+                <LinkIcon size={16} /> {t("transaction_info.details")}
+              </div>
             </div>
 
             <Modal
@@ -105,9 +112,11 @@ const TransactionInfo = () => {
               </div>
             </Modal>
           </div>
-          <button className="bottom-btn" onClick={onOpenExplorer}>
-            {t("transaction_info.open_in_explorer")}
-          </button>
+          {explorerUrl ? (
+            <button className="bottom-btn" onClick={onOpenExplorer}>
+              {t("transaction_info.open_in_explorer")}
+            </button>
+          ) : undefined}
         </>
       ) : (
         <TailSpin className="animate-spin" />
@@ -141,19 +150,16 @@ const TableItem: FC<ITableItem> = ({ items, currentAddress, label }) => {
       <h3>{label}:</h3>
       <div className={s.tableList}>
         {items.map((i, idx) => (
-          <div
-            key={`${currentId}${idx}`}
-            className="border border-neutral-900 py-2 bg-neutral-950 rounded-xl px-3"
-          >
+          <div key={`${currentId}${idx}`} className={s.tableItem}>
             <div className={s.tableGroup}>
               <span>#{idx}</span>
               <span className={s.tableSecond}>
-                {(i.value / 10 ** 8).toFixed(8)} BEL
+                {(i.value / 10 ** 8).toFixed(8)} BTC
               </span>
             </div>
 
             <div
-              className={cn(s.address)}
+              className={s.address}
               onClick={async () => {
                 await navigator.clipboard.writeText(i.scriptpubkey_address);
                 toast.success(t("transaction_info.copied"));

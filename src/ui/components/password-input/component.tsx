@@ -1,8 +1,7 @@
 import { t } from "i18next";
 import { FieldValues, Path, UseFormRegister } from "react-hook-form";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon } from "@/ui/icons/phosphor";
 import { useState } from "react";
-import s from "./styles.module.scss";
 
 const PasswordInput = <T extends FieldValues>({
   label,
@@ -20,13 +19,9 @@ const PasswordInput = <T extends FieldValues>({
   const [hidden, setHidden] = useState(true);
 
   return (
-    <div className="form-field">
-      {showSeparateLabel ? (
-        <label className="input-span" htmlFor={name}>
-          {label}
-        </label>
-      ) : undefined}
-      <div className={s.inputWrapper}>
+    <div className="field">
+      {showSeparateLabel ? <label htmlFor={name}>{label}</label> : undefined}
+      <div className="pw-wrap">
         <input
           tabIndex={tabIndex ?? 0}
           id={name}
@@ -49,22 +44,19 @@ const PasswordInput = <T extends FieldValues>({
             },
           })}
           type={hidden ? "password" : "text"}
-          className={"input w-full"}
+          className="pw-input"
           placeholder={showSeparateLabel ? "" : label}
         />
-        <div
-          className={s.hideBtn}
+        <button
+          type="button"
+          className="pw-toggle"
           onClick={(e) => {
             e.preventDefault();
             setHidden((p) => !p);
           }}
         >
-          {hidden ? (
-            <EyeIcon className={s.icon} />
-          ) : (
-            <EyeSlashIcon className={s.icon} />
-          )}
-        </div>
+          {hidden ? <EyeIcon size={19} /> : <EyeSlashIcon size={19} />}
+        </button>
       </div>
     </div>
   );

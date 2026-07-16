@@ -1,8 +1,7 @@
-import { DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { CopyIcon } from "@/ui/icons/phosphor";
 import { FC, HTMLAttributes } from "react";
 import s from "./styles.module.scss";
 import toast from "react-hot-toast";
-import cn from "classnames";
 import { t } from "i18next";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
@@ -13,14 +12,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   title?: string;
 }
 
-const CopyBtn: FC<Props> = ({
-  label,
-  value,
-  className,
-  iconClassName,
-  title,
-  ...props
-}) => {
+const CopyBtn: FC<Props> = ({ label, value, className, title, ...props }) => {
   return (
     <button
       title={title}
@@ -32,12 +24,12 @@ const CopyBtn: FC<Props> = ({
       }}
     >
       {label ? (
-        <div {...props} className="text-xs">
+        <div {...props} className={s.label}>
           {label}
         </div>
       ) : undefined}
 
-      <DocumentDuplicateIcon className={cn("w-4 h-4", iconClassName)} />
+      <CopyIcon size={15} />
     </button>
   );
 };

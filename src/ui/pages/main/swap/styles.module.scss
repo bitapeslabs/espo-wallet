@@ -1,0 +1,13 @@
+.placeholder {
+  min-height: calc(100vh - 56px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.placeholder h1 {
+  font-size: 19px;
+  font-weight: 650;
+}

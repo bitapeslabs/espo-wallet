@@ -1,0 +1,82 @@
+.wrap {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 24px 24px;
+  position: relative;
+  /* vignette: light falls on the center, edges fade towards dark.
+     Many gaussian-eased stops so no ring is discernible */
+  background: radial-gradient(
+    ellipse 130% 100% at 50% 40%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.03) 30%,
+    rgba(0, 0, 0, 0.09) 45%,
+    rgba(0, 0, 0, 0.17) 58%,
+    rgba(0, 0, 0, 0.27) 70%,
+    rgba(0, 0, 0, 0.38) 82%,
+    rgba(0, 0, 0, 0.48) 92%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+.topBar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+/* compact language switcher in the top corner */
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  width: 100%;
+}
+
+.tagline {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+}
+
+/* the CJK full stop fills a whole character cell with its ink on the left,
+   so centered Chinese text reads shifted left; nudge it back right */
+.taglineCjk {
+  transform: translateX(0.45em);
+}
+
+/* the bloom itself is an SVG post-process filter inside the glyph */
+.glyph {
+  color: var(--text);
+  position: relative;
+  z-index: 1;
+}
+
+.actions {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* a field stacked in the actions area (login form) relies on the gap alone */
+.actions :global(.field) {
+  margin-bottom: 0;
+}

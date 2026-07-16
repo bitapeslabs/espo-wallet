@@ -1,12 +1,21 @@
 {
   "wallet_page": {
     "transactions": "Transactions",
-    "no_transactions": "No transactions",
+    "no_transactions": "No transactions yet",
     "no_inscriptions": "No inscriptions",
     "receive": "Receive",
     "send": "Send",
     "nft": "NFT",
-    "amount_in_transactions": "Available balance"
+    "amount_in_transactions": "Available balance",
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed",
+    "root_account": "Root account",
+    "activity": "Activity",
+    "alkanes": "Alkanes",
+    "no_alkanes": "No alkanes yet",
+    "tokens": "Tokens",
+    "collectibles": "Collectibles",
+    "bitcoin": "Bitcoin"
   },
   "settings": {
     "language": "Language",
@@ -14,7 +23,8 @@
     "connected_sites": "Connected Sites",
     "expand_view": "Expand View",
     "security_settings": "Security Settings",
-    "address_type": "Address Type"
+    "address_type": "Address Type",
+    "wallets": "Wallets"
   },
   "components": {
     "layout": {
@@ -27,7 +37,7 @@
       "create_new_account": "Create New Account",
       "change_password": "Change Password",
       "network_settings": "Network Settings",
-      "receive_bel": "Receive BEL",
+      "receive_bel": "Receive BTC",
       "switch_wallet": "Switch Wallet",
       "transaction_info": "Transaction Info",
       "settings": "Settings",
@@ -39,7 +49,9 @@
       "advanced": "Advanced",
       "discover": "Discover",
       "inscriptions": "Inscriptions",
-      "wallet_settings": "Wallet Settings"
+      "wallet_settings": "Wallet Settings",
+      "assets": "Assets",
+      "confirmation": "Confirmation"
     },
     "check_password": {
       "incorrect_password_error": "Incorrect password",
@@ -86,7 +98,21 @@
       "balance": "Balance",
       "create_transfer": "Mint transfer",
       "send": "Send",
-      "no_transfers": "No transfers"
+      "no_transfers": "No transfers",
+      "transfers": "Transfers"
+    },
+    "breadcrumbs": {
+      "password": "Password",
+      "recovery_phrase": "Recovery phrase",
+      "import_phrase": "Import phrase",
+      "private_key": "Private key",
+      "preferences": "Preferences"
+    },
+    "password_strength": {
+      "too_weak": "Too weak",
+      "weak": "Weak",
+      "good": "Good",
+      "strong": "Strong"
     }
   },
   "change_password": {
@@ -105,12 +131,16 @@
   "create_password": {
     "password": "Password",
     "confirm_password": "Confirm password",
-    "create_password": "Create password"
+    "create_password": "Create password",
+    "passwords_mismatch": "Passwords do not match"
   },
   "login": {
     "password": "Password",
     "login": "Login",
-    "welcome_back": "Welcome back"
+    "welcome_back": "Welcome back",
+    "enter_password": "Enter your password",
+    "unlock": "Unlock",
+    "forgot_password": "Forgot password"
   },
   "new_account": {
     "max_length_error": "Maximum name length is 10",
@@ -120,16 +150,16 @@
     "create_new_account": "Create an account"
   },
   "new_wallet": {
-    "new_mnemonic_label": "New mnemonic",
-    "restore_mnemonic_label": "Restore mnemonic",
-    "restore_from_private_key_label": "Restore from private key",
+    "new_mnemonic_label": "Create New Wallet",
+    "restore_mnemonic_label": "Restore From Mnemonic",
+    "restore_from_private_key_label": "Restore From Private Key",
     "restore_from_label": "Restore from",
     "step_1": "Step 1",
     "step_2": "Step 2",
     "continue": "Continue",
     "new_mnemonic": {
       "error_phrase_blank": "Mnemonic phrase blank",
-      "warning": "If you lose these words, you will never be able to recover your lost account",
+      "warning": "Keep these safe. If you lose these words, you will never be able to recover your account.",
       "i_saved_this_phrase": "I saved this phrase",
       "copy": "Copy"
     },
@@ -144,7 +174,8 @@
       "invalid_private_key_error": "Invalid private key"
     },
     "hd_path": "Hd path",
-    "passphrase": "Passphrase"
+    "passphrase": "Passphrase",
+    "import_wallet_label": "Import Wallet"
   },
   "receive": {
     "click_to_copy": "Click to copy",
@@ -162,7 +193,7 @@
       "inscription_id": "Inscription Id"
     },
     "create_send": {
-      "minimum_amount_error": "Minimum amount is 0.00001 BEL",
+      "minimum_amount_error": "Minimum amount is 0.00001 BTC",
       "fee_exceeds_amount_error": "Fee exceeds amount",
       "address_error": "Invalid receiver's address",
       "not_enough_money_error": "There's not enough money in your account",
@@ -216,7 +247,10 @@
     "are_you_sure": "Are you sure you want to delete?",
     "yes": "Yes",
     "no": "No",
-    "copy": "Copy"
+    "copy": "Copy",
+    "title": "Manage Wallets",
+    "add_wallet": "Add wallet",
+    "add_account": "Add account"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -233,8 +267,8 @@
   "hooks": {
     "transaction": {
       "insufficient_balance_0": "Insufficient balance. Non-Inscription balance",
-      "insufficient_balance_1": "BEL) is lower than",
-      "insufficient_balance_2": "BEL",
+      "insufficient_balance_1": "BTC) is lower than",
+      "insufficient_balance_2": "BTC",
       "too_many_utxos": "Too many UTXOs. You must consolidate them or use smaller amount to send",
       "too_long_mempool_chain": "Too long mempool chain. You must wait until it's confirmed"
     },
@@ -300,7 +334,7 @@
     "resolve": "Resolve",
     "reject": "Reject",
     "sign_request": "Sign request",
-    "send_bells": "Send bells",
+    "send_bells": "Send bitcoin",
     "sign": "Sign",
     "create_transaction": "Create transaction",
     "connecting": "Connecting",
@@ -315,6 +349,35 @@
     "switch": "Switch",
     "switch_network": "Website wants you to switch your network to",
     "switch_network_title": "Switch network",
-    "switch_network_request": "Switch network request"
+    "switch_network_request": "Switch network request",
+    "to_sign": "To sign",
+    "utxo_txid": "Utxo txid: "
+  },
+  "network_settings": {
+    "esplora_url": "Electrs (esplora) URL",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "welcome": {
+    "tagline": "Give your Bitcoin life."
+  },
+  "nav": {
+    "home": "Home",
+    "swap": "Swap",
+    "activity": "Activity",
+    "search": "Search"
+  },
+  "forgot": {
+    "description": "To reset your password, you will need to wipe your wallet. Espo Wallet cannot recover your password for you.",
+    "wipe_wallet": "Wipe wallet",
+    "type_confirm": "Type CONFIRM to continue",
+    "wipe_warning": "This will permanently erase this wallet from your device. You can only restore it with your recovery phrase. If you do not have it saved, your funds will be lost forever."
+  },
+  "edit_wallet": {
+    "title": "Edit Wallet",
+    "wallet_name": "Wallet name",
+    "address_type": "Address Type",
+    "show_mnemonic": "Show Mnemonic",
+    "advanced": "Advanced"
   }
 }

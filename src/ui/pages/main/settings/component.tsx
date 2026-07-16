@@ -1,12 +1,12 @@
 import { useAppState } from "@/ui/states/appState";
 
 import {
-  PuzzlePieceIcon,
-  LanguageIcon,
-  ShieldCheckIcon,
+  LockIcon,
   WalletIcon,
-  ArrowLeftEndOnRectangleIcon,
-} from "@heroicons/react/24/outline";
+  LinkIcon,
+  GlobeIcon,
+  SignOutIcon,
+} from "@/ui/icons/phosphor";
 import Tile from "@/ui/components/tile";
 import { TileProps } from "@/ui/components/tile/component";
 
@@ -14,35 +14,34 @@ import { t } from "i18next";
 import SettingsLayout from "@/ui/components/settings-layout";
 import { ss } from "@/ui/utils";
 
-const ICON_SIZE = 8;
-const ICON_CN = `w-${ICON_SIZE} h-${ICON_SIZE}`;
+const ICON_SIZE = 20;
 
 const Settings = () => {
   const { logout } = useAppState(ss(["logout"]));
 
   const items: TileProps[] = [
     {
-      icon: <ShieldCheckIcon className={ICON_CN} />,
+      icon: <LockIcon size={ICON_SIZE} />,
       label: t("settings.security_settings"),
       link: "/pages/security",
     },
     {
-      icon: <WalletIcon className={ICON_CN} />,
+      icon: <WalletIcon size={ICON_SIZE} />,
       label: t("components.layout.wallet_settings"),
       link: "/pages/wallet-settings",
     },
     {
-      icon: <PuzzlePieceIcon className={ICON_CN} />,
+      icon: <LinkIcon size={ICON_SIZE} />,
       label: t("settings.connected_sites"),
       link: "/pages/connected-sites",
     },
     {
-      icon: <LanguageIcon className={ICON_CN} />,
+      icon: <GlobeIcon size={ICON_SIZE} />,
       label: t("settings.language"),
       link: "/pages/language",
     },
     {
-      icon: <ArrowLeftEndOnRectangleIcon className={ICON_CN} />,
+      icon: <SignOutIcon size={ICON_SIZE} />,
       label: t("settings.logout"),
       onClick: logout,
     },

@@ -1,12 +1,6 @@
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-  Transition,
-} from "@headlessui/react";
-import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { Fragment } from "react";
+import { useEffect, useRef, useState } from "react";
+import cn from "classnames";
+import { CaretDownIcon, CheckIcon } from "@/ui/icons/phosphor";
 
 interface Props<T extends string> {
   setSelected: (data: { name: T }) => void;
@@ -18,6 +12,7 @@ interface Props<T extends string> {
   anchor?: "bottom" | "top";
 }
 
+/** espo-style custom dropdown (b8 .dropdown component; never a native select). */
 const Select = <T extends string>({
   selected,
   setSelected,
@@ -25,69 +20,72 @@ const Select = <T extends string>({
   label,
   displayCheckIcon = true,
   className,
-  anchor,
+  anchor = "bottom",
 }: Props<T>) => {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
   return (
     <div className={className}>
       {label !== undefined ? (
-        <label className="input-span">{label}</label>
-      ) : undefined}
-      <Listbox value={selected} onChange={setSelected}>
-        <div className={`relative mt-1 w-full`}>
-          <ListboxButton className="relative w-full cursor-default rounded-xl bg-input-bg py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
-            <span className="block truncate">{selected.name}</span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronUpDownIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </span>
-          </ListboxButton>
-          <Transition
-            as={Fragment}
-            leave="transition ease-in duration-100"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <ListboxOptions
-              anchor={{
-                to: anchor,
-                gap: 5,
-              }}
-              className="absolute max-h-60 overflow-auto border border-neutral-800 rounded-xl bg-neutral-900 w-[var(--button-width)]"
-            >
-              {values.map((value, valueIdx) => (
-                <ListboxOption
-                  key={valueIdx}
-                  className={({ active }) =>
-                    `relative cursor-default select-none py-2 ${
-                      active ? "bg-input-bg text-text" : "text-text"
-                    } ${displayCheckIcon ? "pl-4 pr-4" : "flex justify-center"}`
-                  }
-                  value={value}
-                >
-                  {({ selected }) => (
-                    <>
-                      <span
-                        className={`block truncate pl-7 ${
-                          selected ? "font-medium" : "font-normal"
-                        }`}
-                      >
-                        {value.name}
-                      </span>
-                      {selected && displayCheckIcon ? (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
-                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </ListboxOption>
-              ))}
-            </ListboxOptions>
-          </Transition>
+        <div className="field" style={{ marginBottom: 6 }}>
+          <label>{label}</label>
         </div>
-      </Listbox>
+      ) : undefined}
+      <div
+        className="dropdown"
+        data-open={open ? "1" : "0"}
+        ref={rootRef}
+        style={{ width: "100%" }}
+      >
+        <button
+          type="button"
+          className="dropdown-trigger"
+          style={{ width: "100%" }}
+          onClick={() => setOpen((p) => !p)}
+        >
+          <span className="dropdown-label">{selected.name}</span>
+          <span className="dropdown-caret">
+            <CaretDownIcon size={16} />
+          </span>
+        </button>
+        <div
+          className="dropdown-panel"
+          style={
+            anchor === "top"
+              ? { top: "auto", bottom: "calc(100% + 8px)", width: "100%" }
+              : { width: "100%" }
+          }
+        >
+          {values.map((value, valueIdx) => (
+            <button
+              type="button"
+              key={valueIdx}
+              className={cn("dropdown-item", {
+                selected: value.name === selected.name,
+              })}
+              onClick={() => {
+                setSelected(value as { name: T });
+                setOpen(false);
+              }}
+            >
+              {displayCheckIcon && value.name === selected.name ? (
+                <CheckIcon size={14} />
+              ) : undefined}
+              <span className="dropdown-label">{value.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import Modal from "../modal";
 import { t } from "i18next";
+import { isValidName } from "@/shared/validators";
 
 interface Props {
   handler: (name: string) => void;
@@ -16,6 +17,7 @@ const Rename: FC<Props> = ({ handler, active, onClose, currentName }) => {
   const {
     register,
     setValue,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<{ name: string }>({
@@ -52,7 +54,7 @@ const Rename: FC<Props> = ({ handler, active, onClose, currentName }) => {
           </label>
           <input
             id={renameId}
-            className="input w-full"
+            className="input"
             {...register("name", {
               minLength: {
                 value: 1,
@@ -66,7 +68,11 @@ const Rename: FC<Props> = ({ handler, active, onClose, currentName }) => {
             })}
           />
         </div>
-        <button className="btn primary mx-auto w-2/3" onClick={onSubmit}>
+        <button
+          className="btn"
+          onClick={onSubmit}
+          disabled={!isValidName(watch("name") ?? "")}
+        >
           {t("components.rename.save")}
         </button>
       </form>

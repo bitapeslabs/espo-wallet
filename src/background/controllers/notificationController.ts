@@ -6,7 +6,7 @@ import {
   storageService,
 } from "../services";
 import type { ConnectedSite } from "../services/permission";
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 
 class NotificationController implements INotificationController {
   async getApproval() {

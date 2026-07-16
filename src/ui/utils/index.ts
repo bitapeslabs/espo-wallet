@@ -1,5 +1,5 @@
-import { address, Network, networks } from "belcoinjs-lib";
-import { AddressType } from "bellhdw";
+import { address, Network, networks } from "bitcoinjs-lib";
+import { AddressType } from "@/background/services/keyring/hdw";
 import { useShallow } from "zustand/react/shallow";
 
 export const isNotification = (): boolean => {
@@ -47,10 +47,7 @@ export function calcBalanceLength(balance: number) {
 }
 
 export function isTestnet(network: Network) {
-  return (
-    network.pubKeyHash === networks.testnet.pubKeyHash &&
-    network.scriptHash === networks.testnet.scriptHash
-  );
+  return network.bech32 === networks.regtest.bech32;
 }
 
 export function ss<T extends Record<string, any>, K extends keyof T = keyof T>(

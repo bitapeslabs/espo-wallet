@@ -1,7 +1,7 @@
 import s from "./styles.module.scss";
 import { ADDRESS_TYPES } from "@/shared/constant";
 import { FC } from "react";
-import { AddressType } from "bellhdw";
+import { AddressType } from "@/background/services/keyring/hdw";
 import Tile from "../tile";
 
 interface Props {

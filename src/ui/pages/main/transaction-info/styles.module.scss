@@ -1,53 +1,99 @@
 .transactionInfoDiv {
-  @apply h-full w-full flex items-center justify-center break-all px-6 pt-6 flex-col;
-
-  .transaction {
-    @apply flex flex-col w-full break-all h-full;
-  }
+  width: 100%;
+  height: 100%;
+  padding: 0 16px 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
+.transaction {
+  width: 100%;
+  flex: 1;
+}
+
+/* label / value rows inside the panel */
 .group {
-  @apply mb-4;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(53, 55, 66, 0.45);
+}
 
-  .transactionP {
-    @apply break-all text-sm uppercase text-gray-400 font-light block mb-2;
-  }
+.group:first-child {
+  padding-top: 0;
+}
 
-  span {
-    @apply text-sm block px-4 py-2 bg-input-bg rounded-xl;
-  }
+.transactionP {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.group span {
+  display: block;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
 }
 
 .summary {
-  @apply list-none cursor-pointer text-sm flex gap-2 mt-1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  padding-top: 12px;
+  color: var(--link);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
-.details {
-  @apply mt-2;
+/* inputs / outputs modal */
+.tableContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
-.table {
-  &First {
-    @apply break-all text-xs select-none cursor-pointer;
-  }
+.table > h3 {
+  font-size: 13.5px;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
 
-  &Second {
-    @apply text-sm font-medium pl-1;
-  }
+.tableList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  &List {
-    @apply flex flex-col gap-3;
-  }
+.tableItem {
+  background: var(--panel3);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
 
-  > h3 {
-    @apply text-sm mb-4 font-medium pl-2;
-  }
+.tableGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
 
-  &Container {
-    @apply flex flex-col gap-5 pt-5;
-  }
+.tableSecond {
+  color: var(--text);
+  font-weight: 650;
+  font-size: 13px;
 }
 
 .address {
-  @apply pl-4 text-orange-400 cursor-pointer;
+  margin-top: 2px;
+  cursor: pointer;
+  color: var(--link);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
 }

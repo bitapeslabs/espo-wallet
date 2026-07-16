@@ -1,27 +1,61 @@
-.send {
-  @apply items-start w-full h-full p-4 gap-3;
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
 }
 
-.sendBtn {
-  @apply absolute left-6 right-6 bottom-6;
+.send {
+  padding-top: 16px;
+  align-items: flex-start;
 }
 
 .inputs {
-  @apply w-full flex flex-col justify-center items-center gap-2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.amountRow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.amountRow :global(.btn) {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .feeDiv {
-  @apply w-full flex flex-col items-start justify-start gap-2;
-
-  .includeFeeInAmountDiv {
-    @apply flex gap-2 mt-2 select-none;
-
-    > * {
-      @apply cursor-pointer;
-    }
-  }
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-.maxAmount {
-  @apply text-xs bg-gray-700 rounded-xl px-3 py-1 cursor-pointer flex items-center justify-center;
+.balanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  margin-bottom: 72px;
+}
+
+.balanceLabel {
+  color: var(--muted2);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.balanceValue {
+  font-size: 13.5px;
+  font-weight: 600;
 }

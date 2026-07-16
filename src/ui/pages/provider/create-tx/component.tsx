@@ -1,11 +1,11 @@
 import { useControllersState } from "@/ui/states/controllerState";
 import { useEffect, useState } from "react";
 
-import { KeyIcon } from "@heroicons/react/24/outline";
 import Layout from "../layout";
 import type { CreateTxProps } from "@/shared/interfaces/notification";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
+import s from "./styles.module.scss";
 
 const CreateTx = () => {
   const [psbt, setPsbt] = useState<CreateTxProps>();
@@ -35,7 +35,7 @@ const CreateTx = () => {
     },
     {
       label: "Amount",
-      value: `${psbt.amount / 10 ** 8} BEL`,
+      value: `${psbt.amount / 10 ** 8} BTC`,
     },
     {
       label: "Fee Rate",
@@ -46,21 +46,20 @@ const CreateTx = () => {
   return (
     <Layout
       documentTitle={t("provider.create_transaction")}
-      resolveBtnClassName="bg-text text-bg hover:bg-green-500 hover:text-bg"
+      resolveBtnClassName="btn primary"
       resolveBtnText={t("components.layout.send")}
     >
-      <>
-        <KeyIcon className="w-10 h-10 text-orange-500" />
-        <h4 className="text-xl font-medium mb-6">{t("provider.send_bells")}</h4>
-        <div className="flex flex-col gap-4 w-full">
+      <div className="panel">
+        <div className="panel-head">{t("provider.send_bells")}</div>
+        <div className={s.cards}>
           {fields.map((i) => (
-            <div key={i.label}>
-              <label className="mb-2 block text-gray-300 pl-2">{i.label}</label>
-              <div className="bg-input-bg rounded-xl px-5 py-2">{i.value}</div>
+            <div key={i.label} className="review-card stat">
+              <div className="stat-label">{i.label}</div>
+              <div className="stat-value">{i.value}</div>
             </div>
           ))}
         </div>
-      </>
+      </div>
     </Layout>
   );
 };

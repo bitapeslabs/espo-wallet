@@ -2,6 +2,7 @@ import CheckPassword from "@/ui/components/check-password";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import s from "./styles.module.scss";
+import cn from "classnames";
 import { useControllersState } from "@/ui/states/controllerState";
 import { useWalletState } from "@/ui/states/walletState";
 import CopyBtn from "@/ui/components/copy-btn";
@@ -37,7 +38,7 @@ const ShowMnemonic = () => {
     <div className={s.showMnemonic}>
       <div className={s.phraseDiv}>
         {walletType === "root" ? (
-          <div className={s.phraseWrapper}>
+          <div className={cn("panel", s.phraseWrapper)}>
             {phrase.split(" ").map((word, index) => (
               <div key={index} className={s.word}>
                 <span className={s.wordIdx}>{index + 1}</span>{" "}
@@ -46,12 +47,19 @@ const ShowMnemonic = () => {
             ))}
           </div>
         ) : (
-          <div className={s.privKeyWrapper}>
+          <div className={cn("panel", s.privKeyWrapper)}>
             <div className={s.secret}>{phrase}</div>
           </div>
         )}
+        <div className="inline-notice">
+          {t("components.check_password.warning")}
+        </div>
         <div className={s.copyWrapper}>
-          <CopyBtn label={t("switch_wallet.copy")} value={phrase} />
+          <CopyBtn
+            label={t("switch_wallet.copy")}
+            value={phrase}
+            className={cn("btn", "ghost", s.copyBtn)}
+          />
         </div>
       </div>
     </div>

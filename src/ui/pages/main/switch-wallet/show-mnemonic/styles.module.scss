@@ -1,43 +1,73 @@
 .showMnemonic {
-  @apply w-full h-full flex justify-center items-center standard:mt-10;
-
-  .phraseDiv {
-    @apply px-6 w-full standard:mt-10;
-
-    .phrase {
-      @apply bg-input-bg text-xl w-full;
-    }
-
-    .copyDiv {
-      @apply flex w-full justify-center gap-4 items-center text-lg pt-8 cursor-pointer select-none;
-    }
-  }
+  width: 100%;
+  height: 100%;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
 }
 
+.phraseDiv {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* mnemonic words: two-column grid inside a panel */
 .phraseWrapper {
-  @apply grid grid-cols-2 text-sm gap-x-2 gap-y-6;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
 }
 
 .word {
-  @apply flex justify-between items-center gap-2;
-
-  .wordWord {
-    @apply bg-input-bg p-2 rounded-lg w-4/5 flex justify-center;
-  }
-}
-
-.privKeyWrapper {
-  @apply w-full;
-}
-
-.secret {
-  @apply break-all h-1/2 overflow-y-scroll bg-input-bg rounded-lg p-2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .wordIdx {
-  @apply w-4 text-end;
+  width: 18px;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--muted2);
+  font-size: 12.5px;
+}
+
+.wordWord {
+  flex: 1;
+  min-width: 0;
+  background: var(--panel3);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.privKeyWrapper {
+  width: 100%;
+}
+
+.secret {
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  max-height: 320px;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .copyWrapper {
-  @apply flex w-full justify-center mt-10;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
 }

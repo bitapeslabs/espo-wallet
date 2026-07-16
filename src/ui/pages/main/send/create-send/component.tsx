@@ -1,7 +1,4 @@
-import {
-  useCreateBellsTxCallback,
-  useCreateOrdTx,
-} from "@/ui/hooks/transactions";
+import { useCreateBtcTxCallback } from "@/ui/hooks/transactions";
 import {
   useEffect,
   useState,
@@ -18,10 +15,9 @@ import Switch from "@/ui/components/switch";
 import AddressBookModal from "./address-book-modal";
 import AddressInput from "./address-input";
 import { getAddressType, normalizeAmount, ss } from "@/ui/utils";
+import { isSendValid } from "@/shared/validators";
 import { t } from "i18next";
-import { Inscription } from "@/shared/interfaces/inscriptions";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
-import SplitWarn from "@/ui/components/split-warn";
 import { useAppState } from "@/ui/states/appState";
 
 interface FormType {
@@ -44,15 +40,9 @@ const CreateSend = () => {
   });
   const [includeFeeLocked, setIncludeFeeLocked] = useState<boolean>(false);
   const currentAccount = useGetCurrentAccount();
-  const createTx = useCreateBellsTxCallback();
-  const createOrdTx = useCreateOrdTx();
+  const createTx = useCreateBtcTxCallback();
   const navigate = useNavigate();
   const location = useLocation();
-  const [inscription, setInscription] = useState<Inscription | undefined>(
-    undefined
-  );
-  const [inscriptionTransaction, setInscriptionTransaction] =
-    useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { network } = useAppState(ss(["network"]));
 
@@ -71,7 +61,7 @@ const CreateSend = () => {
         return toast.error(t("send.create_send.address_error"));
       }
 
-      if ((Number.isNaN(amount) || amount < 1e-5) && !inscriptionTransaction) {
+      if (Number.isNaN(amount) || amount < 1e-5) {
         return toast.error(t("send.create_send.minimum_amount_error"));
       }
       if (address.trim().length <= 0) {
@@ -90,14 +80,12 @@ const CreateSend = () => {
       let data;
 
       try {
-        data = !inscriptionTransaction
-          ? await createTx(
-              address,
-              Number((amount * 10 ** 8).toFixed(0)),
-              feeRate,
-              includeFeeInAmount
-            )
-          : await createOrdTx(address, feeRate, inscription!);
+        data = await createTx(
+          address,
+          Number((amount * 10 ** 8).toFixed(0)),
+          feeRate,
+          includeFeeInAmount
+        );
       } catch (e) {
         const error = e as Error;
         if ("message" in error) {
@@ -113,16 +101,13 @@ const CreateSend = () => {
       navigate("/pages/confirm-send", {
         state: {
           toAddress: address,
-          amount: !inscriptionTransaction
-            ? normalizeAmount(amountStr)
-            : inscription!.inscription_id,
+          amount: normalizeAmount(amountStr),
           includeFeeInAmount,
           fromAddress: currentAccount?.address ?? "",
           feeAmount: fee,
           inputedFee: feeRate,
           hex: rawtx,
           save: isSaveAddress,
-          inscriptionTransaction,
         },
       });
     } catch (e) {
@@ -163,10 +148,6 @@ const CreateSend = () => {
             };
           }
 
-          if (location.state.inscription_id) {
-            setInscription(location.state);
-            setInscriptionTransaction(true);
-          }
         }
         return prev;
       });
@@ -204,8 +185,7 @@ const CreateSend = () => {
   };
 
   return (
-    <div className="flex flex-col justify-between w-full h-full">
-      <SplitWarn message="Some of your coins are locked in UTXOs with inscriptions. Use the Splitter service to unlock and access your coins." />
+    <div className={s.wrapper}>
       <form
         id={formId}
         className={cn("form", s.send)}
@@ -223,27 +203,21 @@ const CreateSend = () => {
               onOpenModal={() => setOpenModal(true)}
             />
           </div>
-          {inscriptionTransaction ? undefined : (
-            <div className="flex flex-col gap-1 w-full">
-              <div className="form-field">
-                <span className="input-span">
-                  {t("send.create_send.amount")}
-                </span>
-                <div className="flex gap-2 w-full">
-                  <input
-                    type="number"
-                    placeholder={t("send.create_send.amount_to_send")}
-                    className="w-full input"
-                    value={formData.amount}
-                    onChange={onAmountChange}
-                  />
-                  <button className={s.maxAmount} onClick={onMaxClick}>
-                    {t("send.create_send.max_amount")}
-                  </button>
-                </div>
-              </div>
+          <div className="form-field">
+            <span className="input-span">{t("send.create_send.amount")}</span>
+            <div className={s.amountRow}>
+              <input
+                type="number"
+                placeholder={t("send.create_send.amount_to_send")}
+                className="input"
+                value={formData.amount}
+                onChange={onAmountChange}
+              />
+              <button className="btn ghost small" onClick={onMaxClick}>
+                {t("send.create_send.max_amount")}
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         <div className={s.feeDiv}>
@@ -259,16 +233,14 @@ const CreateSend = () => {
             />
           </div>
 
-          {inscriptionTransaction ? undefined : (
-            <Switch
-              label={t("send.create_send.include_fee_in_the_amount_label")}
-              onChange={(v) =>
-                setFormData((prev) => ({ ...prev, includeFeeInAmount: v }))
-              }
-              value={formData.includeFeeInAmount}
-              locked={includeFeeLocked}
-            />
-          )}
+          <Switch
+            label={t("send.create_send.include_fee_in_the_amount_label")}
+            onChange={(v) =>
+              setFormData((prev) => ({ ...prev, includeFeeInAmount: v }))
+            }
+            value={formData.includeFeeInAmount}
+            locked={includeFeeLocked}
+          />
 
           <Switch
             label={t(
@@ -282,18 +254,16 @@ const CreateSend = () => {
       </form>
 
       <div>
-        {!inscriptionTransaction && (
-          <div className="flex justify-between py-2 px-4 mb-11">
-            <div className="text-xs uppercase text-gray-400">{`${t(
-              "wallet_page.amount_in_transactions"
-            )}`}</div>
-            <span className="text-sm font-medium">
-              {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} BEL`}
-            </span>
-          </div>
-        )}
+        <div className={s.balanceRow}>
+          <div className={s.balanceLabel}>{`${t(
+            "wallet_page.amount_in_transactions"
+          )}`}</div>
+          <span className={s.balanceValue}>
+            {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} BTC`}
+          </span>
+        </div>
         <button
-          disabled={loading}
+          disabled={loading || !isSendValid(formData.address, formData.amount)}
           type="submit"
           className={"bottom-btn"}
           form={formId}

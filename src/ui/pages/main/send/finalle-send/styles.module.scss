@@ -1,31 +1,39 @@
 .container {
-  @apply text-sm flex-col h-full flex items-center w-full;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 16px;
 }
 
-.btn {
-  @apply w-full border-none font-medium text-sm text-center border-t border-neutral-700 py-3 first:border-r last:border-l;
-
-  &Container {
-    @apply flex items-center w-full fixed bottom-0 right-0 left-0;
-
-    > * {
-      @apply px-0 w-full;
-    }
-  }
+.iconCircle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--bg-success);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.result {
-  @apply text-center font-medium text-base;
+.title {
+  font-size: 17px;
+  font-weight: 650;
+  text-align: center;
+}
 
-  &Container {
-    @apply flex flex-col gap-4 justify-center mb-16 mt-36;
-  }
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 300px;
+}
 
-  &Icon {
-    &Container {
-      @apply rounded-full bg-gradient-to-tr from-green-500 to-emerald-400;
-    }
-
-    @apply w-28 h-28 text-bg p-3;
-  }
+.actions > * {
+  flex: 1;
 }

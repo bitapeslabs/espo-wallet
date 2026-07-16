@@ -1,7 +1,19 @@
 .form {
-  @apply flex flex-col gap-7 w-full px-4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0 16px;
+}
 
-  .formTitle {
-    @apply text-xs text-slate-300 uppercase;
-  }
+.warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+}
+
+.warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }

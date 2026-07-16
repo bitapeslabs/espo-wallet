@@ -4,6 +4,7 @@ import CheckPassword from "@/ui/components/check-password";
 import { useParams } from "react-router-dom";
 import { useControllersState } from "@/ui/states/controllerState";
 import CopyBtn from "@/ui/components/copy-btn";
+import cn from "classnames";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
 import { useGetCurrentWallet } from "@/ui/states/walletState";
@@ -27,10 +28,17 @@ const ShowPk = () => {
     <div className={s.showPk}>
       {unlocked ? (
         <div className={s.showPkDiv}>
-          <div className={s.secretContainer}>
+          <div className={cn("panel", s.secretContainer)}>
             <div className={s.secret}>{secret}</div>
+            <CopyBtn
+              label={t("switch_account.show_pk.copy")}
+              value={secret}
+              className={cn("btn", "ghost", s.copyBtn)}
+            />
           </div>
-          <CopyBtn label={t("switch_account.show_pk.copy")} value={secret} />
+          <div className="inline-notice">
+            {t("components.check_password.warning")}
+          </div>
         </div>
       ) : (
         <CheckPassword

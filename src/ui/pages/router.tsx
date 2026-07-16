@@ -9,6 +9,7 @@ import SwitchAccount from "./main/switch-account";
 import PagesLayout from "@/ui/components/layout";
 import Receive from "./main/receive";
 import SwitchWallet from "./main/switch-wallet";
+import EditWallet from "./main/edit-wallet";
 import NewWallet from "./main/new-wallet";
 import NewMnemonic from "./main/new-wallet/new-mnemonic";
 import RestoreMnemonic from "./main/new-wallet/restore-mnemonic";
@@ -29,8 +30,6 @@ import Language from "./main/settings/language";
 import InscriptionDetails from "./main/inscriptions/inscription-details";
 import Inscriptions from "./main/inscriptions";
 import SignPsbt from "./provider/sign-psbt";
-import TokensComponent from "./main/tokens/component";
-import InscribeTransfer from "./provider/inscribe-transfer";
 import MultiPsbtSign from "./provider/multi-psbt-sign";
 import ChangePassword from "./main/settings/security/change-password";
 import Security from "./main/settings/security";
@@ -38,6 +37,14 @@ import Advanced from "./main/settings/security/advanced";
 import WalletSettings from "./main/settings/wallet/component";
 import NetworkSettings from "./main/settings/wallet/network/component";
 import Home from "./main/home";
+import Welcome from "./main/welcome";
+import ForgotPassword from "./main/forgot-password";
+import TabsShell from "@/ui/components/tabs-shell";
+import Swap from "./main/swap";
+import Search from "./main/search";
+import Activity from "./main/activity";
+import Asset from "./main/asset";
+import ImportWallet from "./main/welcome/import";
 import SwitchNetwork from "./provider/switch-network";
 
 export const guestRouter = createHashRouter([
@@ -45,6 +52,9 @@ export const guestRouter = createHashRouter([
     path: "account",
     children: [
       { path: "login", element: <Login /> },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "welcome", element: <Welcome /> },
+      { path: "import", element: <ImportWallet /> },
       { path: "create-password", element: <CreatePassword /> },
     ],
   },
@@ -53,9 +63,17 @@ export const guestRouter = createHashRouter([
 
 export const authenticatedRouter = createHashRouter([
   { path: "/", element: <Home /> },
+  { path: "manage-wallets", element: <SwitchWallet /> },
+  { path: "edit-wallet/:walletId", element: <EditWallet /> },
   {
-    path: "home",
-    element: <Wallet />,
+    element: <TabsShell />,
+    children: [
+      { path: "home", element: <Wallet /> },
+      { path: "asset/:assetId", element: <Asset /> },
+      { path: "swap", element: <Swap /> },
+      { path: "activity", element: <Activity /> },
+      { path: "search", element: <Search /> },
+    ],
   },
   {
     path: "pages",
@@ -66,7 +84,6 @@ export const authenticatedRouter = createHashRouter([
       { path: "create-new-account", element: <CreateNewAccount /> },
       { path: "change-password", element: <ChangePassword /> },
       { path: "receive", element: <Receive /> },
-      { path: "switch-wallet", element: <SwitchWallet /> },
       { path: "create-new-wallet", element: <NewWallet /> },
       { path: "new-mnemonic", element: <NewMnemonic /> },
       { path: "restore-mnemonic", element: <RestoreMnemonic /> },
@@ -86,10 +103,6 @@ export const authenticatedRouter = createHashRouter([
       { path: "inscriptions", element: <Inscriptions /> },
       { path: "wallet-settings", element: <WalletSettings /> },
       { path: "network-settings", element: <NetworkSettings /> },
-      {
-        path: "bel-20",
-        element: <TokensComponent />,
-      },
     ],
   },
   {
@@ -99,7 +112,6 @@ export const authenticatedRouter = createHashRouter([
       { path: "signMessage", element: <SignMessage /> },
       { path: "createTx", element: <CreateTx /> },
       { path: "signPsbt", element: <SignPsbt /> },
-      { path: "inscribeTransfer", element: <InscribeTransfer /> },
       { path: "multiPsbtSign", element: <MultiPsbtSign /> },
       { path: "switchNetwork", element: <SwitchNetwork /> },
     ],

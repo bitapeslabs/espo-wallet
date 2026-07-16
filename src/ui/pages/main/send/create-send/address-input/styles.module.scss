@@ -1,7 +1,58 @@
+.wrapper {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.comboWrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.bookBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.bookBtn:hover {
+  background: var(--panel3);
+  color: var(--text);
+}
+
 .addressbookoptions {
-  @apply absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-input-bg py-1 text-sm outline-none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 240px;
+  overflow: auto;
+  background: var(--panel2);
+  border-radius: var(--radius);
+  padding: 6px;
+  margin: 0;
+  list-style: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  outline: none;
 }
 
 .addressbookoption {
-  @apply cursor-pointer pl-2;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.addressbookoption:hover {
+  background: var(--panel3);
 }

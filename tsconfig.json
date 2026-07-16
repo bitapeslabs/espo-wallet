@@ -1,14 +1,21 @@
 {
+  "extends": "./.wxt/tsconfig.json",
+  "exclude": ["node_modules", ".output", "agent-context", "dist"],
   "compilerOptions": {
     "target": "ESNext",
-    "types": ["bun-types"],
+    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "types": ["chrome", "node"],
+    "jsx": "react-jsx",
+    "noImplicitAny": true,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "experimentalDecorators": true,
-    "noUnusedLocals": false,
-    "noImplicitAny": true
-  },
-  "exclude": ["./src/**/*", "./node_modules/**/*"],
-  "include": ["./build.ts"]
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowJs": false,
+    "experimentalDecorators": true
+  }
 }

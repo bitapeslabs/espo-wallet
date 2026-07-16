@@ -1,6 +1,7 @@
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 import type { ConnectedSite } from "../permission";
 import type { IWallet } from "@/shared/interfaces";
+import type { NetworkSlug } from "@/shared/networks";
 
 interface StorageAccountItem {
   id: number;
@@ -16,6 +17,8 @@ export type DecryptedSecrets = { id: number; data: any; phrase?: string }[];
 export interface StorageInterface {
   enc?: Record<"data" | "iv" | "salt", string>;
   cache: {
+    /** Marker distinguishing Espo Wallet storage from legacy Bells data */
+    espo?: boolean;
     wallets: StorageWalletItem[];
     addressBook: string[];
     selectedWallet?: number;
@@ -25,5 +28,6 @@ export interface StorageInterface {
     language?: string;
     unpushedHexes?: string[];
     network?: Network;
+    esploraUrl?: Partial<Record<NetworkSlug, string>>;
   };
 }

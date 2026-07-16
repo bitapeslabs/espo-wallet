@@ -1,19 +1,53 @@
-.address {
-  @apply px-4 py-2 rounded-xl bg-input-bg select-none hover:bg-gray-500 transition-colors;
-}
-
-.remove {
-  @apply p-2 rounded-xl bg-input-bg hover:bg-red-500 transition-colors;
-}
-
 .empty {
-  @apply pt-8 text-sm text-center;
+  padding: 24px 0 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
 }
 
 .items {
-  @apply flex flex-col gap-3 mt-6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .item {
-  @apply cursor-pointer flex gap-1;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.address {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  font-size: 13.5px;
+  user-select: none;
+  overflow-wrap: anywhere;
+}
+
+.address:hover {
+  background: var(--panel3);
+}
+
+.remove {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--muted);
+}
+
+.remove:hover {
+  background: rgba(255, 65, 65, 0.16);
+  color: var(--danger);
 }

@@ -17,6 +17,8 @@ const compat = new FlatCompat({
 });
 
 export default [{
+    ignores: [".output/**", ".wxt/**", "dist/**", "node_modules/**"],
+}, {
     settings: {
         react: {
             version: "18.2.0",
@@ -61,41 +63,11 @@ export default [{
         sourceType: "module",
 
         parserOptions: {
-            project: "./src/tsconfig.json",
-        },
-    },
-
-    rules: {
-        "@typescript-eslint/no-explicit-any": "off",
-        "react/jsx-uses-react": "off",
-        "react/react-in-jsx-scope": "off",
-        "@typescript-eslint/no-unused-vars": ["warn"],
-
-        "@typescript-eslint/no-floating-promises": ["error", {
-            ignoreVoid: false,
-            ignoreIIFE: false,
-        }],
-    },
-}, {
-    files: ["./build.ts"],
-
-    languageOptions: {
-        globals: {
-            ...globals.node,
-            ...globals.browser,
-        },
-
-        parser: tsParser,
-        ecmaVersion: "latest",
-        sourceType: "module",
-
-        parserOptions: {
             project: "./tsconfig.json",
         },
     },
 
     rules: {
-        "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "react/jsx-uses-react": "off",
         "react/react-in-jsx-scope": "off",
@@ -105,7 +77,5 @@ export default [{
             ignoreVoid: false,
             ignoreIIFE: false,
         }],
-
-        "@typescript-eslint/no-misused-promises": "error",
     },
 }];

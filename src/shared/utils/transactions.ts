@@ -1,6 +1,6 @@
 import type { ITransaction } from "@/shared/interfaces/api";
-import { payments } from "belcoinjs-lib";
-import { AddressType } from "bellhdw/src/hd/types";
+import { payments } from "bitcoinjs-lib";
+import { AddressType } from "@/background/services/keyring/hdw/types";
 
 export const getTransactionValue = (
   transaction: ITransaction,

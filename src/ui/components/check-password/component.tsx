@@ -5,7 +5,8 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { isPasswordEntered } from "@/shared/validators";
+import { WarningIcon } from "@/ui/icons/phosphor";
 
 interface Props {
   handler: (password?: string) => void;
@@ -20,7 +21,8 @@ const CheckPassword: FC<Props> = ({ handler }) => {
 
   const pwdId = useId();
 
-  const { register, handleSubmit } = useForm<FormType>();
+  const { register, handleSubmit, watch } = useForm<FormType>();
+  const canSubmit = isPasswordEntered(watch("password") ?? "");
 
   const checkPassword = ({ password }: FormType) => {
     if (password !== appPassword)
@@ -32,29 +34,27 @@ const CheckPassword: FC<Props> = ({ handler }) => {
 
   return (
     <form className={s.form} onSubmit={handleSubmit(checkPassword)}>
-      <div className="flex flex-col gap-2">
-        <label htmlFor={pwdId} className={s.formTitle}>
+      <div className="field">
+        <label htmlFor={pwdId}>
           {t("components.check_password.password")}
         </label>
         <input
           id={pwdId}
           type="password"
-          className="input"
           {...register("password")}
         />
-        <button className="bottom-btn" type="submit">
-          {t("components.check_password.continue")}
-        </button>
       </div>
 
-      <div className="flex gap-2">
-        <div>
-          <ExclamationTriangleIcon className="w-6 h-6 text-red-400" />
-        </div>
-        <span className="text-sm text-gray-200">
+      <div className="inline-notice">
+        <span className={s.warning}>
+          <WarningIcon size={18} />
           {t("components.check_password.warning")}
         </span>
       </div>
+
+      <button className="bottom-btn" type="submit" disabled={!canSubmit}>
+        {t("components.check_password.continue")}
+      </button>
     </form>
   );
 };

@@ -9,15 +9,20 @@ import type {
 } from "@/shared/interfaces";
 import keyringService from "@/background/services/keyring";
 import { excludeKeysFromObj } from "@/shared/utils";
-import * as bip39 from "nintondo-bip39";
-import { AddressType, HDPrivateKey } from "bellhdw";
-import { Network } from "belcoinjs-lib";
-import { isTestnet } from "@/ui/utils";
+import * as bip39 from "bip39";
+import { AddressType, HDPrivateKey } from "@/background/services/keyring/hdw";
+import { Network } from "bitcoinjs-lib";
+import { networkSlug } from "@/shared/networks";
 
 class WalletController implements IWalletController {
   async isVaultEmpty() {
     const values = await storageService.getLocalValues();
     return values.enc === undefined;
+  }
+
+  async wipeWallet() {
+    keyringService.keyrings = [];
+    await storageService.wipe();
   }
 
   async createNewWallet(props: INewWalletProps): Promise<IWallet> {
@@ -37,7 +42,7 @@ class WalletController implements IWalletController {
       name: !props.name ? storageService.getUniqueName("Wallet") : props.name,
       id: walletId,
       type: props.walletType,
-      addressType: props.addressType ?? AddressType.P2PKH,
+      addressType: props.addressType ?? AddressType.P2WPKH,
       accounts: [account],
       hideRoot: props.hideRoot,
     };
@@ -138,7 +143,7 @@ class WalletController implements IWalletController {
     await storageService.updateAppState({ network });
     await storageService.updateWalletState({ wallets: updatedWallets });
     sessionService.broadcastEvent("networkChanged", {
-      network: isTestnet(network) ? "testnet" : "mainnet",
+      network: networkSlug(network),
     });
   }
 }

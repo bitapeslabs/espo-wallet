@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import s from "./styles.module.scss";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "@/ui/states/appState";
 import { useWalletState } from "@/ui/states/walletState";
@@ -7,17 +6,19 @@ import { useControllersState } from "@/ui/states/controllerState";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { isNotification, ss } from "@/ui/utils";
-import cn from "classnames";
 import PasswordInput from "@/ui/components/password-input";
+import EspoGlyph from "@/ui/icons/EspoGlyph";
+import LanguageDropdown from "@/ui/components/language-dropdown";
 import { t } from "i18next";
-import LogoIcon from "@/ui/icons/Logo";
+import { isPasswordEntered } from "@/shared/validators";
+import s from "./styles.module.scss";
 
 interface FormType {
   password: string;
 }
 
 const Login = () => {
-  const { register, handleSubmit } = useForm<FormType>({
+  const { register, handleSubmit, watch } = useForm<FormType>({
     defaultValues: {
       password: "",
     },
@@ -33,7 +34,7 @@ const Login = () => {
   );
 
   useEffect(() => {
-    if (vaultIsEmpty) navigate("/account/create-password");
+    if (vaultIsEmpty) navigate("/account/welcome");
   }, [vaultIsEmpty, navigate]);
 
   const login = async ({ password }: FormType) => {
@@ -55,38 +56,43 @@ const Login = () => {
   };
 
   return (
-    <form
-      className={cn("mt-5 flex flex-col w-full gap-11")}
-      onSubmit={handleSubmit(login)}
-    >
-      <div className="flex flex-col gap-7 items-center w-full">
-        <div className="flex justify-center p-2 rounded-xl">
-          <LogoIcon
-            className={
-              "text-white w-14 h-14 hover:scale-110 duration-100 transition-transform"
-            }
+    <form className={s.wrap} onSubmit={handleSubmit(login)}>
+      <div className={s.topBar}>
+        <LanguageDropdown />
+      </div>
+
+      <div className={s.upper}>
+        <EspoGlyph size={104} bloom className={s.glyph} />
+      </div>
+
+      <div className={s.group}>
+        <p className={s.title}>{t("login.enter_password")}</p>
+        <div className={s.inputWrap}>
+          <PasswordInput
+            showSeparateLabel={false}
+            register={register}
+            label={t("login.password")}
+            name="password"
           />
         </div>
-        <div className="text-lg text-center font-[Roboto] uppercase tracking-widest">
-          {t("login.welcome_back")}
-        </div>
       </div>
-      <div className={cn(s.form, "mb-20 w-full items-center justify-center")}>
-        <PasswordInput
-          showSeparateLabel={false}
-          register={register}
-          label={t("login.password")}
-          name="password"
-        />
-        <div className="w-full flex justify-center">
-          <button
-            className="bg-primary text-bg rounded-xl font-medium py-1.5 px-9 text-sm font-[Roboto] uppercase standard:mx-auto"
-            type="submit"
-          >
-            {t("login.login")}
-          </button>
-        </div>
-      </div>
+
+      <div className={s.lower} />
+
+      <button
+        className={`btn ${s.unlock}`}
+        type="submit"
+        disabled={!isPasswordEntered(watch("password") ?? "")}
+      >
+        {t("login.unlock")}
+      </button>
+      <button
+        type="button"
+        className={s.forgot}
+        onClick={() => navigate("/account/forgot-password")}
+      >
+        {t("login.forgot_password")}
+      </button>
     </form>
   );
 };

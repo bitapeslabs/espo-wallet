@@ -1,0 +1,133 @@
+.wrap {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 3.4rem;
+  background: var(--panel3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.iconBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.iconBtn:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+.headerTitle {
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.spacer {
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.card {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.card .row + .row {
+  border-top: 1px solid rgba(53, 55, 66, 0.4);
+}
+
+.row:hover {
+  background: var(--panel2);
+}
+
+.rowLabel {
+  flex: 1;
+}
+
+.rowValue {
+  color: var(--muted2);
+  font-weight: 500;
+}
+
+.rowCaret {
+  color: var(--muted2);
+  flex-shrink: 0;
+}
+
+.danger .rowLabel {
+  color: var(--danger);
+}
+
+.danger:hover {
+  background: rgba(255, 65, 65, 0.1);
+}
+
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 14px 0 18px;
+  text-align: center;
+}
+
+.confirmName {
+  font-weight: 650;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirmActions :global(.btn) {
+  flex: 1;
+}

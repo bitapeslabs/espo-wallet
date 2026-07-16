@@ -1,8 +1,39 @@
+# Dependencies
 node_modules
-.vscode
-build
-bun.lockb
+
+# Build output
+.output
+.wxt
 dist
-.idea
-package-lock.json
+build
+
+# Reference material and scratch (third-party repos, not part of this project)
+agent-context
+
+# Environment / secrets
 .env
+.env.*
+*.pem
+*.key
+
+# Lockfiles we don't ship (bun.lock is committed for reproducibility)
+bun.lockb
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Packaged artifacts
+*.zip
+
+# Editors
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

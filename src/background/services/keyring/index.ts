@@ -1,19 +1,18 @@
 import { KeyringServiceError } from "./consts";
-import type { Hex, Json, SendBEL, SendOrd, UserToSignInput } from "./types";
+import type { Hex, Json, SendBTC, UserToSignInput } from "./types";
 import { storageService } from "@/background/services";
-import { Network, payments, Psbt } from "belcoinjs-lib";
-import { getScriptForAddress, toXOnly } from "@/shared/utils/transactions";
+import { Network, payments, Psbt } from "bitcoinjs-lib";
+import { toXOnly } from "@/shared/utils/transactions";
+import { createSendBtc } from "./txBuilder";
 import {
-  createMultisendOrd,
-  createSendBEL,
-  createSendOrd,
-} from "bel-ord-utils";
-import { SimpleKey, HDPrivateKey, AddressType } from "bellhdw";
-import HDSimpleKey from "bellhdw/src/hd/simple";
-import type { Keyring } from "bellhdw/src/hd/types";
+  SimpleKey,
+  HDPrivateKey,
+  AddressType,
+  type Keyring,
+} from "./hdw";
+import HDSimpleKey from "./hdw/simple";
 import { INewWalletProps } from "@/shared/interfaces";
-import { ApiOrdUTXO, OrdUTXO } from "@/shared/interfaces/inscriptions";
-import { ApiUTXO } from "@/shared/interfaces/api";
+import apiController from "@/background/controllers/apiController";
 
 export const KEYRING_SDK_TYPES = {
   SimpleKey,
@@ -60,7 +59,7 @@ class KeyringService {
   async newKeyring({
     walletType,
     payload,
-    addressType = AddressType.P2PKH,
+    addressType = AddressType.P2WPKH,
     hideRoot,
     restoreFrom,
     hdPath,
@@ -84,7 +83,7 @@ class KeyringService {
       });
     }
     keyring.addressType =
-      typeof addressType === "number" ? addressType : AddressType.P2PKH;
+      typeof addressType === "number" ? addressType : AddressType.P2WPKH;
     keyring.setNetwork(network);
     this.keyrings.push(keyring);
     if (!keyring.getAccounts().length)
@@ -193,7 +192,7 @@ class KeyringService {
     return keyring.exportPublicKey(address);
   }
 
-  async sendBEL(data: SendBEL) {
+  async sendBTC(data: SendBTC) {
     const account = storageService.currentAccount;
     const wallet = storageService.currentWallet;
     if (!account?.address || !wallet)
@@ -203,146 +202,21 @@ class KeyringService {
 
     const publicKey = this.exportPublicKey(account.address);
 
-    const scriptPk = getScriptForAddress(
-      Buffer.from(publicKey, "hex") as unknown as Uint8Array,
-      wallet.addressType
-    );
-    if (!scriptPk)
-      throw new Error("Internal error: Failed to get script for address");
-
-    const psbt = await createSendBEL({
-      utxos: data.utxos.map((v) => {
-        return {
-          txId: v.txid,
-          outputIndex: v.vout,
-          satoshis: v.value,
-          scriptPk: scriptPk.toString("hex"),
-          addressType: wallet?.addressType,
-          address: account.address!,
-          ords: [],
-        };
-      }),
+    const psbt = await createSendBtc({
+      utxos: data.utxos,
       toAddress: data.to,
       toAmount: data.amount,
-      signTransaction: this.signPsbt.bind(this) as (
-        psbt: Psbt
-      ) => Promise<void>,
+      feeRate: data.feeRate,
       network: data.network,
       changeAddress: account.address,
       receiverToPayFee: data.receiverToPayFee,
-      pubkey: this.exportPublicKey(account.address),
-      feeRate: data.feeRate,
-      enableRBF: false,
+      publicKey,
+      addressType: wallet.addressType,
+      signPsbt: (psbt) => this.signPsbt(psbt),
+      getTxHex: (txid) => apiController.getTransactionHex(txid),
     });
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore We are really dont know what is it but we still copy working code
-    psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = false;
     return psbt.toHex();
-  }
-
-  async sendOrd(data: Omit<SendOrd, "amount">) {
-    const account = storageService.currentAccount;
-    const wallet = storageService.currentWallet;
-    if (!account?.address || !wallet)
-      throw new Error(
-        "Error when trying to get the current account or current account address or wallet"
-      );
-
-    const publicKey = this.exportPublicKey(account.address);
-
-    const scriptPk = getScriptForAddress(
-      Buffer.from(publicKey, "hex") as unknown as Uint8Array,
-      wallet.addressType
-    );
-    if (!scriptPk)
-      throw new Error("Internal error: Failed to get script for address");
-
-    const inscriptionUtxoValue = data.utxos.find(
-      (i) => (i as ApiOrdUTXO & { isOrd: boolean }).isOrd
-    )?.value;
-    if (inscriptionUtxoValue === undefined)
-      throw new Error("Internal error: Inscription utxo was not found");
-
-    const psbt = await createSendOrd({
-      utxos: data.utxos.map((v) => {
-        return {
-          txId: v.txid,
-          outputIndex: v.vout,
-          satoshis: v.value,
-          scriptPk: scriptPk.toString("hex"),
-          addressType: wallet?.addressType,
-          address: account.address!,
-          ords: (v as ApiOrdUTXO & { isOrd: boolean }).isOrd
-            ? [
-                {
-                  id: `${(v as ApiOrdUTXO).inscription_id}`,
-                  offset: (v as ApiOrdUTXO).offset,
-                },
-              ]
-            : [],
-        };
-      }),
-      toAddress: data.to,
-      outputValue: inscriptionUtxoValue,
-      signTransaction: this.signPsbt.bind(this) as (
-        psbt: Psbt
-      ) => Promise<void>,
-      network: data.network,
-      changeAddress: account.address,
-      pubkey: this.exportPublicKey(account.address),
-      feeRate: data.feeRate,
-      enableRBF: false,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore We are really dont know what is it but we still copy working code
-    psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = false;
-    return psbt.toHex();
-  }
-
-  async sendMultiOrd(
-    toAddress: string,
-    feeRate: number,
-    ordUtxos: OrdUTXO[],
-    utxos: ApiUTXO[],
-    network: Network
-  ) {
-    if (!storageService.currentAccount?.address)
-      throw new Error("Error when trying to get the current account or wallet");
-    return await createMultisendOrd({
-      changeAddress: storageService.currentAccount.address,
-      feeRate,
-      signPsbtHex: async (psbtHex: string) => {
-        const psbt = Psbt.fromHex(psbtHex);
-        this.signPsbtWithoutFinalizing(psbt);
-        return psbt.toHex();
-      },
-      toAddress,
-      utxos: [
-        ...utxos.map((f) => ({
-          txId: f.txid,
-          satoshis: f.value,
-          rawHex: f.hex,
-          outputIndex: f.vout,
-          ords: [],
-        })),
-        ...ordUtxos.map((f) => ({
-          txId: f.txid,
-          satoshis: f.value,
-          rawHex: f.hex,
-          outputIndex: f.vout,
-          ords: [
-            {
-              id: f.inscription_id,
-              offset: f.offset,
-            },
-          ],
-        })),
-      ],
-      network,
-      publicKey: this.exportPublicKey(storageService.currentAccount!.address!),
-    });
   }
 
   changeAddressType(index: number, addressType: AddressType): string[] {

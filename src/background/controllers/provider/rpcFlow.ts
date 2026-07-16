@@ -11,7 +11,6 @@ const isSignApproval = (type: string) => {
     "SignText",
     "signPsbt",
     "SignAllPsbtInputs",
-    "InscribeTransfer",
     "multiPsbtSign",
     "switchNetwork",
     "CreateTx",

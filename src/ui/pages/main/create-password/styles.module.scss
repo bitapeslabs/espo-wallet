@@ -1,0 +1,86 @@
+.wrap {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* standardized wizard header, matching the pages layout */
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--panel3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  min-height: 3.4rem;
+  position: relative;
+}
+
+.back {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.back:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+.headerTitle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 650;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px 24px;
+}
+
+.crumbs {
+  margin: 12px 0 28px !important;
+}
+
+.inner {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 650;
+  margin: 0 0 18px;
+  text-align: left;
+}
+
+.submit {
+  width: 100%;
+  margin-top: auto;
+}

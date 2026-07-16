@@ -1,11 +1,16 @@
+import s from "./styles.module.scss";
+import cn from "classnames";
 import PasswordInput from "@/ui/components/password-input";
 import Select from "@/ui/components/select";
 import SwitchAddressType from "@/ui/components/switch-address-type";
 import { useCreateNewWallet } from "@/ui/hooks/wallet";
 import { useAppState } from "@/ui/states/appState";
 import { ss } from "@/ui/utils";
-import { AddressType } from "bellhdw";
+import { AddressType } from "@/background/services/keyring/hdw";
 import { t } from "i18next";
+import { isValidPrivateKey } from "@/shared/validators";
+import Breadcrumbs from "@/ui/components/breadcrumbs";
+import { useWalletState } from "@/ui/states/walletState";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -26,7 +31,15 @@ const RestorePrivKey = () => {
     AddressType.P2WPKH
   );
   const [step, setStep] = useState(1);
-  const { register, handleSubmit } = useForm<FormType>({
+  const { wallets } = useWalletState(ss(["wallets"]));
+  const onboarding = wallets.length === 0;
+  const crumbSteps = [
+    ...(onboarding ? [t("components.breadcrumbs.password")] : []),
+    t("components.breadcrumbs.private_key"),
+    t("components.breadcrumbs.preferences"),
+  ];
+  const crumbCurrent = (onboarding ? 1 : 0) + (step - 1);
+  const { register, handleSubmit, watch } = useForm<FormType>({
     defaultValues: {
       privKey: "",
     },
@@ -66,10 +79,11 @@ const RestorePrivKey = () => {
   if (loading) return <TailSpin className="animate-spin" />;
 
   return (
-    <form className="form h-full py-4" onSubmit={handleSubmit(recoverWallet)}>
+    <form className={cn("form", s.form)} onSubmit={handleSubmit(recoverWallet)}>
+      <Breadcrumbs steps={crumbSteps} current={crumbCurrent} className={s.crumbs} />
       {step === 1 ? (
         <>
-          <div className="flex flex-col gap-4">
+          <div className={s.fields}>
             <PasswordInput
               label={t("new_wallet.restore_private.private_key")}
               register={register}
@@ -87,6 +101,7 @@ const RestorePrivKey = () => {
 
           <button
             className="bottom-btn"
+            disabled={!isValidPrivateKey(watch("privKey") ?? "")}
             onClick={(e) => {
               e.preventDefault();
               onNextStep();

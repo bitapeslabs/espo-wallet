@@ -18,11 +18,21 @@ import PortMessage from "@/shared/utils/message/portMessage";
 import { ss } from "./utils";
 import { useInscriptionManagerContext } from "./utils/inscriptions-ctx";
 import { TailSpin } from "react-loading-icons";
-import { NINTONDO_URL } from "@/shared/constant";
-import { browserTabsCreate } from "@/shared/utils/browser";
 
 export default function App() {
   const [router, setRouter] = useState<Router>(authenticatedRouter);
+  // re-render the whole tree when the language changes so every t() call
+  // picks the new strings up without reloading the page
+  const [langTick, setLangTick] = useState(0);
+
+  useEffect(() => {
+    const onLanguageChanged = () => setLangTick((v) => v + 1);
+    i18n.on("languageChanged", onLanguageChanged);
+    return () => {
+      i18n.off("languageChanged", onLanguageChanged);
+    };
+  }, []);
+
   const { isReady, isUnlocked, updateAppState } = useAppState(
     ss(["isReady", "isUnlocked", "updateAppState"])
   );
@@ -55,18 +65,18 @@ export default function App() {
       walletState.vaultIsEmpty = await walletController.isVaultEmpty();
       appState.isReady = true;
 
-      await updateAppState({
-        isReady: true,
-      });
+      // apply the wallet state locally BEFORE isReady flips anywhere:
+      // the moment isReady is true the router mounts and reads vaultIsEmpty
+      await updateWalletState(
+        { vaultIsEmpty: walletState.vaultIsEmpty },
+        false
+      );
       await updateWalletState({
         vaultIsEmpty: walletState.vaultIsEmpty,
       });
-      await updateAppState(
-        {
-          isReady: true,
-        },
-        false
-      );
+      await updateAppState({
+        isReady: true,
+      });
     }
 
     await updateWalletState(walletState, false);
@@ -103,24 +113,11 @@ export default function App() {
     resetProvider();
   }, [selectedAccount, selectedWallet, resetProvider]);
 
-  const onOpenNintondo = async () => {
-    await browserTabsCreate({
-      url: NINTONDO_URL,
-      active: true,
-    });
-  };
-
   return (
     <div>
-      <div
-        onClick={onOpenNintondo}
-        className="uppercase text-center hidden standard:block font-medium text-xl mb-6 select-none cursor-pointer hover:underline"
-      >
-        nintondo
-      </div>
       <div className="app">
         {isReady ? (
-          <RouterProvider router={router} />
+          <RouterProvider key={langTick} router={router} />
         ) : (
           <TailSpin className="animate-spin" />
         )}

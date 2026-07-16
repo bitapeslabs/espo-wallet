@@ -1,23 +1,27 @@
 .settings {
-  @apply w-full flex flex-col gap-3;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .wrapper {
-  @apply h-full w-full p-6 pb-3 standard:pb-0 flex flex-col justify-between;
-}
-
-.card {
-  @apply cursor-pointer bg-input-bg h-36 rounded-xl hover:bg-text hover:text-bg transition-colors flex items-center justify-center flex-col gap-4 px-3;
-
-  > div {
-    @apply text-xs text-center font-medium;
-  }
+  height: 100%;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .version {
-  @apply text-gray-300 text-center standard:hidden;
+  color: var(--muted2);
+  text-align: center;
+  font-size: 12.5px;
+  padding-top: 14px;
+}
 
-  span {
-    @apply font-medium;
-  }
+.version span {
+  font-weight: 600;
+  color: var(--muted);
 }

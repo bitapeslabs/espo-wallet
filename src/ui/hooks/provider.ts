@@ -8,7 +8,7 @@ import {
   LocationValue,
   SignPsbtOptions,
 } from "@/shared/interfaces/provider";
-import { Psbt } from "belcoinjs-lib";
+import { Psbt } from "bitcoinjs-lib";
 import { toFixed } from "@/shared/utils/transactions";
 import { useGetCurrentAccount } from "../states/walletState";
 import { useAppState } from "../states/appState";
@@ -106,7 +106,7 @@ export const useDecodePsbtInputs = () => {
       const inputFields: IField[] = [];
       const outputFields: IField[] = [];
       const inputLocations = psbt.txInputs.map(
-        (f) => f.hash.reverse().toString("hex") + ":" + f.index
+        (f) => Buffer.from(f.hash).reverse().toString("hex") + ":" + f.index
       );
       const inputValues = await apiController.getUtxoValues(inputLocations);
       if (!inputValues) {
@@ -116,7 +116,7 @@ export const useDecodePsbtInputs = () => {
         return [];
       }
       const locationValue: LocationValue = Object.fromEntries(
-        inputLocations.map((f, i) => [f, inputValues[i]])
+        inputLocations.map((f: string, i: number) => [f, inputValues[i]])
       );
 
       psbt.txOutputs.forEach((f, i) => {
@@ -127,16 +127,18 @@ export const useDecodePsbtInputs = () => {
           label: `Output #${i}`,
           value: {
             text: `${f.address}`,
-            value: `${toFixed(f.value / 10 ** 8)} BEL`,
+            value: `${toFixed(f.value / 10 ** 8)} BTC`,
           },
         });
       });
 
       for (const [i, txInput] of psbt.txInputs.entries()) {
         const outpoint =
-          txInput.hash.reverse().toString("hex") + ":" + txInput.index;
+          Buffer.from(txInput.hash).reverse().toString("hex") +
+          ":" +
+          txInput.index;
         const isImportant = options?.toSignInputs
-          ?.map((f) => f.index)
+          ?.map((f: { index: number }) => f.index)
           .includes(i);
 
         let value: IFieldValue;
@@ -144,29 +146,15 @@ export const useDecodePsbtInputs = () => {
         totalInputValue += locationValue[outpoint];
 
         if (psbt.data.inputs[i].sighashType === 131) {
-          const foundInscriptions =
-            await apiController.findInscriptionsByOutpoint({
-              address: currentAccount!.address!,
-              outpoint: outpoint.replace(":", "i"),
-            });
-
-          if (foundInscriptions && foundInscriptions.length) {
-            value = {
-              anyonecanpay: true,
-              inscriptions: foundInscriptions.map((i) => i.genesis),
-              value: `${toFixed(inputValue)} BEL`,
-            };
-          } else {
-            value = {
-              anyonecanpay: true,
-              text: `${outpoint.split("i")[0]}`,
-              value: `${toFixed(inputValue)} BEL`,
-            };
-          }
+          value = {
+            anyonecanpay: true,
+            text: `${outpoint.split(":")[0]}`,
+            value: `${toFixed(inputValue)} BTC`,
+          };
         } else {
           value = {
-            text: `${outpoint.split("i")[0]}`,
-            value: `${toFixed(inputValue)} BEL`,
+            text: `${outpoint.split(":")[0]}`,
+            value: `${toFixed(inputValue)} BTC`,
           };
         }
 

@@ -1,64 +1,35 @@
-import { FC, useEffect, useRef } from "react";
+import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { shortAddress } from "@/shared/utils/transactions";
-import { useAppState } from "@/ui/states/appState";
-import { ss } from "@/ui/utils";
-import { getContentUrl } from "@/shared/constant";
 
 interface Props {
   inscriptionId: string;
 }
 
-const applyPixelation = (img?: HTMLImageElement) => {
-  if (!img) return;
-
-  if (img.naturalWidth < 100 || img.naturalHeight < 100) {
-    img.style.imageRendering = "pixelated";
-  }
-};
-
+/**
+ * Asset preview card. The Bells content indexer that used to render previews
+ * is gone; the card shows a placeholder tile until a new asset source (e.g.
+ * alkanes) is wired in.
+ */
 const InscriptionCard: FC<Props> = ({ inscriptionId }) => {
   const navigate = useNavigate();
-  const { network } = useAppState(ss(["network"]));
-
-  const imageRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    if (imageRef.current) {
-      if (imageRef.current.complete) {
-        applyPixelation(imageRef.current);
-      } else {
-        imageRef.current.onload = () => {
-          applyPixelation(imageRef.current!);
-        };
-      }
-    }
-  });
 
   return (
-    <div className="flex justify-center w-full">
+    <div className="asset-card-wrap">
       <div
-        className="cursor-pointer flex flex-col justify-center align-center relative"
+        className="asset-card"
         onClick={() => {
           navigate("/pages/inscription-details", {
             state: { inscription_id: inscriptionId },
           });
         }}
       >
-        <div className="rounded-xl w-full bg-slate-950 bg-opacity-50">
-          <img
-            ref={imageRef}
-            src={`${getContentUrl(network)}/preview/${inscriptionId}`}
-            alt="content"
-            className="object-cover rounded-xl h-38 w-38"
-            style={{
-              imageRendering: "auto",
-            }}
-          />
+        <div className="asset-card-preview">
+          <span className="asset-card-letter">
+            {inscriptionId.slice(0, 1).toUpperCase()}
+          </span>
         </div>
-        <div className="absolute bottom-0 px-1 bg-black/50 backdrop-blur-sm left-0 text-xs text-white">
-          {shortAddress(inscriptionId, 6)}
-        </div>
+        <div className="asset-card-id">{shortAddress(inscriptionId, 6)}</div>
       </div>
     </div>
   );

@@ -1,27 +1,230 @@
-.switchWalletDiv {
-  @apply flex justify-items-start flex-col items-center w-full h-full;
+.manage {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
 }
 
-.wallets {
-  @apply flex flex-col py-4 w-full;
+/* header: back / title+network / add */
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 3.4rem;
+  background: var(--panel3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.mainWallet {
-  @apply relative overflow-hidden border border-text rounded-xl cursor-pointer;
+.iconBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
 }
 
-.manageWalletButton {
-  @apply bg-transparent border-0 rounded-full p-2 py-3 cursor-pointer;
+.iconBtn:hover {
+  background: var(--panel2);
+  color: var(--text);
 }
 
-.walletInfo {
-  @apply flex items-center gap-2 w-full font-medium text-base cursor-pointer;
+.headerTitle {
+  font-weight: 650;
+  font-size: 15px;
+  white-space: nowrap;
 }
 
-.wallet {
-  @apply flex p-2 pl-4 justify-between;
+.walletList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 0;
 }
 
-.selected {
-  @apply border-green-300;
+.walletBlock {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.walletRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.walletRow:hover {
+  background: var(--panel2);
+}
+
+.walletName {
+  flex: 1;
+  text-align: left;
+  font-weight: 650;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.walletMenu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted2);
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.walletMenu:hover {
+  color: var(--text);
+}
+
+.caret {
+  display: inline-flex;
+  color: var(--muted2);
+}
+
+.walletActions {
+  display: flex;
+  flex-direction: column;
+  padding: 0 14px 8px 34px;
+}
+
+.walletActions button {
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 8px;
+  cursor: pointer;
+}
+
+.walletActions button:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+.walletActions .danger {
+  color: var(--danger);
+}
+
+.walletActions .danger:hover {
+  background: rgba(255, 65, 65, 0.12);
+  color: var(--danger);
+}
+
+/* accounts under a wallet */
+.accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.accountRow:hover {
+  background: var(--panel2);
+}
+
+.accountActive {
+  background: var(--panel2);
+}
+
+.accountMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.accountName {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountAddr {
+  color: var(--muted2);
+  font-size: 12px;
+}
+
+.addAccount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.addAccount:hover {
+  background: var(--panel2);
+}
+
+/* delete confirm modal */
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 14px 0 18px;
+  text-align: center;
+}
+
+.confirmName {
+  font-weight: 650;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirmActions :global(.btn) {
+  flex: 1;
 }

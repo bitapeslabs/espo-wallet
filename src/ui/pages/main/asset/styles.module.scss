@@ -1,0 +1,90 @@
+.assetDiv {
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 16px;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: var(--panel3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  min-height: 3.4rem;
+  position: relative;
+}
+
+.back {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.back:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+.headerTitle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 650;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.assetIcon {
+  display: flex;
+  justify-content: center;
+  padding: 26px 16px 0;
+}
+
+.letterIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--panel3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 650;
+  font-size: 20px;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.price {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 14px 16px 6px;
+}
+
+.priceValue {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: default;
+}
+
+.squareActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 14px 16px 2px;
+}
+
+

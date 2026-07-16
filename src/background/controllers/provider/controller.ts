@@ -1,28 +1,31 @@
-import { networks, Psbt } from "belcoinjs-lib";
+import { Psbt } from "bitcoinjs-lib";
 import { keyringService, storageService } from "../../services";
 import "reflect-metadata/lite";
 import permission from "@/background/services/permission";
 import apiController from "../apiController";
-import { INintondoProvider, NetworkType } from "nintondo-sdk";
-import { gptFeeCalculate, isTestnet } from "@/ui/utils";
+import type { IEspoProvider, NetworkType } from "@/shared/interfaces/providerApi";
+import { networkFromSlug, networkSlug } from "@/shared/networks";
+import { gptFeeCalculate } from "@/ui/utils";
 import { ethErrors } from "eth-rpc-errors";
 import walletController from "../walletController";
 
 type IProviderController<
-  K extends keyof INintondoProvider = keyof Omit<INintondoProvider, "on">
+  K extends keyof IEspoProvider = keyof Omit<
+    IEspoProvider,
+    "on" | "removeListener"
+  >
 > = {
-  [P in K]: (p: Payload<P>) => ReturnType<INintondoProvider[P]>;
+  [P in K]: (p: Payload<P>) => ReturnType<IEspoProvider[P]>;
 };
 
-type Payload<P extends keyof INintondoProvider> = {
+type Payload<P extends keyof IEspoProvider> = {
   session: { origin: string };
   data: {
-    params: Parameters<INintondoProvider[P]>;
+    params: Parameters<IEspoProvider[P]>;
   };
   approvalRes?: any;
 };
 
-// @ts-ignore
 class ProviderController implements IProviderController {
   connect = async () => {
     if (
@@ -44,7 +47,7 @@ class ProviderController implements IProviderController {
     if (!storageService.appState.isReady) {
       await storageService.init();
     }
-    return isTestnet(storageService.appState.network) ? "testnet" : "mainnet";
+    return networkSlug(storageService.appState.network);
   };
 
   @Reflect.metadata("CONNECTED", true)
@@ -163,8 +166,11 @@ class ProviderController implements IProviderController {
 
     if (!utxos?.length) throw new Error("Not enough utxos");
 
-    const tx = await keyringService.sendBEL({
-      ...payload,
+    const tx = await keyringService.sendBTC({
+      to: payload.to,
+      amount: payload.amount,
+      receiverToPayFee: payload.receiverToPayFee,
+      feeRate: payload.feeRate,
       utxos,
       network,
     });
@@ -181,11 +187,6 @@ class ProviderController implements IProviderController {
     const psbt = Psbt.fromBase64(psbtBase64);
     await keyringService.signPsbtWithoutFinalizing(psbt, options?.toSignInputs);
     return psbt.toBase64();
-  };
-
-  @Reflect.metadata("APPROVAL", ["inscribeTransfer"])
-  inscribeTransfer = async (data: Payload<"inscribeTransfer">) => {
-    return { mintedAmount: data.approvalRes?.mintedAmount };
   };
 
   @Reflect.metadata("APPROVAL", ["multiPsbtSign"])
@@ -215,8 +216,9 @@ class ProviderController implements IProviderController {
     if (!storageService.currentWallet || !storageService.currentAccount) {
       throw ethErrors.provider.chainDisconnected("Account not found");
     }
-    const network =
-      networkStr === "testnet" ? networks.testnet : networks.bellcoin;
+    const network = networkFromSlug(
+      networkStr === "regtest" ? "regtest" : "mainnet"
+    );
     await walletController.switchNetwork(network);
     return networkStr;
   };

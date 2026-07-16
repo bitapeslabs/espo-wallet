@@ -1,0 +1,15 @@
+.langDropdown {
+  flex-shrink: 0;
+}
+
+.langTrigger {
+  min-width: 0;
+  font-size: 13px;
+  height: 34px !important;
+}
+
+.langPanel {
+  left: auto;
+  right: 0;
+  min-width: 120px;
+}

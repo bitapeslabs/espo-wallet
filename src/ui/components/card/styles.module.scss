@@ -1,31 +1,65 @@
 .card {
-  @apply relative overflow-hidden cursor-pointer border-b last:border-b-0 border-neutral-800;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(53, 55, 66, 0.55);
+}
+
+.card:last-child {
+  border-bottom: none;
+}
+
+.card:hover {
+  background: rgba(53, 55, 66, 0.25);
 }
 
 .wrapper {
-  @apply flex items-center justify-between py-2 px-4 max-w-full;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  max-width: 100%;
+  gap: 10px;
 }
 
 .action {
-  @apply border-none p-2 pr-0 bg-transparent;
+  border: none;
+  padding: 6px;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+}
+
+.action:hover {
+  background: transparent;
+  color: var(--text);
 }
 
 .name {
-  @apply font-medium text-base cursor-pointer w-full line-clamp-1 text-ellipsis overflow-hidden;
+  font-weight: 650;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 .selected {
-  @apply bg-neutral-800;
-}
-
-.aggressive {
-  @apply border-red-600 bg-red-600;
+  background: rgba(53, 55, 66, 0.35);
 }
 
 .address {
-  @apply text-xs text-gray-400 font-mono;
+  font-size: 12.5px;
+  color: var(--muted2);
 }
 
 .right {
-  @apply flex gap-2 items-center;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
 }

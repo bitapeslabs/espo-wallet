@@ -1,0 +1,35 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.iconWrap {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--panel2);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin-bottom: 6px;
+}
+
+.card :global(.chip) {
+  background: var(--panel3);
+}

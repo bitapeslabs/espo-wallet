@@ -1,27 +1,7 @@
+/* vertical stack of selectable Tile cards */
 .allTypes {
-  @apply w-full flex flex-col gap-3 pt-8;
-}
-
-.addressType {
-  @apply py-4 pl-4 flex items-center gap-2 relative text-base rounded-xl border border-text;
-
-  &:hover {
-    @apply bg-text text-bg cursor-pointer;
-  }
-}
-
-.selected {
-  @apply border-green-300;
-}
-
-.title {
-  @apply text-xs;
-}
-
-.value {
-  @apply font-medium text-sm;
-}
-
-.wrapper {
-  @apply flex flex-col gap-2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

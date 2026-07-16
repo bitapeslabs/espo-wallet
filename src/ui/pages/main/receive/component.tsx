@@ -76,12 +76,14 @@ const Receive = () => {
 
   return (
     <div className={s.receive}>
-      <div className={s.container}>
-        <div title={t("receive.click_to_copy")} onClick={onCopy} ref={ref} />
+      <div className={cn("panel", s.container)}>
         <div
-          className="text-center opacity-80 text-xs text-ellipsis w-full break-all line-clamp-1"
-          title={currentAccount?.address}
-        >
+          className={s.qr}
+          title={t("receive.click_to_copy")}
+          onClick={onCopy}
+          ref={ref}
+        />
+        <div className={s.address} title={currentAccount?.address}>
           {currentAccount?.address}
         </div>
       </div>

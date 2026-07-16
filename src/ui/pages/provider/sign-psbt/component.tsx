@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { KeyIcon } from "@heroicons/react/24/outline";
 import Layout from "../layout";
 import { TailSpin } from "react-loading-icons";
 import { IField } from "@/shared/interfaces/provider";
@@ -10,6 +9,7 @@ import Modal from "@/ui/components/modal";
 import SignPsbtFileds from "@/ui/components/sign-psbt-fileds";
 import notificationController from "@/background/controllers/notificationController";
 import toast from "react-hot-toast";
+import s from "./styles.module.scss";
 
 const SignPsbt = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -28,7 +28,7 @@ const SignPsbt = () => {
       return;
     }
     setFields(resultFields.fields[0]);
-    setFee(resultFields.fee + " BEL");
+    setFee(resultFields.fee + " BTC");
     setLoading(false);
   }, [getPsbtFields, fields]);
 
@@ -46,25 +46,18 @@ const SignPsbt = () => {
   return (
     <Layout
       documentTitle={t("provider.sign_tx")}
-      resolveBtnClassName="bg-text text-bg hover:bg-orange-500 hover:text-bg"
+      resolveBtnClassName="btn primary"
       resolveBtnText={t("provider.sign")}
     >
-      <div className="flex flex-col overflow-y-scroll max-h-[420px] standard:max-h-full standard:overflow-hidden items-center gap-3 p-3 text-sm">
-        <div className="flex items-center justify-center gap-4 mb-3">
-          <KeyIcon className="w-8 h-8 text-orange-500" />
-          <h4 className="text-xl font-medium">{t("provider.sign_tx")}</h4>
-        </div>
+      <div className="panel">
+        <div className="panel-head">{t("provider.sign_tx")}</div>
         <SignPsbtFileds
           fields={fields}
           setModalInputIndexHandler={setModalInputIndex}
         />
-        <div className="w-full">
-          <label className="mb-2 flex text-gray-300 pl-2 justify-between">
-            {t("provider.fee") + ":"}
-          </label>
-          <div className="rounded-xl px-5 py-2 break-all w-full flex gap-1 bg-input-bg">
-            <p className="text-light-orange">{fee}</p>
-          </div>
+        <div className={`review-card stat ${s.feeCard}`}>
+          <div className="stat-label">{t("provider.fee")}</div>
+          <div className="stat-value">{fee}</div>
         </div>
       </div>
       <Modal
@@ -74,7 +67,7 @@ const SignPsbt = () => {
         }}
         title={t("provider.warning")}
       >
-        <div className="text-lg font-medium p-6">
+        <div className={s.modalBody}>
           {t("provider.anyone_can_pay_warning")}
         </div>
       </Modal>

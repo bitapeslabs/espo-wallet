@@ -11,14 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: montudor/action-zip@v1
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Zip project
-        run: |
-          zip -qq -r project.zip ./*
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -28,29 +22,23 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build chrome version
-        run: bun chrome
+      - name: Build and zip chrome version
+        run: bun run zip
 
-      - name: Zip chrome extension
+      - name: Build and zip firefox version
+        run: bun run zip:firefox
+
+      - name: Rename artifacts
         run: |
-          cd dist/chrome
-          zip -qq -r ../../chrome.zip ./*
-          cd ../..
-
-      - name: Build firefox version
-        run: bun firefox
-
-      - name: Zip firefox extension
-        run: |
-          cd dist/firefox
-          zip -qq -r ../../firefox.zip ./*
-          cd ../..
+          cp .output/*-chrome.zip chrome.zip
+          cp .output/*-firefox.zip firefox.zip
+          cp .output/*-sources.zip sources.zip
 
       - name: Upload to Firefox Addons
         uses: cardinalby/webext-buildtools-firefox-addons-action@v1
         with:
           zipFilePath: firefox.zip
-          sourcesZipFilePath: project.zip
+          sourcesZipFilePath: sources.zip
           extensionId: ${{ secrets.FIREFOX_EXTENSION_ID }}
           jwtIssuer: ${{ secrets.FF_JWT_ISSUER }}
           jwtSecret: ${{ secrets.FF_JWT_SECRET }}

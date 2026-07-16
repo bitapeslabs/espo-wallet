@@ -1,9 +1,18 @@
 {
   "wallet_page": {
     "transactions": "Транзакции",
-    "no_transactions": "Нет транзакций",
+    "no_transactions": "Пока нет транзакций",
     "receive": "Получить",
-    "send": "Отправить"
+    "send": "Отправить",
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed",
+    "root_account": "Root account",
+    "activity": "Активность",
+    "alkanes": "Alkanes",
+    "no_alkanes": "Пока нет alkanes",
+    "tokens": "Токены",
+    "collectibles": "Коллекционные",
+    "bitcoin": "Биткоин"
   },
   "settings": {
     "language": "Язык",
@@ -11,7 +20,8 @@
     "connected_sites": "Подключенные сайты",
     "expand_view": "Развернуть обзор",
     "change_password": "Сменить пароль",
-    "address_type": "Тип адреса"
+    "address_type": "Тип адреса",
+    "wallets": "Кошельки"
   },
   "components": {
     "layout": {
@@ -23,14 +33,16 @@
       "change_address_type": "Сменить тип адреса",
       "create_new_account": "Создать новый аккаунт",
       "change_password": "Сменить пароль",
-      "receive_bel": "Получить BEL",
+      "receive_bel": "Получить BTC",
       "switch_wallet": "Переключить кошелек",
       "transaction_info": "Информация о транзакции",
       "settings": "Настройки",
       "show_mnemonic": "Показать мнемонику",
       "show_private_key": "Показать приватный ключ",
       "restore_from_mnemonic": "Восстановить из мнемоника",
-      "restore_from_private_key": "Восстановить кошелек"
+      "restore_from_private_key": "Восстановить кошелек",
+      "assets": "Assets",
+      "confirmation": "Подтверждение"
     },
     "check_password": {
       "incorrect_password_error": "Неверный пароль",
@@ -53,6 +65,22 @@
     },
     "card": {
       "close": "Закрыть"
+    },
+    "token_card": {
+      "transfers": "Переводы"
+    },
+    "breadcrumbs": {
+      "password": "Пароль",
+      "recovery_phrase": "Фраза восстановления",
+      "import_phrase": "Импорт фразы",
+      "private_key": "Приватный ключ",
+      "preferences": "Настройки"
+    },
+    "password_strength": {
+      "too_weak": "Слишком слабый",
+      "weak": "Слабый",
+      "good": "Хороший",
+      "strong": "Надёжный"
     }
   },
   "change_password": {
@@ -71,11 +99,16 @@
   "create_password": {
     "password": "Пароль",
     "confirm_password": "Подтвердить пароль",
-    "create_password": "Создать пароль"
+    "create_password": "Создать пароль",
+    "passwords_mismatch": "Passwords do not match"
   },
   "login": {
     "password": "Пароль",
-    "login": "Войти"
+    "login": "Войти",
+    "welcome_back": "С возвращением",
+    "enter_password": "Введите пароль",
+    "unlock": "Разблокировать",
+    "forgot_password": "Забыли пароль"
   },
   "new_account": {
     "max_length_error": "Максимальная длина имени - 10",
@@ -93,7 +126,7 @@
     "continue": "Продолжить",
     "new_mnemonic": {
       "error_phrase_blank": "Мнемоника пуста",
-      "warning": "Если вы потеряете эти слова, вы никогда не сможете восстановить свой аккаунт",
+      "warning": "Храните их в безопасности. Если вы потеряете эти слова, вы никогда не сможете восстановить свой аккаунт.",
       "i_saved_this_phrase": "Я сохранил эту фразу",
       "copy": "Копировать"
     },
@@ -105,7 +138,8 @@
       "private_key": "Приватный ключ",
       "recover": "Восстановить",
       "invalid_private_key_error": "Некорректный приватный ключ"
-    }
+    },
+    "import_wallet_label": "Import wallet"
   },
   "receive": {
     "click_to_copy": "Кликните, чтобы скопировать",
@@ -122,7 +156,7 @@
       "confirm": "Подтвердить"
     },
     "create_send": {
-      "minimum_amount_error": "Минимальная сумма - 0.00001 BEL",
+      "minimum_amount_error": "Минимальная сумма - 0.00001 BTC",
       "fee_exceeds_amount_error": "Сбор превышает сумму",
       "address_error": "Неверный адрес получателя",
       "not_enough_money_error": "На вашем счету недостаточно средств",
@@ -173,7 +207,10 @@
     "are_you_sure": "Вы уверены, что хотите удалить?",
     "yes": "Да",
     "no": "Нет",
-    "copy": "Копировать"
+    "copy": "Копировать",
+    "title": "Управление кошельками",
+    "add_wallet": "Добавить кошелёк",
+    "add_account": "Добавить аккаунт"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -189,11 +226,42 @@
   "hooks": {
     "transaction": {
       "insufficient_balance_0": "Недостаточный баланс. Неинскрибированный баланс",
-      "insufficient_balance_1": "BEL) ниже чем",
-      "insufficient_balance_2": "BEL"
+      "insufficient_balance_1": "BTC) ниже чем",
+      "insufficient_balance_2": "BTC"
     },
     "wallet": {
       "last_wallet_error": "Вы не можете удалить ваш последний кошелек"
     }
+  },
+  "network_settings": {
+    "esplora_url": "Electrs (esplora) URL",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "welcome": {
+    "tagline": "Вдохни жизнь в свой Bitcoin."
+  },
+  "provider": {
+    "to_sign": "К подписи",
+    "utxo_txid": "Txid UTXO: "
+  },
+  "nav": {
+    "home": "Главная",
+    "swap": "Обмен",
+    "activity": "Активность",
+    "search": "Поиск"
+  },
+  "forgot": {
+    "description": "Чтобы сбросить пароль, вам придётся стереть кошелёк. Espo Wallet не может восстановить ваш пароль.",
+    "wipe_wallet": "Стереть кошелёк",
+    "type_confirm": "Введите CONFIRM, чтобы продолжить",
+    "wipe_warning": "Это навсегда удалит кошелёк с вашего устройства. Восстановить его можно только с помощью фразы восстановления. Если вы её не сохранили, ваши средства будут потеряны навсегда."
+  },
+  "edit_wallet": {
+    "title": "Изменить кошелёк",
+    "wallet_name": "Имя кошелька",
+    "address_type": "Тип адреса",
+    "show_mnemonic": "Показать фразу",
+    "advanced": "Дополнительно"
   }
 }

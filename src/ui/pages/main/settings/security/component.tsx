@@ -1,22 +1,21 @@
-import { Cog6ToothIcon, KeyIcon } from "@heroicons/react/24/outline";
+import { GearSixIcon, KeyIcon } from "@/ui/icons/phosphor";
 import Tile from "@/ui/components/tile";
 import { TileProps } from "@/ui/components/tile/component";
 
 import { t } from "i18next";
 import SettingsLayout from "@/ui/components/settings-layout";
 
-const ICON_SIZE = 8;
-const ICON_CN = `w-${ICON_SIZE} h-${ICON_SIZE}`;
+const ICON_SIZE = 20;
 
 const Security = () => {
   const items: TileProps[] = [
     {
-      icon: <KeyIcon className={ICON_CN} />,
+      icon: <KeyIcon size={ICON_SIZE} />,
       label: t("components.layout.change_password"),
       link: "/pages/change-password",
     },
     {
-      icon: <Cog6ToothIcon className={ICON_CN} />,
+      icon: <GearSixIcon size={ICON_SIZE} />,
       label: t("components.layout.advanced"),
       link: "/pages/advanced",
     },

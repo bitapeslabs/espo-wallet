@@ -5,17 +5,19 @@ import React, {
   createContext,
   FC,
 } from "react";
-import { useControllersState } from "../states/controllerState";
 import { ContentInscription } from "@/shared/interfaces/inscriptions";
 import { IToken } from "@/shared/interfaces/token";
 import { useGetCurrentAccount } from "../states/walletState";
-import { ss } from ".";
 
+/**
+ * Asset display wiring. The Bells indexer that used to feed this context is
+ * gone, so every update resolves to an empty list; the components stay wired
+ * for a future asset source (e.g. alkanes).
+ */
 const useInscriptionManager = ():
   | InscriptionsManagerContextType
   | undefined => {
   const currentAccount = useGetCurrentAccount();
-  const { apiController } = useControllersState(ss(["apiController"]));
 
   const [inscriptions, setInscriptions] = useState<
     ContentInscription[] | undefined
@@ -34,29 +36,16 @@ const useInscriptionManager = ():
 
   const updateTokens = useCallback(async () => {
     if (!currentAccount?.address) return;
-    setLoading(true);
-    const tokens = await apiController.getTokens(currentAccount.address);
-    setTokens(tokens ?? []);
-    setLoading(false);
-  }, [apiController, currentAccount?.address]);
+    setTokens([]);
+  }, [currentAccount?.address]);
 
   const updateInscriptions = useCallback(
     async (page: number) => {
       if (!currentAccount?.address) return;
-      setLoading(true);
-      const response = await apiController.getContentPaginatedInscriptions(
-        currentAccount.address,
-        page
-      );
-      if (!response || !response.inscriptions.length) {
-        setInscriptions([]);
-      } else {
-        setInscriptions(response.inscriptions);
-        setCurrentPage(page);
-      }
-      setLoading(false);
+      setInscriptions([]);
+      setCurrentPage(page);
     },
-    [apiController, currentAccount?.address]
+    [currentAccount?.address]
   );
 
   const resetProvider = useCallback(() => {

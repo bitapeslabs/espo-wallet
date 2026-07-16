@@ -1,0 +1,26 @@
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0;
+  width: 100%;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel2);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.current {
+  width: 22px;
+  /* lighter shade of the primary blue */
+  background: var(--link);
+}
+
+.done {
+  background: var(--link);
+}

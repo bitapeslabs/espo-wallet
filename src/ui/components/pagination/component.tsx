@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef } from "react";
 import s from "./styles.module.scss";
-import cn from "classnames";
 
 interface Props {
   pageCount: number;
@@ -120,11 +119,17 @@ const Pagination: FC<Props> = ({
           {leftBtnPlaceholder}
         </button>
       )}
-      <div className="relative flex" ref={containerRef}>
+      <div style={{ position: "relative", display: "flex" }} ref={containerRef}>
         <div
           ref={bgRef}
-          className="absolute left-0 top-0 h-full bg-primary bg-opacity-80 rounded-lg transition-all duration-500"
           style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            height: "100%",
+            background: "var(--panel2)",
+            borderRadius: "var(--radius)",
+            transition: "all 0.5s",
             transitionTimingFunction: "cubic-bezier(.53,.28,0,1.2)",
           }}
         />
@@ -132,7 +137,12 @@ const Pagination: FC<Props> = ({
           <button
             key={pageNumber}
             onClick={() => handlePageChange(pageNumber)}
-            className={cn(s.btn, "z-10")}
+            className={s.btn}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              color: pageNumber === currentPage ? "var(--text)" : undefined,
+            }}
             onMouseEnter={() => handleMouseEnter(pageNumber)}
             onMouseLeave={handleMouseLeave}
           >

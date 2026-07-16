@@ -1,6 +1,5 @@
-import { usePushBellsTxCallback } from "@/ui/hooks/transactions";
+import { usePushBtcTxCallback } from "@/ui/hooks/transactions";
 import s from "./styles.module.scss";
-import cn from "classnames";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -12,7 +11,7 @@ import { useGetCurrentAccount } from "@/ui/states/walletState";
 
 const ConfirmSend = () => {
   const location = useLocation();
-  const pushTx = usePushBellsTxCallback();
+  const pushTx = usePushBtcTxCallback();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const updateAddressBook = useUpdateAddressBook();
@@ -64,11 +63,11 @@ const ConfirmSend = () => {
       ),
       value:
         location.state.amount +
-        (location.state.inscriptionTransaction ? "" : " BEL"),
+        (location.state.inscriptionTransaction ? "" : " BTC"),
     },
     {
       label: t("send.confirm_send.fee"),
-      value: `${location.state.feeAmount / 10 ** 8} BEL (${
+      value: `${location.state.feeAmount / 10 ** 8} BTC (${
         location.state.includeFeeInAmount
           ? t("send.confirm_send.included")
           : t("send.confirm_send.not_included")
@@ -78,23 +77,19 @@ const ConfirmSend = () => {
 
   return (
     <div className={s.wrapper}>
-      <div className={s.container}>
-        <div className={s.container}>
+      <div className="panel">
+        <div className={s.list}>
           {fields.map((i) => (
-            <div key={i.label} className={s.item}>
-              <div className={cn(s.label, "input-span")}>{i.label}</div>
-              <div className={s.input}>{i.value}</div>
+            <div key={i.label} className="review-card">
+              <div className="stat-label">{i.label}</div>
+              <div className="stat-value">{i.value}</div>
             </div>
           ))}
         </div>
-        <button
-          disabled={loading}
-          className={"bottom-btn"}
-          onClick={confirmSend}
-        >
-          {t("send.confirm_send.confirm")}
-        </button>
       </div>
+      <button disabled={loading} className={"bottom-btn"} onClick={confirmSend}>
+        {t("send.confirm_send.confirm")}
+      </button>
     </div>
   );
 };

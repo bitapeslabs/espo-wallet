@@ -10,7 +10,6 @@ const Language = () => {
   const changeLanguage = async (lng: string) => {
     await i18n.changeLanguage(lng);
     await updateAppState({ language: lng });
-    window.location.reload();
   };
 
   const newLanguage = (lng: string) => {
@@ -23,8 +22,8 @@ const Language = () => {
     <div className={s.languages}>
       <Tile label="English" onClick={newLanguage("en")} />
       <Tile label="Русский" onClick={newLanguage("ru")} />
-      <Tile label="中國人" onClick={newLanguage("ch")} />
-      <Tile label="중국인" onClick={newLanguage("kr")} />
+      <Tile label="中文" onClick={newLanguage("ch")} />
+      <Tile label="한국어" onClick={newLanguage("kr")} />
     </div>
   );
 };

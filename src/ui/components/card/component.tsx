@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import s from "./styles.module.scss";
-import { XMarkIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import { XIcon, ListIcon } from "@/ui/icons/phosphor";
 
 import Menu from "@/ui/components/menu";
 import cn from "classnames";
@@ -40,15 +40,14 @@ const Card: FC<Props> = ({
       onClick={onClick}
     >
       <div className={s.wrapper}>
-        <div className={cn(s.name)}>
-          {isRoot
-            ? t("components.card.root_account")
-            : name.toLocaleLowerCase()}
+        <div className={s.name}>
+          <span className={cn("dot", { on: selected })} />
+          {isRoot ? t("components.card.root_account") : name}
         </div>
         <div className={s.right}>
           {address ? <div className={s.address}>{address}</div> : undefined}
           <button className={s.action} onClick={onMenuClick}>
-            <Bars3Icon className={cn("w-8 h-8")} />
+            <ListIcon size={20} />
           </button>
         </div>
       </div>
@@ -66,12 +65,7 @@ const Card: FC<Props> = ({
             action: () => {
               setActive(false);
             },
-            icon: (
-              <XMarkIcon
-                title={t("components.card.close")}
-                className="w-8 h-8 cursor-pointer text-bg"
-              />
-            ),
+            icon: <XIcon title={t("components.card.close")} size={20} />,
           },
         ]}
       />

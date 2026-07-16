@@ -4,7 +4,7 @@ import { useGetCurrentAccount, useWalletState } from "../states/walletState";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { t } from "i18next";
-import { Network } from "belcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
 import { ss } from "../utils";
 import { useCallback } from "react";
 import { produce } from "immer";
@@ -122,7 +122,7 @@ export const useSwitchWallet = () => {
   const clearSelected = useClearSelectedAccountStats();
   const navigate = useNavigate();
 
-  return async (key: number) => {
+  return async (key: number, navigateHome = true) => {
     let newWallets = [...wallets];
     const wallet = wallets.find((f) => f.id === key);
     if (!wallet) return;
@@ -145,7 +145,7 @@ export const useSwitchWallet = () => {
       wallets: newWallets,
     });
     await notificationController.changedAccount();
-    navigate("/");
+    if (navigateHome) navigate("/");
   };
 };
 

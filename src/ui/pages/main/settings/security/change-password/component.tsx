@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import PasswordInput from "@/ui/components/password-input";
 import { t } from "i18next";
 import { ss } from "@/ui/utils";
+import { isChangePasswordValid } from "@/shared/validators";
 
 interface FormType {
   oldPassword: string;
@@ -27,7 +28,7 @@ const ChangePassword = () => {
       label: t("change_password.confirm_password"),
     },
   ];
-  const { register, handleSubmit } = useForm<FormType>({
+  const { register, handleSubmit, watch } = useForm<FormType>({
     defaultValues: {
       oldPassword: "",
       password: "",
@@ -78,7 +79,17 @@ const ChangePassword = () => {
         <PasswordInput key={i.name} register={register} {...i} />
       ))}
 
-      <button className="bottom-btn" type="submit">
+      <button
+        className="bottom-btn"
+        type="submit"
+        disabled={
+          !isChangePasswordValid({
+            oldPassword: watch("oldPassword") ?? "",
+            password: watch("password") ?? "",
+            confirmPassword: watch("confirmPassword") ?? "",
+          })
+        }
+      >
         {t("change_password.change_password")}
       </button>
     </form>

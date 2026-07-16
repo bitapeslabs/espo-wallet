@@ -5,14 +5,14 @@ import { TileProps } from "@/ui/components/tile/component";
 
 import { t } from "i18next";
 import {
-  ArrowsPointingOutIcon,
-  GlobeAltIcon,
+  ArrowUpRightIcon,
+  GlobeIcon,
   UserIcon,
-} from "@heroicons/react/24/outline";
+  WalletIcon,
+} from "@/ui/icons/phosphor";
 import SettingsLayout from "@/ui/components/settings-layout";
 
-const ICON_SIZE = 8;
-const ICON_CN = `w-${ICON_SIZE} h-${ICON_SIZE}`;
+const ICON_SIZE = 20;
 
 const WalletSettings = () => {
   const expandView = async () => {
@@ -23,17 +23,22 @@ const WalletSettings = () => {
 
   const items: TileProps[] = [
     {
-      icon: <GlobeAltIcon className={ICON_CN} />,
+      icon: <WalletIcon size={ICON_SIZE} />,
+      label: t("settings.wallets"),
+      link: "/manage-wallets",
+    },
+    {
+      icon: <GlobeIcon size={ICON_SIZE} />,
       label: t("components.layout.network_settings"),
       link: "/pages/network-settings",
     },
     {
-      icon: <UserIcon className={ICON_CN} />,
+      icon: <UserIcon size={ICON_SIZE} />,
       label: t("settings.address_type"),
       link: "/pages/change-addr-type",
     },
     {
-      icon: <ArrowsPointingOutIcon className={ICON_CN} />,
+      icon: <ArrowUpRightIcon size={ICON_SIZE} />,
       label: t("settings.expand_view"),
       onClick: expandView,
     },

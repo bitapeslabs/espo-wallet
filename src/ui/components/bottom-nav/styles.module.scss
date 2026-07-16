@@ -1,0 +1,39 @@
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 56px;
+  background: var(--panel3);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 455px) {
+  .nav {
+    position: sticky;
+    margin-top: auto;
+  }
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: var(--muted2);
+  text-decoration: none !important;
+}
+
+.item:hover {
+  color: var(--muted);
+}
+
+.active,
+.active:hover {
+  color: var(--link);
+}

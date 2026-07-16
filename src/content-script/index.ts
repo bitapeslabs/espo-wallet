@@ -5,7 +5,7 @@ function injectScript() {
     const container = document.head || document.documentElement;
     const scriptTag = document.createElement("script");
     scriptTag.setAttribute("async", "false");
-    scriptTag.setAttribute("channel", "NINTONDOWALLET");
+    scriptTag.setAttribute("channel", "ESPOWALLET");
     scriptTag.src = chrome.runtime.getURL("pageProvider.js");
     container.insertBefore(scriptTag, container.children[0]);
     container.removeChild(scriptTag);
@@ -14,7 +14,7 @@ function injectScript() {
 
     const pm = new PortMessage().connect();
 
-    const bcm = new BroadcastChannelMessage("NINTONDOWALLET").listen(
+    const bcm = new BroadcastChannelMessage("ESPOWALLET").listen(
       <T>(data: T) => pm.request(data)
     );
 
@@ -28,7 +28,7 @@ function injectScript() {
       pm.dispose();
     });
   } catch (error) {
-    console.error("Nintondo: Provider injection failed.", error);
+    console.error("Espo: Provider injection failed.", error);
   }
 }
 
@@ -84,7 +84,7 @@ function documentElementCheck() {
  * @returns {boolean} {@code true} if the current domain is blocked
  */
 function blockedDomainCheck() {
-  const blockedDomains: string[] = ["content\\.nintondo\\.io"];
+  const blockedDomains: string[] = [];
   const currentUrl = window.location.href;
   let currentRegex;
   for (let i = 0; i < blockedDomains.length; i++) {
@@ -119,10 +119,12 @@ function shouldInjectProvider() {
   );
 }
 
-if (shouldInjectProvider()) {
-  try {
-    injectScript();
-  } catch (e) {
-    console.error(e);
+export function initContentScript() {
+  if (shouldInjectProvider()) {
+    try {
+      injectScript();
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

@@ -1,39 +1,48 @@
-.card {
-  @apply bg-input-bg flex flex-col gap-0.5 p-3 rounded-xl justify-center w-full select-none cursor-pointer transition-colors;
-
-  &Wrapper {
-    @apply flex gap-2 w-full;
-  }
-
-  &Selected {
-    @apply bg-text text-bg bg-opacity-90;
-
-    .description {
-      @apply text-gray-700;
-    }
-  }
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
-.description {
-  @apply text-gray-300 text-xs;
+.cardWrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+/* fee preset tile: review-card stat look, clickable */
+.card {
+  background: var(--panel2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease;
+}
+
+.cardSelected {
+  border-color: var(--link-dark);
 }
 
 .title {
-  @apply font-medium text-base;
+  font-weight: 700;
+  font-size: 14px;
 }
 
-.container {
-  @apply flex flex-col gap-2;
-}
-
-.locked {
-  @apply opacity-50;
-
-  * {
-    @apply cursor-not-allowed;
-  }
+.description {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .russian {
-  @apply text-sm;
+  font-size: 12.5px;
 }

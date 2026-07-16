@@ -1,4 +1,5 @@
 import {
+  browserStorageLocalClear,
   browserStorageLocalGet,
   browserStorageLocalSet,
 } from "@/shared/utils/browser";
@@ -11,7 +12,7 @@ import { keyringService, permissionService, storageService } from "..";
 import { excludeKeysFromObj, pickKeysFromObj } from "@/shared/utils";
 import eventBus from "@/shared/eventBus";
 import { EVENTS } from "@/shared/constant";
-import { Network, networks } from "belcoinjs-lib";
+import { Network, networks } from "bitcoinjs-lib";
 
 interface SaveWallets {
   password: string;
@@ -57,6 +58,13 @@ class StorageService {
   }
 
   async init(): Promise<[IAppStateBase, IWalletStateBase]> {
+    // Espo Wallet does not migrate Bells-era data: any storage written before
+    // the espo marker existed is wiped and the wallet starts fresh
+    const raw = await browserStorageLocalGet<StorageInterface>(undefined);
+    if (raw?.cache !== undefined && !raw.cache.espo) {
+      await browserStorageLocalClear();
+    }
+
     const data = await this.getLocalValues();
 
     this._walletState = {
@@ -71,6 +79,7 @@ class StorageService {
         "pendingWallet",
         "network",
         "language",
+        "esploraUrl",
       ]),
     };
 
@@ -126,7 +135,8 @@ class StorageService {
       state.addressBook !== undefined ||
       state.pendingWallet !== undefined ||
       state.language !== undefined ||
-      state.network !== undefined
+      state.network !== undefined ||
+      state.esploraUrl !== undefined
     ) {
       const localState = await this.getLocalValues();
       const cache: StorageInterface["cache"] = {
@@ -139,6 +149,7 @@ class StorageService {
         cache.pendingWallet = state.pendingWallet;
       if (state.language !== undefined) cache.language = state.language;
       if (state.network !== undefined) cache.network = state.network;
+      if (state.esploraUrl !== undefined) cache.esploraUrl = state.esploraUrl;
 
       const payload: StorageInterface = {
         cache: cache,
@@ -152,6 +163,12 @@ class StorageService {
       method: "updateFromAppState",
       params: [state],
     });
+  }
+
+  async wipe() {
+    await browserStorageLocalClear();
+    this._walletState = emptyWalletState();
+    this._appState = emptyAppState();
   }
 
   async clearPendingWallet() {
@@ -274,13 +291,14 @@ class StorageService {
     if (data.cache === undefined) {
       return {
         cache: {
+          espo: true,
           addressBook: [],
           selectedWallet: 0,
           selectedAccount: 0,
           wallets: [],
           connectedSites: [],
           unpushedHexes: [],
-          network: networks.bellcoin,
+          network: networks.bitcoin,
         },
         enc: undefined,
       };

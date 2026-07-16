@@ -1,94 +1,245 @@
 .walletDiv {
-  @apply w-full h-full pt-4 flex flex-col justify-start max-standard:h-screen px-4 standard:px-6 relative;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
 
-  .accPanel {
-    @apply flex flex-col mt-4 gap-5 pb-2;
+/* top bar */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
 
-    * {
-      @apply m-0;
-    }
+.walletWidget {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  min-width: 0;
+}
 
-    .balance {
-      @apply flex text-3xl gap-1 items-end cursor-default;
-    }
+.walletWidget:hover {
+  background: var(--panel);
+}
 
-    .accPubAddress {
-      @apply gap-2 cursor-pointer flex;
+.walletMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
 
-      color: rgb(158, 158, 158);
-    }
+.walletName {
+  font-weight: 650;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    .receiveSendBtns {
-      @apply w-full gap-3 flex items-center;
+.walletAddr {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted2);
+  font-size: 12px;
+  cursor: default;
+}
 
-      .btn {
-        @apply py-2 rounded-2xl border border-neutral-700 w-full flex gap-2 items-center justify-center transition-all;
+.walletCopy {
+  padding: 1px 3px;
+  background: transparent !important;
+  color: inherit !important;
+}
 
-        &:hover {
-          @apply shadow-md shadow-white/30 bg-white text-black border-white;
-        }
+.walletCaret {
+  color: var(--muted2);
+  flex-shrink: 0;
+}
 
-        .icon {
-          @apply size-5;
-        }
+.walletWidget:hover .walletCaret {
+  color: var(--text);
+}
 
-        span {
-          @apply font-medium text-base;
-        }
-      }
-    }
+.topAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.topAction:hover {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+/* wallet worth: large usd value, no card */
+.worth {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 48px 0 40px;
+}
+
+.worthValue {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: default;
+}
+
+.worthUnit {
+  font-size: 16px;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.balanceSkeleton {
+  width: 160px;
+  height: 38px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  opacity: 0.7;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.35;
   }
 }
 
-.center {
-  @apply rounded-xl flex justify-center items-center;
+/* square action buttons: receive / swap / send */
+.squareActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 14px 0 2px;
 }
 
-.transactions {
-  @apply text-sm uppercase tracking-widest mt-5 mb-0.5 font-medium select-none px-2;
+/* plain text tab switch */
+.tabSwitch {
+  display: flex;
+  gap: 18px;
+  /* squareActions pads 2px below and .io-alkanes adds 6px above the cards,
+     so 22px top / 18px bottom renders as an even 24px on both sides */
+  margin-top: 22px;
+  margin-bottom: 18px;
 }
 
+.tabLabel {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted2);
+  font-size: 15.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.tabLabel:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+.tabLabelActive,
+.tabLabelActive:hover {
+  color: var(--text);
+}
+
+.emptyTab {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.alkanesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 14px 0;
+  overflow-y: auto;
+}
+
+.collectibles {
+  flex: 1;
+}
+
+/* transactions */
 .transactionsDiv {
-  @apply max-h-full flex flex-col items-center overflow-y-auto mt-2;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  margin-top: 4px;
+  flex: 1;
 }
 
-.transaction {
-  @apply flex justify-between items-center w-full p-2 rounded-sm my-1 cursor-pointer;
+.txGroup {
+  width: 100%;
+}
+
+.txFiat {
+  color: var(--muted2);
+  font-size: 12px;
+  text-align: right;
 }
 
 .noTransactions {
-  @apply w-full h-full items-center flex justify-center py-16;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
-.value {
-  @apply font-medium text-base;
+.noTransactionsIcon {
+  color: var(--muted2);
+  opacity: 0.45;
 }
 
-.accountsIcon {
-  @apply size-9 rounded-xl p-1 border border-neutral-700 bg-neutral-950 transition-colors hover:bg-text hover:text-bg cursor-pointer;
+.loaderWrap {
+  min-height: 50vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.change {
-  @apply font-medium text-sm;
+.loadMore {
+  width: 100%;
+  padding: 4px 0;
 }
 
-.gridContainer {
-  @apply grid grid-cols-2 text-base w-full gap-3 py-2 overflow-y-auto;
-}
-
-.inscriptionButton {
-  @apply absolute bottom-0 right-0 w-12 h-12 rounded-full bg-input-bg m-6 flex justify-center items-center cursor-pointer;
-}
-
-@keyframes hueRotate {
-  0% {
-    filter: hue-rotate(0deg) saturate(20%);
-  }
-  100% {
-    filter: hue-rotate(360deg) saturate(20%);
-  }
-}
-
-.nftImage {
-  animation: hueRotate 10s infinite linear;
+.loadMoreSpin {
+  width: 24px;
+  height: 24px;
+  margin: 0 auto;
+  display: block;
 }

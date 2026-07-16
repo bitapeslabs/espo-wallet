@@ -1,0 +1,55 @@
+.squareBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 86px;
+  height: 68px;
+  border-radius: var(--radius);
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none !important;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  /* only the lift is animated; color/background snap instantly */
+  transform: translateY(0);
+  transition: transform 0.15s ease;
+}
+
+.squareBtn:hover {
+  background: var(--panel2-light);
+  color: var(--text);
+  transform: translateY(-2.5px);
+}
+
+.iconDefault,
+.iconHover {
+  display: inline-flex;
+}
+
+.iconDefault {
+  color: var(--text);
+}
+
+.iconDefault svg,
+.iconHover svg {
+  display: block;
+}
+
+.iconHover {
+  display: none;
+  color: var(--link);
+}
+
+.squareBtn:hover .iconDefault {
+  display: none;
+}
+
+.squareBtn:hover .iconHover {
+  display: inline-flex;
+}

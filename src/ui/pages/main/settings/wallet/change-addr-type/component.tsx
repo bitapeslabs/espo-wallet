@@ -1,11 +1,12 @@
 import SwitchAddressType from "@/ui/components/switch-address-type";
 import { useControllersState } from "@/ui/states/controllerState";
 import { useGetCurrentWallet, useWalletState } from "@/ui/states/walletState";
-import { AddressType } from "bellhdw";
+import { AddressType } from "@/background/services/keyring/hdw";
 import { useNavigate } from "react-router-dom";
 import { ss } from "@/ui/utils";
 import toast from "react-hot-toast";
 import { ADDRESS_TYPES } from "@/shared/constant";
+import s from "./styles.module.scss";
 
 const ChangeAddrType = () => {
   const { keyringController, notificationController } = useControllersState(
@@ -42,7 +43,7 @@ const ChangeAddrType = () => {
   };
 
   return (
-    <div className="px-6 h-full w-full">
+    <div className={s.changeAddrType}>
       <SwitchAddressType
         selectedType={currentWallet?.addressType ?? ADDRESS_TYPES[0].value}
         handler={onSwitchAddress}
