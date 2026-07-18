@@ -13,6 +13,7 @@ import {
 import HDSimpleKey from "./hdw/simple";
 import { INewWalletProps } from "@/shared/interfaces";
 import apiController from "@/background/controllers/apiController";
+import { hdPathForAddressType } from "@/shared/constant";
 
 export const KEYRING_SDK_TYPES = {
   SimpleKey,
@@ -72,7 +73,10 @@ class KeyringService {
         mnemonic: payload,
         hideRoot,
         addressType,
-        hdPath,
+        // Fall back to the BIP path that matches the address type (BIP86 for
+        // taproot, etc.) so an unspecified path never derives taproot on the
+        // segwit path.
+        hdPath: hdPath ?? hdPathForAddressType(addressType),
         passphrase,
       });
     } else {
@@ -220,8 +224,19 @@ class KeyringService {
   }
 
   changeAddressType(index: number, addressType: AddressType): string[] {
-    this.keyrings[index].addressType = addressType;
-    return this.keyrings[index].getAccounts();
+    const keyring = this.keyrings[index];
+    keyring.addressType = addressType;
+    // HD wallets derive every account under a single BIP path, so the path has
+    // to follow the address type (BIP84 segwit, BIP86 taproot, BIP44 legacy);
+    // otherwise taproot would be derived on the segwit path. Re-derive the
+    // same number of accounts on the new path. (Simple/private-key wallets
+    // have no derivation path, only a script change.)
+    if (keyring instanceof HDPrivateKey) {
+      const count = keyring.accounts.length;
+      keyring.changeHdPath(hdPathForAddressType(addressType));
+      if (count > 0) keyring.addAccounts(count);
+    }
+    return keyring.getAccounts();
   }
 
   async deleteWallet(id: number) {

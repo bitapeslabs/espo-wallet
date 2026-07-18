@@ -16,7 +16,7 @@ import { useControllersState } from "./states/controllerState";
 import i18n from "../shared/locales/i18n";
 import PortMessage from "@/shared/utils/message/portMessage";
 import { ss } from "./utils";
-import { useInscriptionManagerContext } from "./utils/inscriptions-ctx";
+import { useAssetManagerContext } from "./utils/assets-ctx";
 import { TailSpin } from "react-loading-icons";
 
 export default function App() {
@@ -41,7 +41,7 @@ export default function App() {
   const { updateWalletState, selectedAccount, selectedWallet } = useWalletState(
     ss(["updateWalletState", "selectedWallet", "selectedAccount"])
   );
-  const { resetProvider } = useInscriptionManagerContext();
+  const { resetProvider } = useAssetManagerContext();
 
   const setupApp = useCallback(async () => {
     const walletController = setupWalletProxy();

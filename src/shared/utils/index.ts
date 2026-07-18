@@ -39,6 +39,70 @@ export const customFetch = async <T>({
   return await res.json();
 };
 
+export interface JsonRpcErrorShape {
+  code: number;
+  message: string;
+  data?: unknown;
+}
+
+export class EspoRpcError extends Error {
+  code?: number;
+  data?: unknown;
+  constructor(message: string, code?: number, data?: unknown) {
+    super(message);
+    this.name = "EspoRpcError";
+    this.code = code;
+    this.data = data;
+  }
+}
+
+let rpcRequestId = 0;
+
+/**
+ * Call an espo JSON-RPC 2.0 endpoint (POST {rpcUrl}). `params` is sent verbatim
+ * as the request `params`; espo module methods expect a named-key object, root
+ * methods either ignore params or take a small object. Returns the raw `result`.
+ * Throws {@link EspoRpcError} on transport failure or a JSON-RPC `error` object.
+ * In-band failures (module methods returning `{ ok: false, error }`) are NOT
+ * thrown here; callers inspect the `ok` field.
+ */
+export const espoRpc = async <T>(
+  rpcUrl: string,
+  method: string,
+  params: Record<string, unknown> = {}
+): Promise<T> => {
+  const res = await fetch(rpcUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: ++rpcRequestId,
+      method,
+      params,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new EspoRpcError(`espo rpc http ${res.status}`, res.status);
+  }
+
+  const body = (await res.json()) as {
+    result?: T;
+    error?: JsonRpcErrorShape;
+  };
+
+  if (body.error) {
+    throw new EspoRpcError(
+      body.error.message || "espo rpc error",
+      body.error.code,
+      body.error.data
+    );
+  }
+
+  return body.result as T;
+};
+
 export const excludeKeysFromObj = <
   T extends Record<string, any>,
   K extends keyof T

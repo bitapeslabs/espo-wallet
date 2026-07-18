@@ -1,5 +1,4 @@
 import s from "../styles.module.scss";
-import { t } from "i18next";
 import { Link, useNavigate } from "react-router-dom";
 import {
   useGetCurrentAccount,
@@ -7,7 +6,8 @@ import {
 } from "@/ui/states/walletState";
 import { shortAddress } from "@/shared/utils/transactions";
 import CopyBtn from "@/ui/components/copy-btn";
-import { CaretRightIcon, GearSixFillIcon } from "@/ui/icons/phosphor";
+import NetworkSwitcher from "@/ui/components/network-switcher";
+import { CaretRightBoldIcon, GearSixFillIcon } from "@/ui/icons/phosphor";
 
 const WalletPanel = () => {
   const currentWallet = useGetCurrentWallet();
@@ -16,34 +16,36 @@ const WalletPanel = () => {
 
   return (
     <div className={s.topBar}>
-      <div
-        className={s.walletWidget}
-        onClick={() => navigate("/manage-wallets")}
-        title={t("components.layout.switch_account")}
-      >
+      <div className={s.walletLeft}>
+        <NetworkSwitcher />
+        <div
+          className={s.walletWidget}
+          onClick={() => navigate("/manage-wallets")}
+        >
         <div className={s.walletMeta}>
           <span className={s.walletName}>
             {currentWallet?.name ?? "Wallet"}
           </span>
-          <span
-            className={s.walletAddr}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {shortAddress(currentAccount?.address, 8)}
-            <CopyBtn
-              title={currentAccount?.address}
-              value={currentAccount?.address}
-              className={s.walletCopy}
-            />
+          <span className={s.walletAddr}>
+            {shortAddress(currentAccount?.address, 6)}
+            <span
+              className={s.walletCopyWrap}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CopyBtn
+                value={currentAccount?.address}
+                className={s.walletCopy}
+              />
+            </span>
           </span>
         </div>
-        <CaretRightIcon size={14} className={s.walletCaret} />
+          <CaretRightBoldIcon size={14} className={s.walletCaret} />
+        </div>
       </div>
 
       <Link
         to={"/pages/settings"}
         className={s.topAction}
-        title={t("components.layout.settings")}
       >
         <GearSixFillIcon size={19} />
       </Link>

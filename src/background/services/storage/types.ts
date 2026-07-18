@@ -28,6 +28,7 @@ export interface StorageInterface {
     language?: string;
     unpushedHexes?: string[];
     network?: Network;
-    esploraUrl?: Partial<Record<NetworkSlug, string>>;
+    rpcUrl?: Partial<Record<NetworkSlug, string>>;
+    explorerUrl?: Partial<Record<NetworkSlug, string>>;
   };
 }

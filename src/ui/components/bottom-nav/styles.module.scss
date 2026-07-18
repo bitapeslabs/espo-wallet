@@ -1,8 +1,9 @@
 .nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  /* in-flow sibling of the scrollable content (not fixed), so the content's
+     scrollbar never changes the navbar width */
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -15,6 +16,7 @@
 @media (min-width: 455px) {
   .nav {
     position: sticky;
+    bottom: 0;
     margin-top: auto;
   }
 }

@@ -7,11 +7,10 @@ import { TailSpin } from "react-loading-icons";
 import WalletPanel from "./wallet-panel";
 import TokensTab from "./tokens-tab";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
-import { useAppState } from "@/ui/states/appState";
-import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
-import { calcBalanceLength, ss } from "@/ui/utils";
-import { networkInfo } from "@/shared/networks";
+import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
+import { formatUsd, formatUsdChange } from "@/shared/utils/alkanes";
 import SquareAction from "@/ui/components/square-action";
+import FitText from "@/ui/components/fit-text";
 import {
   PaperPlaneTiltBoldIcon,
   PaperPlaneTiltFillIcon,
@@ -25,34 +24,52 @@ type Tab = "tokens" | "collectibles";
 
 const Wallet = () => {
   const currentAccount = useGetCurrentAccount();
-  const { network } = useAppState(ss(["network"]));
-  const { currentPrice } = useTransactionManagerContext();
+  const { portfolio } = useAssetManagerContext();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("tokens");
 
   if (!currentAccount) return <TailSpin className="animate-spin" />;
 
-  const balance = (currentAccount.balance ?? 0) / 10 ** 8;
-  const priceCapable = networkInfo(network).hasPrice;
-  const loading =
-    currentAccount.balance === undefined ||
-    (priceCapable && currentPrice === undefined);
+  // The worth is always the portfolio's USD total. Until get_portfolio_stats
+  // has loaded for this network (portfolio === undefined) we can't render a USD
+  // value, so show a skeleton rather than a BTC amount or a transient number.
+  const worthUsd = portfolio?.totalValueUsd;
+  const worthChangeUsd = portfolio?.changeUsd24h ?? null;
+  const worthChangePct = portfolio?.change24h ?? null;
 
   return (
     <div className={s.walletDiv}>
       <WalletPanel />
 
       <div className={s.worth}>
-        {loading ? (
+        {worthUsd === undefined ? (
           <div className={s.balanceSkeleton} />
-        ) : priceCapable ? (
-          <span className={s.worthValue}>
-            ${(balance * currentPrice!).toFixed(2)}
-          </span>
         ) : (
-          <span className={s.worthValue}>
-            {calcBalanceLength(balance)} <span className={s.worthUnit}>BTC</span>
-          </span>
+          <>
+            <FitText
+              className={s.worthValue}
+              maxFont={44}
+              minFont={18}
+              screenMargin={20}
+            >
+              ${formatUsd(worthUsd)}
+            </FitText>
+            {worthChangeUsd != null ? (
+              <span
+                className={cn(s.worthChange, {
+                  [s.up]: worthChangeUsd >= 0,
+                  [s.down]: worthChangeUsd < 0,
+                })}
+              >
+                {formatUsdChange(worthChangeUsd)}
+                {worthChangePct != null
+                  ? ` (${worthChangePct >= 0 ? "+" : ""}${worthChangePct.toFixed(
+                      2
+                    )}%)`
+                  : ""}
+              </span>
+            ) : undefined}
+          </>
         )}
       </div>
 

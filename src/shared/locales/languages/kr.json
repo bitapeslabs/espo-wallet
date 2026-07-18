@@ -14,6 +14,33 @@
     "collectibles": "수집품",
     "bitcoin": "비트코인"
   },
+  "asset": {
+    "send_alkane_unavailable": "알케인 전송은 아직 지원되지 않습니다",
+    "balance": "잔액",
+    "holders": "홀더",
+    "age": "생성 기간",
+    "deploy_tx": "배포 트랜잭션",
+    "no_chart": "차트 데이터 없음"
+  },
+  "activity": {
+    "swapped": "스왑",
+    "added_liquidity": "유동성 추가",
+    "removed_liquidity": "유동성 제거",
+    "created_pool": "풀 생성",
+    "minted": "민트",
+    "wrapped": "래핑",
+    "unwrapped": "언래핑",
+    "sent": "보냄",
+    "received": "받음",
+    "app_interaction": "앱 상호작용",
+    "failed": "실패",
+    "to": "받는 사람",
+    "from": "보낸 사람",
+    "no_activity": "아직 활동이 없습니다",
+    "title": "내역",
+    "split": "분할",
+    "alkanes": "Alkanes"
+  },
   "settings": {
     "language": "언어",
     "logout": "로그아웃",
@@ -213,11 +240,23 @@
     "copied": "복사됨",
     "inputs": "입력",
     "outputs": "출력",
-    "details": "세부 사항"
+    "details": "세부 사항",
+    "kind": {
+      "swap": "스왑",
+      "wrap": "래핑",
+      "unwrap": "언래핑",
+      "split": "분할",
+      "transfer": "전송",
+      "add_liquidity": "유동성 추가",
+      "remove_liquidity": "유동성 제거",
+      "create_pool": "풀 생성",
+      "mint": "민트",
+      "app_interaction": "앱 상호작용"
+    }
   },
   "hooks": {
     "transaction": {
-      "insufficient_balance_0": "잔액이 부족합니다. 비등기 잔액",
+      "insufficient_balance_0": "잔액이 부족합니다",
       "insufficient_balance_1": "BTC)는 다음보다 낮습니다",
       "insufficient_balance_2": "BTC"
     },
@@ -226,16 +265,18 @@
     }
   },
   "network_settings": {
-    "esplora_url": "Electrs (esplora) URL",
+    "rpc_url": "espo RPC URL",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "explorer_url": "탐색기 URL"
   },
   "welcome": {
     "tagline": "당신의 비트코인에 생명을."
   },
   "provider": {
     "to_sign": "서명 대상",
-    "utxo_txid": "UTXO 거래 ID: "
+    "utxo_txid": "UTXO 거래 ID: ",
+    "value": "값"
   },
   "nav": {
     "home": "홈",

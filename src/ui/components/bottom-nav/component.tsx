@@ -1,6 +1,5 @@
 import { FC } from "react";
 import cn from "classnames";
-import { t } from "i18next";
 import { Link, useLocation } from "react-router-dom";
 import {
   ClockBoldIcon,
@@ -34,7 +33,7 @@ const BottomNav = () => {
 
   return (
     <nav className={s.nav}>
-      {ITEMS.map(({ path, labelKey, Icon, IconActive }) => {
+      {ITEMS.map(({ path, Icon, IconActive }) => {
         const active =
           location.pathname === path ||
           (path === "/home" && location.pathname.startsWith("/asset"));
@@ -44,7 +43,6 @@ const BottomNav = () => {
             key={path}
             to={path}
             className={cn(s.item, { [s.active]: active })}
-            title={t(labelKey)}
           >
             <Cmp size={27} />
           </Link>

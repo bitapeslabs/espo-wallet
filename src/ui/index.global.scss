@@ -765,6 +765,10 @@ input[type="number"] {
 .dropdown-caret {
   display: inline-flex;
   transition: ease 0.2s;
+  color: var(--muted2);
+}
+.dropdown-trigger:hover .dropdown-caret {
+  color: #fff;
 }
 .dropdown-caret svg {
   width: 16px;
@@ -921,20 +925,15 @@ input[type="number"] {
   color: var(--text);
 }
 
-/* ---- scrollbar ---- */
+/* ---- scrollbar: hidden everywhere, scrolling still works ---- */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--panel2);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted2);
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 /* ---- toasts (react-hot-toast) ---- */
@@ -1002,9 +1001,57 @@ input[type="number"] {
 .alk-icon-wrap svg {
   display: block;
 }
+.alk-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .alk-icon-letter {
   font-size: 11px;
   line-height: 1;
+}
+/* wrapper that lets a corner badge sit OUTSIDE the round icon's overflow clip */
+.alk-token-icon {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+/* alkane marker: a white rounded-square chip carrying the diesel mark */
+.alk-diesel-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 17px;
+  height: 17px;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ring blends the chip into the surface it sits on */
+  box-shadow: 0 0 0 1.5px var(--badge-ring, var(--panel3));
+}
+/* the diesel mark, recoloured to the bg panel via a mask (svg is white art) */
+.alk-diesel-mark {
+  width: 14px;
+  height: 14px;
+  display: block;
+  background-color: var(--panel3);
+  -webkit-mask: url(/diesel.svg) center / contain no-repeat;
+  mask: url(/diesel.svg) center / contain no-repeat;
+}
+.alk-diesel-badge.big {
+  right: -5px;
+  bottom: -5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  box-shadow: 0 0 0 2px var(--badge-ring, var(--panel3));
+}
+.alk-diesel-badge.big .alk-diesel-mark {
+  width: 14px;
+  height: 14px;
 }
 .alk-amt {
   color: #fff;

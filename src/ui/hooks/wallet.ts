@@ -21,13 +21,7 @@ export const useClearSelectedAccountStats = () => {
 
       const newWallets = curWallets.map((i) => ({
         ...i,
-        accounts: i.accounts.map((i) =>
-          excludeKeysFromObj(i, [
-            "balance",
-            "inscriptionBalance",
-            "inscriptionCounter",
-          ])
-        ),
+        accounts: i.accounts.map((i) => excludeKeysFromObj(i, ["balance"])),
       }));
 
       if (curWallets !== undefined) {
@@ -188,16 +182,14 @@ export const useUpdateCurrentAccountBalance = () => {
   return useCallback(async () => {
     if (currentAccount?.address === undefined) return;
 
-    const res = (await apiController.getAccountStats(
-      currentAccount.address
-    )) ?? { amount: 0, count: 0, balance: 0 };
+    const res = await apiController.getAccountStats(currentAccount.address);
 
+    // A failed lookup (undefined) means the balance is not known for this
+    // network yet; keep the loading state rather than forcing it to 0.
     if (!res) return;
 
     await updateSelectedAccount({
       balance: res.balance,
-      inscriptionCounter: res.count,
-      inscriptionBalance: res.amount / 10 ** 8,
     });
   }, [apiController, updateSelectedAccount, currentAccount?.address]);
 };

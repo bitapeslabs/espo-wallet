@@ -2,7 +2,6 @@
   "wallet_page": {
     "transactions": "Transactions",
     "no_transactions": "No transactions yet",
-    "no_inscriptions": "No inscriptions",
     "receive": "Receive",
     "send": "Send",
     "nft": "NFT",
@@ -16,6 +15,33 @@
     "tokens": "Tokens",
     "collectibles": "Collectibles",
     "bitcoin": "Bitcoin"
+  },
+  "asset": {
+    "send_alkane_unavailable": "Sending alkanes is not yet available",
+    "balance": "Balance",
+    "holders": "Holders",
+    "age": "Age",
+    "deploy_tx": "Deploy tx",
+    "no_chart": "No chart data"
+  },
+  "activity": {
+    "swapped": "Swapped",
+    "added_liquidity": "Added liquidity",
+    "removed_liquidity": "Removed liquidity",
+    "created_pool": "Created pool",
+    "minted": "Minted",
+    "wrapped": "Wrapped",
+    "unwrapped": "Unwrapped",
+    "sent": "Sent",
+    "received": "Received",
+    "app_interaction": "App interaction",
+    "failed": "Failed",
+    "to": "To",
+    "from": "From",
+    "no_activity": "No activity yet",
+    "title": "History",
+    "split": "Split",
+    "alkanes": "Alkanes"
   },
   "settings": {
     "language": "Language",
@@ -48,7 +74,6 @@
       "security": "Security",
       "advanced": "Advanced",
       "discover": "Discover",
-      "inscriptions": "Inscriptions",
       "wallet_settings": "Wallet Settings",
       "assets": "Assets",
       "confirmation": "Confirmation"
@@ -75,23 +100,6 @@
     "card": {
       "close": "Close",
       "root_account": "Root account"
-    },
-    "inscription_card": {
-      "modal_title": "Inscription",
-      "id": "Id",
-      "address": "Address",
-      "outputValue": "Output value",
-      "content": "Content",
-      "contentLength": "Content length",
-      "contentType": "Content type",
-      "timeStamp": "Timestamp",
-      "genesisHeight": "Genesis height",
-      "genesisFee": "Genesis fee",
-      "genesisTransaction": "Genesis transaction",
-      "location": "Location",
-      "output": "Output",
-      "offset": "Offset",
-      "preview": "Preview"
     },
     "token_card": {
       "transferable_balance": "Transferable balance",
@@ -189,8 +197,7 @@
       "fee": "Fee",
       "included": "included",
       "not_included": "not included",
-      "confirm": "Confirm",
-      "inscription_id": "Inscription Id"
+      "confirm": "Confirm"
     },
     "create_send": {
       "minimum_amount_error": "Minimum amount is 0.00001 BTC",
@@ -262,11 +269,23 @@
     "inputs": "Inputs",
     "outputs": "Outputs",
     "details": "Details",
-    "your_address": "You"
+    "your_address": "You",
+    "kind": {
+      "swap": "Swap",
+      "wrap": "Wrap",
+      "unwrap": "Unwrap",
+      "split": "Split",
+      "transfer": "Transfer",
+      "add_liquidity": "Add liquidity",
+      "remove_liquidity": "Remove liquidity",
+      "create_pool": "Create pool",
+      "mint": "Mint",
+      "app_interaction": "App interaction"
+    }
   },
   "hooks": {
     "transaction": {
-      "insufficient_balance_0": "Insufficient balance. Non-Inscription balance",
+      "insufficient_balance_0": "Insufficient balance",
       "insufficient_balance_1": "BTC) is lower than",
       "insufficient_balance_2": "BTC",
       "too_many_utxos": "Too many UTXOs. You must consolidate them or use smaller amount to send",
@@ -279,53 +298,6 @@
   "advanced": {
     "root_acc_warning": "Use legacy derivation",
     "blank": "Nothing here for your wallet type"
-  },
-  "inscription_details": {
-    "content_length": "Content length",
-    "status.block_height": "Block height",
-    "content_type": "Content type",
-    "genesis": "Genesis",
-    "preview": "Preview",
-    "content": "Content",
-    "offset": "Offset",
-    "owner": "Owner",
-    "value": "Value",
-    "outpoint": "Outpoint",
-    "inscription_id": "Inscription id",
-    "status.block_time": "Timestamp",
-    "title": "Inscription",
-    "inscription_number": "Inscription number"
-  },
-  "inscriptions": {
-    "inscription_not_found": "Could not find inscription",
-    "tokens_not_found": "Could not find tokens",
-    "inscription_search_placeholder": "Number/Inscription id",
-    "token_search_placeholder": "Token name",
-    "mint_token_modal_title": "Mint transfer token",
-    "send_token_modal_title": "Send token",
-    "amount_to_mint": "Amount to mint",
-    "transfers_count": "Amount of transfer",
-    "amount_is_text_error": "Amount should be integer",
-    "transfer_count_is_text_error": "Transfer count should be integer",
-    "amount_cannot_be_fractional": "Amount cannot be fractional",
-    "transfer_countcannot_be_fractional": "Transfer count cannot be fractional",
-    "amount_exceeds_balance": "Amount exceeds balance",
-    "transfer_inscribed": "Transfer inscribed successfully",
-    "failed_inscribe_transfer": "Failed to create transfer",
-    "failed_inscribe_transfer2": "These transactions will be pushed later",
-    "choose_transfer": "Choose transfers to send",
-    "0_selected_inscriptions_error": "0 selected inscriptions",
-    "success_send_transfer": "Successfully sended transfer(s)",
-    "failed_send_transfer": "Failed to send transfer(s)",
-    "inscribe": "Inscribe",
-    "transfer": "transfer",
-    "not_enough_balance": "Not enough balance",
-    "not_enough_token_balance": "Token balance is not enough",
-    "minimum_transfer_count": "Minimum transfer amount is 1",
-    "minimum_amount_error": "Minimum token amount is 1",
-    "input_amount_first": "Input amount first",
-    "tick_is_not_set": "Tick is not defined",
-    "select_all": "Select all"
   },
   "provider": {
     "sign_tx": "Sign transaction",
@@ -351,12 +323,14 @@
     "switch_network_title": "Switch network",
     "switch_network_request": "Switch network request",
     "to_sign": "To sign",
-    "utxo_txid": "Utxo txid: "
+    "utxo_txid": "Utxo txid: ",
+    "value": "Value"
   },
   "network_settings": {
-    "esplora_url": "Electrs (esplora) URL",
+    "rpc_url": "espo RPC URL",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "explorer_url": "Explorer URL"
   },
   "welcome": {
     "tagline": "Give your Bitcoin life."

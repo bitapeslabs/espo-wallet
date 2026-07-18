@@ -59,3 +59,15 @@ export const DEFAULT_FEES = {
 };
 
 export const DEFAULT_HD_PATH = "m/84'/0'/0'/0";
+
+/**
+ * Canonical BIP derivation path for an address type (BIP84 segwit, BIP86
+ * taproot, BIP44 legacy). The keyring derives every account under this path,
+ * so it MUST follow the address type: deriving taproot on the segwit path
+ * yields addresses that diverge from other wallets (e.g. oyl / BIP86).
+ */
+export function hdPathForAddressType(addressType: AddressType): string {
+  return (
+    ADDRESS_TYPES.find((t) => t.value === addressType)?.hdPath ?? DEFAULT_HD_PATH
+  );
+}

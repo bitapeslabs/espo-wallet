@@ -43,6 +43,10 @@ class HDPrivateKey extends BaseWallet implements Keyring<SerializedHDKey> {
   changeHdPath(hdPath: string) {
     this.hdPath = hdPath;
     this.root = this.hdWallet?.derivePath(this.hdPath);
+    if (this.root) {
+      this.privateKey = this.root.privateKey!;
+      this.publicKey = this.root.publicKey;
+    }
     this.accounts = [];
   }
 

@@ -79,11 +79,10 @@ const Receive = () => {
       <div className={cn("panel", s.container)}>
         <div
           className={s.qr}
-          title={t("receive.click_to_copy")}
           onClick={onCopy}
           ref={ref}
         />
-        <div className={s.address} title={currentAccount?.address}>
+        <div className={s.address}>
           {currentAccount?.address}
         </div>
       </div>

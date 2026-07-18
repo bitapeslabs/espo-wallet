@@ -14,6 +14,33 @@
     "collectibles": "收藏品",
     "bitcoin": "比特币"
   },
+  "asset": {
+    "send_alkane_unavailable": "暂不支持发送 Alkanes",
+    "balance": "余额",
+    "holders": "持有者",
+    "age": "年龄",
+    "deploy_tx": "部署交易",
+    "no_chart": "暂无图表数据"
+  },
+  "activity": {
+    "swapped": "已兑换",
+    "added_liquidity": "已添加流动性",
+    "removed_liquidity": "已移除流动性",
+    "created_pool": "已创建资金池",
+    "minted": "已铸造",
+    "wrapped": "已包装",
+    "unwrapped": "已解包",
+    "sent": "已发送",
+    "received": "已接收",
+    "app_interaction": "应用交互",
+    "failed": "失败",
+    "to": "发送至",
+    "from": "来自",
+    "no_activity": "暂无活动",
+    "title": "历史",
+    "split": "拆分",
+    "alkanes": "Alkanes"
+  },
   "settings": {
     "language": "语言",
     "logout": "登出",
@@ -213,11 +240,23 @@
     "copied": "已复制",
     "inputs": "输入",
     "outputs": "输出",
-    "details": "详细"
+    "details": "详细",
+    "kind": {
+      "swap": "兑换",
+      "wrap": "包装",
+      "unwrap": "解包",
+      "split": "拆分",
+      "transfer": "转账",
+      "add_liquidity": "添加流动性",
+      "remove_liquidity": "移除流动性",
+      "create_pool": "创建池",
+      "mint": "铸造",
+      "app_interaction": "应用交互"
+    }
   },
   "hooks": {
     "transaction": {
-      "insufficient_balance_0": "余额不足. 非注册余额",
+      "insufficient_balance_0": "余额不足",
       "insufficient_balance_1": "BTC) 小于",
       "insufficient_balance_2": "BTC"
     },
@@ -226,16 +265,18 @@
     }
   },
   "network_settings": {
-    "esplora_url": "Electrs (esplora) 地址",
+    "rpc_url": "espo RPC 地址",
     "save": "保存",
-    "saved": "已保存"
+    "saved": "已保存",
+    "explorer_url": "浏览器地址"
   },
   "welcome": {
     "tagline": "赋予你的比特币生命。"
   },
   "provider": {
     "to_sign": "待签名",
-    "utxo_txid": "UTXO 交易 ID："
+    "utxo_txid": "UTXO 交易 ID：",
+    "value": "数值"
   },
   "nav": {
     "home": "首页",

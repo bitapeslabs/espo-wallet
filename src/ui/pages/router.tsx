@@ -27,8 +27,6 @@ import SignMessage from "./provider/sign-message";
 import CreateTx from "./provider/create-tx/component";
 import ConnectedSites from "./main/settings/connected-sites";
 import Language from "./main/settings/language";
-import InscriptionDetails from "./main/inscriptions/inscription-details";
-import Inscriptions from "./main/inscriptions";
 import SignPsbt from "./provider/sign-psbt";
 import MultiPsbtSign from "./provider/multi-psbt-sign";
 import ChangePassword from "./main/settings/security/change-password";
@@ -99,8 +97,6 @@ export const authenticatedRouter = createHashRouter([
       { path: "language", element: <Language /> },
       { path: "security", element: <Security /> },
       { path: "advanced", element: <Advanced /> },
-      { path: "inscription-details", element: <InscriptionDetails /> },
-      { path: "inscriptions", element: <Inscriptions /> },
       { path: "wallet-settings", element: <WalletSettings /> },
       { path: "network-settings", element: <NetworkSettings /> },
     ],

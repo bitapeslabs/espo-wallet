@@ -17,7 +17,6 @@ const Breadcrumbs: FC<Props> = ({ steps, current, className }) => {
       {steps.map((label, i) => (
         <span
           key={label}
-          title={label}
           className={cn(s.dot, {
             [s.current]: i === current,
             [s.done]: i < current,

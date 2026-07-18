@@ -22,7 +22,7 @@ const SwitchNetwork = () => {
       if (!approval || !approval.params || !approval.params.data)
         await notificationController.rejectApproval("Invalid network");
       if (approval!.params!.data[0] === "regtest") setNetworkName("Regtest");
-      else setNetworkName("Bitcoin Mainnet");
+      else setNetworkName("Mainnet");
     })();
   }, [notificationController]);
 

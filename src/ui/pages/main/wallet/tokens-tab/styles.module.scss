@@ -8,6 +8,30 @@
   filter: brightness(1.12);
 }
 
+/* Chevron that slides in on the right when a card is hovered. */
+.cardCaret {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted2);
+  overflow: hidden;
+  width: 0;
+  opacity: 0;
+  /* cancel the .alk-line 8px gap while collapsed so there's no idle space */
+  margin-left: -8px;
+  transform: translateX(-4px);
+  transition: width 0.18s ease, opacity 0.18s ease, margin-left 0.18s ease,
+    transform 0.18s ease;
+}
+
+.clickable:hover .cardCaret {
+  width: 14px;
+  opacity: 1;
+  margin-left: -2px;
+  transform: translateX(0);
+  color: var(--text);
+}
+
 .assetMain {
   display: flex;
   flex-direction: column;
@@ -54,4 +78,45 @@
   font-size: 14px;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.assetRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.assetRight .assetUsd {
+  margin-left: 0;
+}
+
+.assetChange {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted2);
+}
+
+.up {
+  color: var(--success);
+}
+
+.down {
+  color: var(--danger);
+}
+
+.emptyHint {
+  text-align: center;
+  color: var(--muted2);
+  font-size: 13px;
+  padding: 14px 8px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 0;
 }

@@ -2,19 +2,42 @@ import s from "./styles.module.scss";
 import { TailSpin } from "react-loading-icons";
 import { browserTabsCreate } from "@/shared/utils/browser";
 import { useLocation, useParams } from "react-router-dom";
-import { ITransaction } from "@/shared/interfaces/api";
+import {
+  ITransaction,
+  IActivityEntry,
+  ActivityKind,
+} from "@/shared/interfaces/api";
 import { LinkIcon } from "@/ui/icons/phosphor";
-import { FC, useEffect, useId, useState } from "react";
+import { FC, useCallback, useEffect, useId, useMemo, useState } from "react";
 import Modal from "@/ui/components/modal";
 import { shortAddress } from "@/shared/utils/transactions";
+import { alkaneSymbol } from "@/shared/utils/alkanes";
 import toast from "react-hot-toast";
 import { t } from "i18next";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
-import { explorerTxUrl } from "@/shared/networks";
+import { explorerTxUrl, networkSlug } from "@/shared/networks";
 import { useControllersState } from "@/ui/states/controllerState";
 import { ss } from "@/ui/utils";
 import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
+import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
 import { useAppState } from "@/ui/states/appState";
+import ActivityIcon from "../activity/activity-icon";
+
+/** Header label per activity kind (a noun, unlike the feed's past-tense). */
+const KIND_LABEL: Record<ActivityKind, string> = {
+  buy: "swap",
+  sell: "swap",
+  wrap: "wrap",
+  unwrap: "unwrap",
+  split: "split",
+  send: "transfer",
+  receive: "transfer",
+  liquidity_add: "add_liquidity",
+  liquidity_remove: "remove_liquidity",
+  pool_create: "create_pool",
+  mint: "mint",
+  other: "app_interaction",
+};
 
 const TransactionInfo = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -29,8 +52,30 @@ const TransactionInfo = () => {
       transactions?.find((i) => i.txid === txId)
   );
 
-  const { network } = useAppState(ss(["network"]));
-  const explorerUrl = txId ? explorerTxUrl(network, txId) : undefined;
+  const { network, explorerUrl: explorerOverride } = useAppState(
+    ss(["network", "explorerUrl"])
+  );
+  const explorerUrl = txId
+    ? explorerTxUrl(network, txId, explorerOverride?.[networkSlug(network)])
+    : undefined;
+
+  // The classified activity entry, passed in when opened from the activity feed
+  // (drives the icon + kind header above the card). Absent for other entries.
+  const activity = state?.activity as IActivityEntry | undefined;
+  const { portfolio } = useAssetManagerContext();
+  const symbolMap = useMemo(() => {
+    const m = new Map<string, string>();
+    portfolio?.alkanes.forEach((a) => m.set(a.id, a.symbol.toUpperCase()));
+    return m;
+  }, [portfolio]);
+  const sym = useCallback(
+    (id: string) => {
+      if (id === "btc") return portfolio?.btc?.symbol?.toUpperCase() ?? "BTC";
+      const symbol = alkaneSymbol(id, symbolMap);
+      return symbol.toLowerCase() === "frbtc" ? "frBTC" : symbol;
+    },
+    [portfolio, symbolMap]
+  );
 
   const onOpenExplorer = async () => {
     if (!explorerUrl) return;
@@ -50,6 +95,16 @@ const TransactionInfo = () => {
     <div className={s.transactionInfoDiv}>
       {tx ? (
         <>
+          {activity ? (
+            <div className={s.overviewHead}>
+              <span className={s.overviewIcon}>
+                <ActivityIcon entry={activity} network={network} sym={sym} />
+              </span>
+              <span className={s.overviewKind}>
+                {t(`transaction_info.kind.${KIND_LABEL[activity.kind]}`)}
+              </span>
+            </div>
+          ) : undefined}
           <div className={s.transaction}>
             <div className="panel">
               <div className={s.group}>
@@ -164,7 +219,7 @@ const TableItem: FC<ITableItem> = ({ items, currentAddress, label }) => {
                 await navigator.clipboard.writeText(i.scriptpubkey_address);
                 toast.success(t("transaction_info.copied"));
               }}
-              title={i.scriptpubkey_address}
+             
             >
               {i.scriptpubkey_address === currentAddress
                 ? t("transaction_info.your_address")

@@ -61,7 +61,6 @@ const SwitchAccount = () => {
               {
                 custom: (
                   <CopyBtn
-                    title={t("switch_account.copy_address")}
                     value={acc.address}
                     className={s.copy}
                   />
@@ -72,10 +71,7 @@ const SwitchAccount = () => {
                   setRenameId(acc.id);
                 },
                 icon: (
-                  <TagIcon
-                    title={t("switch_account.rename_account")}
-                    size={20}
-                  />
+<TagIcon size={20} />
                 ),
               },
               {
@@ -83,10 +79,7 @@ const SwitchAccount = () => {
                   navigate(`/pages/show-pk/${acc.id}`);
                 },
                 icon: (
-                  <KeyIcon
-                    title={t("switch_account.export_private_key")}
-                    size={20}
-                  />
+<KeyIcon size={20} />
                 ),
               },
             ]}

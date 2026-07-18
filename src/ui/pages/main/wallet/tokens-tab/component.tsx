@@ -1,87 +1,64 @@
-import { useEffect } from "react";
 import { t } from "i18next";
 import { useNavigate } from "react-router-dom";
-import { useInscriptionManagerContext } from "@/ui/utils/inscriptions-ctx";
-import { useGetCurrentAccount } from "@/ui/states/walletState";
+import { TailSpin } from "react-loading-icons";
+import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
 import { useAppState } from "@/ui/states/appState";
-import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
 import { ss } from "@/ui/utils";
-import { networkInfo } from "@/shared/networks";
-import NetworkIcon from "@/ui/components/network-icon";
+import type { IPortfolioAsset } from "@/shared/interfaces/api";
+import AssetCard from "@/ui/components/asset-card";
 import s from "./styles.module.scss";
 
 /**
- * Token balances in espo's address-page alkane card style. BTC is always the
- * first asset; alkane entries follow once an indexer feeds the context.
+ * Token balances in espo's address-page alkane card style, driven entirely by
+ * the espo portfolio: BTC first, then alkanes, each with its USD value and 24h
+ * change. Until get_portfolio_stats has loaded, a loader shows (never a stale
+ * or BTC-only value).
  */
 const TokensTab = () => {
-  const currentAccount = useGetCurrentAccount();
   const { network } = useAppState(ss(["network"]));
-  const { currentPrice } = useTransactionManagerContext();
-  const { tokens, updateTokens } = useInscriptionManagerContext();
+  const { portfolio, alkanes } = useAssetManagerContext();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    updateTokens();
-  }, [updateTokens, currentAccount?.address]);
+  // Wait for the portfolio so BTC + alkanes (and their USD values) appear
+  // together, never a stale/partial or BTC-only list.
+  if (portfolio === undefined) {
+    return (
+      <div className={s.loading}>
+        <TailSpin className="animate-spin" />
+      </div>
+    );
+  }
 
-  const balance = (currentAccount?.balance ?? 0) / 10 ** 8;
-  const btcBalance = balance.toFixed(8);
-  const hasPrice = networkInfo(network).hasPrice && currentPrice !== undefined;
+  const btc: IPortfolioAsset = portfolio.btc ?? {
+    id: "btc",
+    name: t("wallet_page.bitcoin"),
+    symbol: "BTC",
+    balance: "0",
+    priceUsd: null,
+    valueUsd: null,
+    change24h: null,
+    valueChangeUsd24h: null,
+  };
 
   return (
     <div className="io-alkanes">
-      <div
-        className={`alk-card ${s.clickable}`}
+      <AssetCard
+        asset={btc}
+        network={network}
+        fallbackName={t("wallet_page.bitcoin")}
         onClick={() => navigate("/asset/btc")}
-      >
-        <div className="alk-line">
-          <div className="alk-icon-wrap" aria-hidden="true">
-            <NetworkIcon network={network} size={28} />
-          </div>
-          <div className={s.assetMain}>
-            <span className={s.assetName}>{t("wallet_page.bitcoin")}</span>
-            <span className={s.assetAmount}>
-              <span className="alk-amt">{btcBalance}</span>
-              <span className="alk-sym">BTC</span>
-            </span>
-          </div>
-          {hasPrice ? (
-            <span className={s.assetUsd}>
-              ${(balance * currentPrice!).toFixed(2)}
-            </span>
-          ) : undefined}
-        </div>
-      </div>
-
-      {tokens.map((token) => (
-        <div
-          className={`alk-card ${s.clickable}`}
-          key={token.tick}
+      />
+      {alkanes.map((a) => (
+        <AssetCard
+          key={a.id}
+          asset={a}
+          network={network}
           onClick={() =>
-            navigate(`/asset/${encodeURIComponent(token.tick)}`, {
-              state: {
-                name: token.tick,
-                balance: token.balance,
-                symbol: token.tick,
-              },
+            navigate(`/asset/${encodeURIComponent(a.id)}`, {
+              state: { alkane: a },
             })
           }
-        >
-          <div className="alk-line">
-            <div className="alk-icon-wrap" aria-hidden="true">
-              <span className="alk-icon-letter">{token.tick.slice(0, 1)}</span>
-            </div>
-            <div className={s.assetMain}>
-              <span className={s.assetName}>{token.tick}</span>
-              <span className={s.assetAmount}>
-                <span className="alk-amt">{token.balance}</span>
-                <span className="alk-sym">{token.tick}</span>
-              </span>
-            </div>
-          </div>
-        </div>
+        />
       ))}
     </div>
   );

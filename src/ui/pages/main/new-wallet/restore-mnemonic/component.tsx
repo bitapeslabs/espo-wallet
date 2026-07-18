@@ -12,7 +12,12 @@ import { TailSpin } from "react-loading-icons";
 import Switch from "@/ui/components/switch";
 import { useAppState } from "@/ui/states/appState";
 import { ss } from "@/ui/utils";
-import { ADDRESS_TYPES, DEFAULT_HD_PATH } from "@/shared/constant";
+import {
+  ADDRESS_TYPES,
+  DEFAULT_HD_PATH,
+  hdPathForAddressType,
+} from "@/shared/constant";
+import { AddressType } from "@/background/services/keyring/hdw";
 import Select from "@/ui/components/select";
 import { isValidMnemonic } from "@/shared/validators";
 
@@ -71,6 +76,14 @@ const RestoreMnemonic = () => {
       next[index] = v;
       return next;
     });
+  };
+
+  // Selecting an address type moves the derivation path to that type's
+  // canonical BIP path (taproot -> m/86', etc.) so it never derives on the
+  // segwit path. The user can still override via the Custom path option.
+  const onSelectAddressType = (type: AddressType) => {
+    setAddressType(type);
+    setHdPath(hdPathForAddressType(type));
   };
 
   const phraseValid = isValidMnemonic(mnemonicPhrase);
@@ -152,7 +165,7 @@ const RestoreMnemonic = () => {
         <div className={s.step}>
           <div className={s.stepBody}>
             <SwitchAddressType
-              handler={setAddressType}
+              handler={onSelectAddressType}
               selectedType={addressType}
             />
 

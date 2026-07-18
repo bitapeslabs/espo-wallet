@@ -70,7 +70,7 @@ const EditWallet = () => {
           <button className={s.row} onClick={() => setRenaming(true)}>
             <span className={s.rowLabel}>{t("edit_wallet.wallet_name")}</span>
             <span className={s.rowValue}>{wallet.name}</span>
-            <CaretRightBoldIcon size={16} className={s.rowCaret} />
+            <CaretRightBoldIcon size={14} className={s.rowCaret} />
           </button>
         </div>
 
@@ -80,21 +80,21 @@ const EditWallet = () => {
             onClick={() => goWithWallet("/pages/change-addr-type")}
           >
             <span className={s.rowLabel}>{t("edit_wallet.address_type")}</span>
-            <CaretRightBoldIcon size={16} className={s.rowCaret} />
+            <CaretRightBoldIcon size={14} className={s.rowCaret} />
           </button>
           <button
             className={s.row}
             onClick={() => navigate(`/pages/show-mnemonic/${id}`)}
           >
             <span className={s.rowLabel}>{t("edit_wallet.show_mnemonic")}</span>
-            <CaretRightBoldIcon size={16} className={s.rowCaret} />
+            <CaretRightBoldIcon size={14} className={s.rowCaret} />
           </button>
           <button
             className={s.row}
             onClick={() => goWithWallet("/pages/advanced")}
           >
             <span className={s.rowLabel}>{t("edit_wallet.advanced")}</span>
-            <CaretRightBoldIcon size={16} className={s.rowCaret} />
+            <CaretRightBoldIcon size={14} className={s.rowCaret} />
           </button>
         </div>
 

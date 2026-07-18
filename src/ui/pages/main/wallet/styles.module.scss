@@ -16,14 +16,23 @@
   gap: 10px;
 }
 
+.walletLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .walletWidget {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
+  height: 40px;
+  padding: 0 10px;
   border-radius: var(--radius);
   cursor: pointer;
   min-width: 0;
+  user-select: none;
 }
 
 .walletWidget:hover {
@@ -33,16 +42,18 @@
 .walletMeta {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
   min-width: 0;
 }
 
 .walletName {
-  font-weight: 650;
-  font-size: 14px;
-  overflow: hidden;
+  margin-top: 4px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 12px;
+  overflow: hidden;
 }
 
 .walletAddr {
@@ -51,13 +62,24 @@
   gap: 2px;
   color: var(--muted2);
   font-size: 12px;
-  cursor: default;
+  line-height: 16px;
+  font-weight: 600;
 }
 
 .walletCopy {
   padding: 1px 3px;
   background: transparent !important;
   color: inherit !important;
+}
+
+.walletCopy svg {
+  width: 14px;
+  height: 14px;
+}
+
+.walletCopyWrap {
+  display: inline-flex;
+  align-items: center;
 }
 
 .walletCaret {
@@ -89,8 +111,10 @@
 /* wallet worth: large usd value, no card */
 .worth {
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
+  gap: 6px;
   padding: 48px 0 40px;
 }
 
@@ -99,6 +123,21 @@
   font-weight: 700;
   line-height: 1.1;
   cursor: default;
+}
+
+.worthChange {
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--muted2);
+  cursor: default;
+}
+
+.worthChange.up {
+  color: var(--success);
+}
+
+.worthChange.down {
+  color: var(--danger);
 }
 
 .worthUnit {

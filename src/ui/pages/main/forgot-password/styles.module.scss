@@ -7,8 +7,7 @@
   padding: 0 0 24px;
 }
 
-.wrap > .body,
-.wrap > .wipeBtn {
+.wrap > .body {
   padding-left: 24px;
   padding-right: 24px;
 }
@@ -84,8 +83,9 @@
 }
 
 .wipeBtn {
-  width: 100%;
+  width: calc(100% - 48px);
   max-width: 400px;
+  margin: 0 auto;
 }
 
 .drawerDesc {

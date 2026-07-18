@@ -5,3 +5,248 @@
   flex-direction: column;
   padding: 12px 16px 16px;
 }
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin: 14px 0 18px;
+}
+
+/* day headers: muted, semibold */
+.group :global(.review-heading) {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.group {
+  width: 100%;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* clear space between the date header and its entries */
+  margin-top: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel2);
+  border-radius: 8px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  min-width: 0;
+  transition: filter 0.15s ease;
+}
+
+.row:hover {
+  transition: none;
+  filter: brightness(1.12);
+}
+
+/* icon sizing matches the balance cards (28px) */
+.rowIcon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+/* --- activity icons --- */
+.appIcon,
+.iconBadgeWrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+/* two overlapping token icons for swaps / LP; each icon is a full 28px circle
+   (same size as a main icon), overlapped so the pair reads as a set */
+.pair {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 28px;
+}
+
+.pairA,
+.pairB {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  /* lock the circle so the icon never distorts into an oval */
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--panel3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.pairB {
+  margin-left: -12px;
+  z-index: 1;
+  /* ring in the surface bg so the front icon separates from the one behind it */
+  box-shadow: 0 0 0 2px var(--badge-ring, var(--panel2));
+}
+
+/* generic app interaction: diesel glyph on a panel tile */
+.appIcon {
+  border-radius: 8px;
+  background: var(--panel3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.appIcon img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* status badge for send/receive/split */
+.badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--link-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ring blends into whatever surface the icon sits on (card by default) */
+  border: 2px solid var(--badge-ring, var(--panel2));
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitle {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSub {
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.rowFail {
+  color: var(--danger);
+}
+
+.rowAmounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+  text-align: right;
+  /* the amounts may grow to at most 50% of the row before the text shrinks */
+  max-width: 50%;
+  overflow: hidden;
+}
+
+.amt {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.amt.amtIn {
+  color: var(--success);
+}
+
+/* the number keeps its size; the symbol ellipsizes when the column is tight */
+.amtNum {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.amtSym {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
+.loaderWrap {
+  min-height: 50vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.empty {
+  width: 100%;
+  flex: 1;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.emptyIcon {
+  color: var(--muted2);
+  opacity: 0.45;
+}
+
+.loadMore {
+  width: 100%;
+  padding: 6px 0;
+}
+
+.loadMoreSpin {
+  width: 24px;
+  height: 24px;
+  margin: 0 auto;
+  display: block;
+}

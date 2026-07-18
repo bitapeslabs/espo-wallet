@@ -79,7 +79,8 @@ class StorageService {
         "pendingWallet",
         "network",
         "language",
-        "esploraUrl",
+        "rpcUrl",
+        "explorerUrl",
       ]),
     };
 
@@ -136,7 +137,8 @@ class StorageService {
       state.pendingWallet !== undefined ||
       state.language !== undefined ||
       state.network !== undefined ||
-      state.esploraUrl !== undefined
+      state.rpcUrl !== undefined ||
+      state.explorerUrl !== undefined
     ) {
       const localState = await this.getLocalValues();
       const cache: StorageInterface["cache"] = {
@@ -149,7 +151,9 @@ class StorageService {
         cache.pendingWallet = state.pendingWallet;
       if (state.language !== undefined) cache.language = state.language;
       if (state.network !== undefined) cache.network = state.network;
-      if (state.esploraUrl !== undefined) cache.esploraUrl = state.esploraUrl;
+      if (state.rpcUrl !== undefined) cache.rpcUrl = state.rpcUrl;
+      if (state.explorerUrl !== undefined)
+        cache.explorerUrl = state.explorerUrl;
 
       const payload: StorageInterface = {
         cache: cache,

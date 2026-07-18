@@ -1,0 +1,122 @@
+/* icon wrap is 28px on balance cards regardless of interactivity */
+.card :global(.alk-icon-wrap) {
+  width: 28px;
+  height: 28px;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.clickable:hover {
+  transition: none;
+  filter: brightness(1.12);
+}
+
+/* Chevron that slides in on the right when a card is hovered. */
+.cardCaret {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted2);
+  overflow: hidden;
+  width: 0;
+  opacity: 0;
+  /* cancel the .alk-line 8px gap while collapsed so there's no idle space */
+  margin-left: -8px;
+  transform: translateX(-4px);
+  transition: width 0.18s ease, opacity 0.18s ease, margin-left 0.18s ease,
+    transform 0.18s ease;
+}
+
+.clickable:hover .cardCaret {
+  width: 14px;
+  opacity: 1;
+  margin-left: -2px;
+  transform: translateX(0);
+  color: var(--text);
+}
+
+.assetMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.assetNameRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.assetName {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* verified (whitelisted) token badge, in the primary blue (blurple) */
+.verified {
+  flex: 0 0 auto;
+  color: var(--link);
+}
+
+.assetAmount {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.assetAmount :global(.alk-amt) {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.assetAmount :global(.alk-sym) {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.assetUsd {
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.assetRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.assetRight .assetUsd {
+  margin-left: 0;
+}
+
+.assetChange {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted2);
+}
+
+.up {
+  color: var(--success);
+}
+
+.down {
+  color: var(--danger);
+}

@@ -59,7 +59,6 @@ const AddressInput: FC<Props> = ({ address, onChange, onOpenModal }) => {
       </Combobox>
       <div
         className={s.bookBtn}
-        title={t("send.create_send.address_input.address_book")}
         onClick={(e) => {
           e.preventDefault();
           onOpenModal();

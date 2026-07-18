@@ -17,6 +17,9 @@ const isProxy = (obj: any) => {
   return "__isProxy" in obj;
 };
 
+/** Must match the per-page limit apiController uses for history. */
+const TX_PAGE_SIZE = 50;
+
 const useTransactionManager = (): TransactionManagerContextType | undefined => {
   const currentAccount = useGetCurrentAccount();
   const [lastBlock, setLastBlock] = useState<number>();
@@ -39,7 +42,7 @@ const useTransactionManager = (): TransactionManagerContextType | undefined => {
       if (receivedItems === undefined) return;
 
       setTransactions((prev) => {
-        if ((prev?.length ?? 0) < 50 || force) return receivedItems;
+        if ((prev?.length ?? 0) < TX_PAGE_SIZE || force) return receivedItems;
 
         const currentItemsKeys = new Set(prev!.map((f) => f.txid));
         const receivedItemsKeys = new Set(receivedItems.map((f) => f.txid));
@@ -81,15 +84,20 @@ const useTransactionManager = (): TransactionManagerContextType | undefined => {
 
   const loadMoreTransactions = useCallback(async () => {
     if (!currentAccount || !currentAccount.address || !transactions) return;
-    if (transactions.length < 50) return;
+    if (transactions.length < TX_PAGE_SIZE) return;
+    // espo paginates by page number; derive the next page from how many full
+    // pages we already hold.
+    const nextPage = Math.floor(transactions.length / TX_PAGE_SIZE) + 1;
     const additionalTransactions = await apiController.getPaginatedTransactions(
       currentAccount.address,
-      transactions[transactions.length - 1]?.txid
+      nextPage
     );
-    if (!additionalTransactions) return;
-    if (additionalTransactions.length > 0) {
-      setTransactions((prev) => [...(prev ?? []), ...additionalTransactions]);
-    }
+    if (!additionalTransactions || additionalTransactions.length === 0) return;
+    setTransactions((prev) => {
+      const seen = new Set((prev ?? []).map((t) => t.txid));
+      const fresh = additionalTransactions.filter((t) => !seen.has(t.txid));
+      return [...(prev ?? []), ...fresh];
+    });
   }, [transactions, apiController, currentAccount]);
 
   useEffect(() => {
@@ -133,6 +141,14 @@ const useTransactionManager = (): TransactionManagerContextType | undefined => {
 
   useEffect(() => {
     if (!isProxy(apiController)) return;
+
+    // The network changed (or the app just became ready): drop stale
+    // network-scoped data so the previous network's price/tip/history never
+    // shows during the switch, then refetch for the current network.
+    setCurrentPrice(undefined);
+    setLastBlock(undefined);
+    setFeeRates(undefined);
+    setTransactions(undefined);
 
     updateFeeRates().catch(console.error);
     updateLastBlock().catch(console.error);

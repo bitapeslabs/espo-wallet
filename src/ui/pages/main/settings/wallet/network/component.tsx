@@ -5,27 +5,29 @@ import s from "./styles.module.scss";
 import { useAppState } from "@/ui/states/appState";
 import { useSwitchNetwork } from "@/ui/hooks/wallet";
 import { ss } from "@/ui/utils";
-import { NETWORKS, networkSlug } from "@/shared/networks";
+import { NETWORKS, networkSlug, NetworkSlug } from "@/shared/networks";
 import NetworkIcon from "@/ui/components/network-icon";
 
 const NetworkSettings = () => {
-  const { network, esploraUrl, updateAppState } = useAppState(
-    ss(["network", "esploraUrl", "updateAppState"])
+  const { network, rpcUrl, explorerUrl, updateAppState } = useAppState(
+    ss(["network", "rpcUrl", "explorerUrl", "updateAppState"])
   );
   const switchNetwork = useSwitchNetwork();
   const activeSlug = networkSlug(network);
 
-  const [urls, setUrls] = useState<Record<string, string>>({
-    mainnet: esploraUrl?.mainnet ?? "",
-    regtest: esploraUrl?.regtest ?? "",
+  const [rpcUrls, setRpcUrls] = useState<Record<string, string>>({
+    mainnet: rpcUrl?.mainnet ?? "",
+    regtest: rpcUrl?.regtest ?? "",
+  });
+  const [explorerUrls, setExplorerUrls] = useState<Record<string, string>>({
+    mainnet: explorerUrl?.mainnet ?? "",
+    regtest: explorerUrl?.regtest ?? "",
   });
 
-  const saveUrl = async (slug: "mainnet" | "regtest") => {
+  const save = async (slug: NetworkSlug) => {
     await updateAppState({
-      esploraUrl: {
-        ...esploraUrl,
-        [slug]: urls[slug].trim(),
-      },
+      rpcUrl: { ...rpcUrl, [slug]: rpcUrls[slug].trim() },
+      explorerUrl: { ...explorerUrl, [slug]: explorerUrls[slug].trim() },
     });
     toast.success(t("network_settings.saved"));
   };
@@ -46,21 +48,32 @@ const NetworkSettings = () => {
           </button>
 
           <div className="field">
-            <label>{t("network_settings.esplora_url")}</label>
+            <label>{t("network_settings.rpc_url")}</label>
             <input
               type="text"
-              value={urls[i.slug]}
-              placeholder={i.esploraUrl}
+              value={rpcUrls[i.slug]}
+              placeholder={i.rpcUrl}
               onChange={(e) =>
-                setUrls((prev) => ({ ...prev, [i.slug]: e.target.value }))
+                setRpcUrls((prev) => ({ ...prev, [i.slug]: e.target.value }))
+              }
+            />
+          </div>
+          <div className="field">
+            <label>{t("network_settings.explorer_url")}</label>
+            <input
+              type="text"
+              value={explorerUrls[i.slug]}
+              placeholder={i.explorerUrl}
+              onChange={(e) =>
+                setExplorerUrls((prev) => ({
+                  ...prev,
+                  [i.slug]: e.target.value,
+                }))
               }
             />
           </div>
           <div className="form-actions">
-            <button
-              className="btn small"
-              onClick={async () => await saveUrl(i.slug)}
-            >
+            <button className="btn small" onClick={async () => await save(i.slug)}>
               {t("network_settings.save")}
             </button>
           </div>

@@ -1,0 +1,41 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* muted time readout above the hovered point */
+.timeLabel {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* vertical scrub line at the hovered point */
+.vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--muted2);
+  opacity: 0.5;
+  transform: translateX(-0.5px);
+  pointer-events: none;
+}
+
+/* dot marking the hovered price point */
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px var(--panel3);
+  pointer-events: none;
+}

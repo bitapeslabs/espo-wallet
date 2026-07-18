@@ -1,0 +1,23 @@
+.netDropdown {
+  flex-shrink: 0;
+}
+
+/* icon-only trigger: keep the espo dropdown look (panel2 bg + primary hover),
+   just compact and without the min-width */
+.netTrigger {
+  min-width: 0;
+  gap: 6px;
+  padding: 0 10px;
+  height: 40px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.netPanel {
+  left: 0;
+  min-width: 170px;
+}
+
+.check {
+  margin-left: auto;
+  color: var(--link);
+}

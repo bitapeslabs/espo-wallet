@@ -56,14 +56,8 @@ const ConfirmSend = () => {
       value: location.state.fromAddress,
     },
     {
-      label: t(
-        `send.confirm_send.${
-          location.state.inscriptionTransaction ? "inscription_id" : "amount"
-        }`
-      ),
-      value:
-        location.state.amount +
-        (location.state.inscriptionTransaction ? "" : " BTC"),
+      label: t("send.confirm_send.amount"),
+      value: location.state.amount + " BTC",
     },
     {
       label: t("send.confirm_send.fee"),

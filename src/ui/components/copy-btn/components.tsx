@@ -1,4 +1,4 @@
-import { CopyIcon } from "@/ui/icons/phosphor";
+import { CopyFillIcon } from "@/ui/icons/phosphor";
 import { FC, HTMLAttributes } from "react";
 import s from "./styles.module.scss";
 import toast from "react-hot-toast";
@@ -15,7 +15,6 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 const CopyBtn: FC<Props> = ({ label, value, className, title, ...props }) => {
   return (
     <button
-      title={title}
       className={className ? className : s.btn}
       onClick={async () => {
         if (!value) return;
@@ -29,7 +28,7 @@ const CopyBtn: FC<Props> = ({ label, value, className, title, ...props }) => {
         </div>
       ) : undefined}
 
-      <CopyIcon size={15} />
+      <CopyFillIcon size={15} />
     </button>
   );
 };

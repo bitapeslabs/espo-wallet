@@ -14,6 +14,33 @@
     "collectibles": "Коллекционные",
     "bitcoin": "Биткоин"
   },
+  "asset": {
+    "send_alkane_unavailable": "Отправка Alkanes пока недоступна",
+    "balance": "Баланс",
+    "holders": "Держатели",
+    "age": "Возраст",
+    "deploy_tx": "Транзакция деплоя",
+    "no_chart": "Нет данных графика"
+  },
+  "activity": {
+    "swapped": "Обмен",
+    "added_liquidity": "Добавлена ликвидность",
+    "removed_liquidity": "Выведена ликвидность",
+    "created_pool": "Создан пул",
+    "minted": "Минт",
+    "wrapped": "Обёрнуто",
+    "unwrapped": "Развёрнуто",
+    "sent": "Отправлено",
+    "received": "Получено",
+    "app_interaction": "Взаимодействие с приложением",
+    "failed": "Ошибка",
+    "to": "Кому",
+    "from": "От",
+    "no_activity": "Пока нет активности",
+    "title": "История",
+    "split": "Разделение",
+    "alkanes": "Alkanes"
+  },
   "settings": {
     "language": "Язык",
     "logout": "Выйти",
@@ -221,11 +248,23 @@
     "copied": "Скопировано",
     "inputs": "Входы",
     "outputs": "Выходы",
-    "details": "Подробнее"
+    "details": "Подробнее",
+    "kind": {
+      "swap": "Обмен",
+      "wrap": "Обёртывание",
+      "unwrap": "Развёртывание",
+      "split": "Разделение",
+      "transfer": "Перевод",
+      "add_liquidity": "Добавление ликвидности",
+      "remove_liquidity": "Вывод ликвидности",
+      "create_pool": "Создание пула",
+      "mint": "Минт",
+      "app_interaction": "Взаимодействие с приложением"
+    }
   },
   "hooks": {
     "transaction": {
-      "insufficient_balance_0": "Недостаточный баланс. Неинскрибированный баланс",
+      "insufficient_balance_0": "Недостаточный баланс",
       "insufficient_balance_1": "BTC) ниже чем",
       "insufficient_balance_2": "BTC"
     },
@@ -234,16 +273,18 @@
     }
   },
   "network_settings": {
-    "esplora_url": "Electrs (esplora) URL",
+    "rpc_url": "URL RPC espo",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "explorer_url": "URL проводника"
   },
   "welcome": {
     "tagline": "Вдохни жизнь в свой Bitcoin."
   },
   "provider": {
     "to_sign": "К подписи",
-    "utxo_txid": "Txid UTXO: "
+    "utxo_txid": "Txid UTXO: ",
+    "value": "Значение"
   },
   "nav": {
     "home": "Главная",

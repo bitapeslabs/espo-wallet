@@ -9,9 +9,10 @@ import { ADDRESS_TYPES } from "@/shared/constant";
 import s from "./styles.module.scss";
 
 const ChangeAddrType = () => {
-  const { keyringController, notificationController } = useControllersState(
-    ss(["keyringController", "notificationController"])
-  );
+  const { keyringController, walletController, notificationController } =
+    useControllersState(
+      ss(["keyringController", "walletController", "notificationController"])
+    );
   const { selectedWallet, updateSelectedWallet, selectedAccount } =
     useWalletState(
       ss(["selectedWallet", "updateSelectedWallet", "selectedAccount"])
@@ -38,6 +39,9 @@ const ChangeAddrType = () => {
         id: idx,
       })),
     });
+    // The address type drives the keyring's BIP derivation path, so persist the
+    // re-serialized keyring (new path) into the vault, or it reverts on unlock.
+    await walletController.saveWallets();
     await notificationController.changedAccount();
     navigate("/");
   };

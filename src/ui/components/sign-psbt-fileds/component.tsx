@@ -43,7 +43,7 @@ const SignPsbtFileds: FC<SignPsbtFiledsProps> = ({
               {f.value.text}
             </p>
             <p>
-              {t("inscription_details.value") + ": "}
+              {t("provider.value") + ": "}
               {f.value.value}
             </p>
           </div>

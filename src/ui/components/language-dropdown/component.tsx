@@ -4,7 +4,7 @@ import i18n from "@/shared/locales/i18n";
 import { useAppState } from "@/ui/states/appState";
 import { ss } from "@/ui/utils";
 import {
-  CaretDownIcon,
+  CaretDownBoldIcon,
   CheckIcon,
   GlobeBoldIcon,
 } from "@/ui/icons/phosphor";
@@ -61,7 +61,7 @@ const LanguageDropdown = () => {
         <GlobeBoldIcon size={17} />
         <span className="dropdown-label">{currentLang.label}</span>
         <span className="dropdown-caret">
-          <CaretDownIcon size={13} />
+          <CaretDownBoldIcon size={14} />
         </span>
       </button>
       <div className={cn("dropdown-panel", s.langPanel)}>

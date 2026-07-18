@@ -1,19 +1,30 @@
 .shell {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  /* the shell itself never scrolls; only .content does, so the navbar (a
+     sibling below) keeps its full width when the scrollbar appears */
+  overflow: hidden;
 }
 
 .content {
-  flex: 1;
+  flex: 1 1 auto;
+  /* allow the flex child to shrink below its content size so it can scroll */
+  min-height: 0;
   width: 100%;
-  /* clear the fixed bottom navbar */
-  padding-bottom: 56px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
+/* standalone tab view: let the whole column grow and the document scroll */
 @media (min-width: 455px) {
+  .shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
   .content {
-    padding-bottom: 0;
+    overflow-y: visible;
   }
 }

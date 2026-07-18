@@ -8,7 +8,10 @@ export interface INetworkInfo {
   network: Network;
   /** Roundel accent color, matching espo's explorer network icons */
   color: string;
-  esploraUrl: string;
+  /** espo JSON-RPC 2.0 endpoint (POST base) for this network */
+  rpcUrl: string;
+  /** espo block-explorer base (tx links point at `{explorerUrl}/tx/{txid}`) */
+  explorerUrl: string;
   /** Whether fiat price data is available for this network */
   hasPrice: boolean;
 }
@@ -16,10 +19,11 @@ export interface INetworkInfo {
 export const NETWORKS: INetworkInfo[] = [
   {
     slug: "mainnet",
-    name: "Bitcoin Mainnet",
+    name: "Mainnet",
     network: networks.bitcoin,
     color: "#f7931a",
-    esploraUrl: process.env.API_URL ?? "https://mempool.space/api",
+    rpcUrl: process.env.API_URL ?? "https://api.alkanode.com/rpc",
+    explorerUrl: process.env.EXPLORER_URL ?? "https://espo.sh",
     hasPrice: true,
   },
   {
@@ -27,9 +31,10 @@ export const NETWORKS: INetworkInfo[] = [
     name: "Regtest",
     network: networks.regtest,
     color: "#5fd15c",
-    esploraUrl: process.env.REGTEST_API_URL ?? "http://localhost:3002",
-    // regtest coins are valued at the real BTC price
-    hasPrice: true,
+    rpcUrl: process.env.REGTEST_API_URL ?? "https://regtest.espo.sh/rpc",
+    explorerUrl: process.env.REGTEST_EXPLORER_URL ?? "https://regtest.espo.sh",
+    // regtest has no ammdata price module, so no USD valuation
+    hasPrice: false,
   },
 ];
 
@@ -50,13 +55,17 @@ export function networkFromSlug(slug: NetworkSlug): Network {
 }
 
 /**
- * Block explorer link for a transaction. Mainnet uses mempool.space;
- * regtest has no public explorer, so callers should hide the link.
+ * Block explorer link for a transaction (`{explorer}/tx/{txid}`). `override` is
+ * the user's per-network explorer URL from settings; falls back to the default.
  */
 export function explorerTxUrl(
   network: Network,
-  txid: string
-): string | undefined {
-  if (isRegtest(network)) return undefined;
-  return `https://mempool.space/tx/${txid}`;
+  txid: string,
+  override?: string
+): string {
+  const base = (override?.trim() || networkInfo(network).explorerUrl).replace(
+    /\/+$/,
+    ""
+  );
+  return `${base}/tx/${txid}`;
 }

@@ -4,7 +4,7 @@ import App from "./App";
 import { StrictMode } from "react";
 import "../shared/locales/i18n";
 import { TransactionManagerProvider } from "./utils/tx-ctx";
-import { InscriptionManagerProvider } from "./utils/inscriptions-ctx";
+import { AssetManagerProvider } from "./utils/assets-ctx";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -13,9 +13,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <TransactionManagerProvider>
-      <InscriptionManagerProvider>
+      <AssetManagerProvider>
         <App />
-      </InscriptionManagerProvider>
+      </AssetManagerProvider>
     </TransactionManagerProvider>
   </StrictMode>
 );

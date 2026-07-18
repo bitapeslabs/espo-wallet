@@ -13,8 +13,13 @@ agent-context
 # Environment / secrets
 .env
 .env.*
+*.local
 *.pem
 *.key
+*.p12
+*.keystore
+secrets.json
+wallet.json
 
 # Lockfiles we don't ship (bun.lock is committed for reproducibility)
 bun.lockb
@@ -24,6 +29,12 @@ pnpm-lock.yaml
 
 # Packaged artifacts
 *.zip
+web-ext-artifacts
+
+# Scratch / temp
+scratchpad
+*.tmp
+stats.html
 
 # Editors
 .vscode

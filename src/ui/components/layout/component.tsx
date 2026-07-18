@@ -173,12 +173,6 @@ export default function PagesLayout() {
           title: t("components.layout.send"),
         },
         {
-          route: "/pages/inscription-details",
-          title:
-            t("inscription_details.title") +
-            ` #${currentRoute.state?.inscription_number ?? ""}`,
-        },
-        {
           route: "/pages/switch-account",
           title: t("components.layout.switch_account"),
           action: {
@@ -193,13 +187,6 @@ export default function PagesLayout() {
                 }}
               />
             ),
-          },
-        },
-        {
-          route: /\/pages\/inscriptions/,
-          title: t("components.layout.assets"),
-          backAction: () => {
-            navigate("/home");
           },
         },
       ] as IRouteTitle[],

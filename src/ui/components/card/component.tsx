@@ -65,7 +65,7 @@ const Card: FC<Props> = ({
             action: () => {
               setActive(false);
             },
-            icon: <XIcon title={t("components.card.close")} size={20} />,
+            icon: <XIcon size={20} />,
           },
         ]}
       />

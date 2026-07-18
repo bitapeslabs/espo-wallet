@@ -67,7 +67,6 @@ const SwitchWallet = () => {
         <button
           type="button"
           className="header-icon-btn"
-          title={t("switch_wallet.add_wallet")}
           onClick={() => navigate("/pages/create-new-wallet")}
         >
           <PlusBoldIcon size={18} />
@@ -95,9 +94,9 @@ const SwitchWallet = () => {
                   </span>
                   <span className={s.caret}>
                     {open ? (
-                      <CaretUpBoldIcon size={15} />
+                      <CaretUpBoldIcon size={14} />
                     ) : (
-                      <CaretDownBoldIcon size={15} />
+                      <CaretDownBoldIcon size={14} />
                     )}
                   </span>
                 </button>

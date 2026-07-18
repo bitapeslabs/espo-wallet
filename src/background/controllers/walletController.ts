@@ -133,15 +133,23 @@ class WalletController implements IWalletController {
         const keyring = keyringService.getKeyringByIndex(wallet.id);
         return {
           ...wallet,
-          accounts: keyring
-            .getAccounts()
-            .map((f, i) => ({ ...wallet.accounts[i], address: f })),
+          accounts: keyring.getAccounts().map((f, i) => ({
+            ...wallet.accounts[i],
+            address: f,
+            // Each network has its own addresses and balances; drop the
+            // previous network's balance so the UI shows loading, not a stale
+            // (wrong-network) amount, until the new balance loads.
+            balance: undefined,
+          })),
         };
       }
     );
 
-    await storageService.updateAppState({ network });
+    // Update the wallets (new addresses + cleared balances) BEFORE flipping the
+    // network flag, so the UI never renders the new network with the old
+    // network's balance.
     await storageService.updateWalletState({ wallets: updatedWallets });
+    await storageService.updateAppState({ network });
     sessionService.broadcastEvent("networkChanged", {
       network: networkSlug(network),
     });

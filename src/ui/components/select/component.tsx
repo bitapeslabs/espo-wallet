@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import cn from "classnames";
-import { CaretDownIcon, CheckIcon } from "@/ui/icons/phosphor";
+import { CheckIcon, CaretDownBoldIcon } from "@/ui/icons/phosphor";
 
 interface Props<T extends string> {
   setSelected: (data: { name: T }) => void;
@@ -55,7 +55,7 @@ const Select = <T extends string>({
         >
           <span className="dropdown-label">{selected.name}</span>
           <span className="dropdown-caret">
-            <CaretDownIcon size={16} />
+            <CaretDownBoldIcon size={14} />
           </span>
         </button>
         <div

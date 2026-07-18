@@ -7,7 +7,6 @@ export interface IField {
 
 export interface IFieldValue {
   text?: string;
-  inscriptions?: string[];
   value?: string;
   anyonecanpay?: boolean;
 }
