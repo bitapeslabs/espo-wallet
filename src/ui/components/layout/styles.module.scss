@@ -34,10 +34,16 @@
 .contentDiv {
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* top-align content so tall pages don't overflow up under the sticky header
+     (which made the first element look flush). Pages that want vertical
+     centering do it on their own full-height root (receive, new-wallet, etc.). */
+  justify-content: flex-start;
   height: 100%;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+  /* uniform breathing room below the header, app-wide */
+  padding-top: 14px;
 }
 
 .back {

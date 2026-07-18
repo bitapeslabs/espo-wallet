@@ -8,6 +8,7 @@ import s from "./styles.module.scss";
 import { useAppState } from "@/ui/states/appState";
 import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
 import { useControllersState } from "@/ui/states/controllerState";
+import { useEspoQuery } from "@/ui/utils/query";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { ss } from "@/ui/utils";
 import { explorerTxUrl, networkSlug } from "@/shared/networks";
@@ -114,40 +115,32 @@ const Asset = () => {
       }
     : alkane;
 
-  // Chart data for the selected range.
+  // Chart data for the selected range (height-versioned, cached per block).
   const [range, setRange] = useState(DEFAULT_RANGE);
-  const [candles, setCandles] = useState<ICandle[] | undefined>(undefined);
-  const [meta, setMeta] = useState<IAlkaneMeta | undefined>(undefined);
   // Index of the point the cursor is scrubbing over the chart (null = none).
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const r = RANGES.find((x) => x.key === range) ?? RANGES[1];
 
+  const candlesQuery = useEspoQuery<ICandle[] | undefined>(
+    ["candles", id, r.tf, r.limit],
+    () => apiController.getCandles(id, r.tf, r.limit),
+    { enabled: !!id }
+  );
+  // `undefined` = still loading (spinner); `[]` = loaded but no chart data.
+  const candles = candlesQuery.isFetched
+    ? candlesQuery.data ?? []
+    : undefined;
+
+  const { data: meta } = useEspoQuery<IAlkaneMeta | undefined>(
+    ["alkane-meta", id],
+    () => apiController.getAlkaneMeta(id),
+    { enabled: !!id && !isBtc }
+  );
+
+  // Scrubbing resets when the range (and thus the series) changes.
   useEffect(() => {
-    if (!id) return;
-    const r = RANGES.find((x) => x.key === range) ?? RANGES[1];
-    setCandles(undefined);
     setHoverIndex(null);
-    let cancelled = false;
-    apiController
-      .getCandles(id, r.tf, r.limit)
-      .then((res) => !cancelled && setCandles(res ?? []))
-      .catch(() => !cancelled && setCandles([]));
-    return () => {
-      cancelled = true;
-    };
-  }, [id, range, apiController]);
-
-  useEffect(() => {
-    setMeta(undefined);
-    if (!id || isBtc) return;
-    let cancelled = false;
-    apiController
-      .getAlkaneMeta(id)
-      .then((res) => !cancelled && setMeta(res))
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [id, isBtc, apiController]);
+  }, [range]);
 
   // Price + range change derived from the candle series; a scrubbed point wins.
   const { priceUsd, changeUsd, changePct, up } = useMemo(() => {
@@ -208,7 +201,7 @@ const Asset = () => {
         <button
           type="button"
           className="header-icon-btn"
-          onClick={() => navigate("/home")}
+          onClick={() => navigate(-1)}
         >
           <CaretLeftBoldIcon size={18} />
         </button>
@@ -301,19 +294,27 @@ const Asset = () => {
         </div>
       ) : undefined}
 
-      {meta ? (
+      {!isBtc ? (
         <div className={s.stats}>
           <div className={s.statCard}>
-            <span className={s.statTitle}>{t("asset.holders")}</span>
+            <span className={s.statTitle}>{t("asset.alkane_id")}</span>
             <div className={s.statBody}>
-              <UsersThreeFillIcon size={18} />
-              <span className={s.statValue}>
-                {formatCount(meta.holderCount)}
-              </span>
+              <span className={s.statValue}>{id}</span>
             </div>
           </div>
-          <div className={s.statCard}>
-            <span className={s.statTitle}>{t("asset.age")}</span>
+          {meta ? (
+            <>
+              <div className={s.statCard}>
+                <span className={s.statTitle}>{t("asset.holders")}</span>
+                <div className={s.statBody}>
+                  <UsersThreeFillIcon size={18} />
+                  <span className={s.statValue}>
+                    {formatCount(meta.holderCount)}
+                  </span>
+                </div>
+              </div>
+              <div className={s.statCard}>
+                <span className={s.statTitle}>{t("asset.age")}</span>
             <div className={s.statBody}>
               <ClockFillIcon size={18} />
               <span className={s.statValue}>
@@ -335,9 +336,11 @@ const Asset = () => {
                 }
               >
                 {shortAddress(meta.creationTxid, 4)}
-              </span>
-            </div>
-          </div>
+                </span>
+              </div>
+              </div>
+            </>
+          ) : undefined}
         </div>
       ) : undefined}
     </div>

@@ -1,168 +1,121 @@
 import type { ITransaction } from "@/shared/interfaces/api";
 import React, {
-  useState,
-  useEffect,
   useCallback,
   useContext,
   createContext,
+  useEffect,
+  useMemo,
   FC,
 } from "react";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { networkSlug } from "@/shared/networks";
 import { useControllersState } from "../states/controllerState";
-import { useUpdateCurrentAccountBalance } from "../hooks/wallet";
-import { useGetCurrentAccount } from "../states/walletState";
+import { useGetCurrentAccount, useWalletState } from "../states/walletState";
 import { ss } from ".";
 import { useAppState } from "../states/appState";
-
-const isProxy = (obj: any) => {
-  return "__isProxy" in obj;
-};
+import { espoKey, useEspoQuery, useEspoTipInvalidation } from "./query";
 
 /** Must match the per-page limit apiController uses for history. */
 const TX_PAGE_SIZE = 50;
 
+/**
+ * Chain-tip, BTC price, fees, history and the derived account balance, all
+ * served through height-versioned react-query so identical espo reads within a
+ * block are cached and refetch once per new block. Network + address are part
+ * of every key, so switching either re-keys and shows the loading state rather
+ * than the previous scope's data.
+ */
 const useTransactionManager = (): TransactionManagerContextType | undefined => {
   const currentAccount = useGetCurrentAccount();
-  const [lastBlock, setLastBlock] = useState<number>();
   const { apiController } = useControllersState(ss(["apiController"]));
   const { network } = useAppState(ss(["network"]));
-  const [feeRates, setFeeRates] = useState<{
-    fast: number;
-    slow: number;
-  }>();
+  const { updateSelectedAccount } = useWalletState(ss(["updateSelectedAccount"]));
+  const qc = useQueryClient();
+  const address = currentAccount?.address;
 
-  const [transactions, setTransactions] = useState<ITransaction[] | undefined>(
-    undefined
-  );
-  const [currentPrice, setCurrentPrice] = useState<number | undefined>();
-  const updateAccountBalance = useUpdateCurrentAccountBalance();
+  // Single instance drives the tip poll + invalidates espo queries on new blocks.
+  const lastBlock = useEspoTipInvalidation();
 
-  const updateTransactions = useCallback(
-    async (address: string, force = false) => {
-      const receivedItems = await apiController.getTransactions(address);
-      if (receivedItems === undefined) return;
-
-      setTransactions((prev) => {
-        if ((prev?.length ?? 0) < TX_PAGE_SIZE || force) return receivedItems;
-
-        const currentItemsKeys = new Set(prev!.map((f) => f.txid));
-        const receivedItemsKeys = new Set(receivedItems.map((f) => f.txid));
-        const intersection = currentItemsKeys.intersection(receivedItemsKeys);
-        const difference = receivedItemsKeys.difference(currentItemsKeys);
-
-        return [
-          ...receivedItems.filter((f) => difference.has(f.txid)),
-          ...prev!,
-        ].map((i) => {
-          if (intersection.has(i.txid)) {
-            return receivedItems.find((f) => f.txid === i.txid)!;
-          } else {
-            return i;
-          }
-        });
-      });
-    },
-    [apiController]
+  const { data: currentPrice } = useEspoQuery(["btc-price"], () =>
+    apiController.getBTCPrice()
   );
 
-  const updateLastBlock = useCallback(async () => {
-    const data = await apiController.getLastBlock();
-    if (data) setLastBlock(data);
-  }, [apiController]);
+  // Fee estimates are mempool-driven and drift between blocks, so they poll
+  // fresh on an interval rather than being versioned/cached by height.
+  const { data: feeRates } = useQuery({
+    queryKey: ["fees", networkSlug(network)],
+    queryFn: () => apiController.getFees(),
+    refetchInterval: 20_000,
+    staleTime: 0,
+  });
 
-  const updateFeeRates = useCallback(async () => {
-    setFeeRates(await apiController.getFees());
-  }, [apiController]);
-
-  const updatePrice = useCallback(async () => {
-    const data = await apiController.getBTCPrice();
-    if (data !== undefined) {
-      setCurrentPrice(data);
-    } else {
-      setCurrentPrice(undefined);
+  // Derived account balance (summed spendable outpoints) synced into wallet
+  // state so `currentAccount.balance` stays current.
+  const { data: accountStats } = useEspoQuery(
+    ["account-stats", address],
+    () => apiController.getAccountStats(address as string),
+    { enabled: !!address }
+  );
+  useEffect(() => {
+    if (accountStats?.balance != null) {
+      updateSelectedAccount({ balance: accountStats.balance }).catch(
+        console.error
+      );
     }
-  }, [apiController]);
+  }, [accountStats, updateSelectedAccount]);
+
+  // Paginated history: fires immediately, refetches on new blocks (invalidation).
+  const txQuery = useInfiniteQuery({
+    queryKey: espoKey("transactions", address, networkSlug(network)),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      pageParam <= 1
+        ? apiController.getTransactions(address as string)
+        : apiController.getPaginatedTransactions(address as string, pageParam),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage && lastPage.length >= TX_PAGE_SIZE
+        ? allPages.length + 1
+        : undefined,
+    enabled: !!address,
+  });
+
+  const transactions = useMemo(() => {
+    if (!txQuery.data) return undefined;
+    const seen = new Set<string>();
+    const out: ITransaction[] = [];
+    for (const page of txQuery.data.pages) {
+      for (const tx of page ?? []) {
+        if (!seen.has(tx.txid)) {
+          seen.add(tx.txid);
+          out.push(tx);
+        }
+      }
+    }
+    return out;
+  }, [txQuery.data]);
 
   const loadMoreTransactions = useCallback(async () => {
-    if (!currentAccount || !currentAccount.address || !transactions) return;
-    if (transactions.length < TX_PAGE_SIZE) return;
-    // espo paginates by page number; derive the next page from how many full
-    // pages we already hold.
-    const nextPage = Math.floor(transactions.length / TX_PAGE_SIZE) + 1;
-    const additionalTransactions = await apiController.getPaginatedTransactions(
-      currentAccount.address,
-      nextPage
-    );
-    if (!additionalTransactions || additionalTransactions.length === 0) return;
-    setTransactions((prev) => {
-      const seen = new Set((prev ?? []).map((t) => t.txid));
-      const fresh = additionalTransactions.filter((t) => !seen.has(t.txid));
-      return [...(prev ?? []), ...fresh];
-    });
-  }, [transactions, apiController, currentAccount]);
-
-  useEffect(() => {
-    if (currentAccount?.address) {
-      setTransactions(undefined);
-      updateTransactions(currentAccount.address, true).catch(console.error);
+    if (txQuery.hasNextPage && !txQuery.isFetchingNextPage) {
+      await txQuery.fetchNextPage();
     }
-  }, [currentAccount?.address, updateTransactions]);
+  }, [txQuery]);
 
-  useEffect(() => {
-    updateAccountBalance().catch(console.error);
-    const interval = setInterval(async () => {
-      updateAccountBalance().catch(console.error);
-    }, 4000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [updateAccountBalance]);
-
-  useEffect(() => {
-    if (!currentAccount?.address) return;
-
-    const interval2 = setInterval(async () => {
-      await Promise.all([
-        updateTransactions(currentAccount.address!),
-        updateLastBlock(),
-        updateFeeRates(),
-        updatePrice(),
-      ]);
-    }, 10000);
-    return () => {
-      clearInterval(interval2);
-    };
-  }, [
-    currentAccount?.address,
-    updateFeeRates,
-    updateLastBlock,
-    updatePrice,
-    updateTransactions,
-  ]);
-
-  useEffect(() => {
-    if (!isProxy(apiController)) return;
-
-    // The network changed (or the app just became ready): drop stale
-    // network-scoped data so the previous network's price/tip/history never
-    // shows during the switch, then refetch for the current network.
-    setCurrentPrice(undefined);
-    setLastBlock(undefined);
-    setFeeRates(undefined);
-    setTransactions(undefined);
-
-    updateFeeRates().catch(console.error);
-    updateLastBlock().catch(console.error);
-    updatePrice().catch(console.error);
-  }, [apiController, updateFeeRates, updateLastBlock, updatePrice, network]);
+  const updateTransactions = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["transactions"] });
+  }, [qc]);
 
   if (!currentAccount) return undefined;
 
   return {
     lastBlock,
     transactions,
-    currentPrice,
+    currentPrice: currentPrice ?? undefined,
     loadMoreTransactions,
-    feeRates,
+    feeRates: feeRates ?? undefined,
     updateTransactions,
   };
 };

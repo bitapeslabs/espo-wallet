@@ -68,6 +68,9 @@ export default defineConfig({
       };
     } else {
       manifest.minimum_chrome_version = "99";
+      // Same UI, shown in Chrome's side panel when the user toggles sidebar
+      // mode. The query flag lets the app relax the fixed popup width.
+      manifest.side_panel = { default_path: "index.html?sidepanel=1" };
       if (command === "serve") {
         // Dev convenience carried over from the old build: open the wallet UI
         // in every new tab while developing.

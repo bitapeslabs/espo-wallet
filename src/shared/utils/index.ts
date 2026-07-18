@@ -103,6 +103,51 @@ export const espoRpc = async <T>(
   return body.result as T;
 };
 
+/**
+ * Send many espo RPC calls in a single JSON-RPC 2.0 batch request. Returns the
+ * results in the SAME order as `calls`; a per-call error or missing response
+ * yields `undefined` for that slot (the batch itself only throws on transport /
+ * HTTP failure).
+ */
+export const espoRpcBatch = async <T = unknown>(
+  rpcUrl: string,
+  calls: { method: string; params?: Record<string, unknown> }[]
+): Promise<(T | undefined)[]> => {
+  if (!calls.length) return [];
+  const body = calls.map((c, i) => ({
+    jsonrpc: "2.0",
+    id: i,
+    method: c.method,
+    params: c.params ?? {},
+  }));
+  const res = await fetch(rpcUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new EspoRpcError(`espo rpc http ${res.status}`, res.status);
+  }
+  const arr = (await res.json()) as {
+    id?: number;
+    result?: T;
+    error?: unknown;
+  }[];
+  const out: (T | undefined)[] = new Array(calls.length).fill(undefined);
+  for (const r of Array.isArray(arr) ? arr : []) {
+    if (
+      typeof r.id === "number" &&
+      r.id >= 0 &&
+      r.id < calls.length &&
+      !r.error
+    ) {
+      out[r.id] = r.result;
+    }
+  }
+  return out;
+};
+
 export const excludeKeysFromObj = <
   T extends Record<string, any>,
   K extends keyof T

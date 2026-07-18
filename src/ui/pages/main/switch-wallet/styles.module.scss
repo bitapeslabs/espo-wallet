@@ -173,6 +173,18 @@
   gap: 1px;
   min-width: 0;
 }
+.accountMenu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: var(--muted2);
+  padding: 2px;
+  border-radius: 6px;
+}
+.accountMenu:hover {
+  color: var(--text);
+}
 
 .accountName {
   font-weight: 600;

@@ -129,6 +129,17 @@ const SwitchWallet = () => {
                               </span>
                             ) : undefined}
                           </span>
+                          <span
+                            className={s.accountMenu}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(
+                                `/edit-account/${wallet.id}/${account.id}`
+                              );
+                            }}
+                          >
+                            <DotsThreeVerticalBoldIcon size={18} />
+                          </span>
                         </button>
                       );
                     })}

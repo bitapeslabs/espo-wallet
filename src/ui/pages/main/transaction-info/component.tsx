@@ -8,7 +8,8 @@ import {
   ActivityKind,
 } from "@/shared/interfaces/api";
 import { LinkIcon } from "@/ui/icons/phosphor";
-import { FC, useCallback, useEffect, useId, useMemo, useState } from "react";
+import { FC, useCallback, useId, useMemo, useState } from "react";
+import { useEspoQuery } from "@/ui/utils/query";
 import Modal from "@/ui/components/modal";
 import { shortAddress } from "@/shared/utils/transactions";
 import { alkaneSymbol } from "@/shared/utils/alkanes";
@@ -47,10 +48,17 @@ const TransactionInfo = () => {
   const { state } = useLocation();
   const { txId } = useParams();
   const { lastBlock, transactions } = useTransactionManagerContext();
-  const [tx, setTx] = useState(
-    (state?.transaction as ITransaction | undefined) ??
-      transactions?.find((i) => i.txid === txId)
+
+  // Resolve the tx: the row passed via navigation, then the loaded history,
+  // then a height-versioned single-tx lookup for anything else.
+  const passedTx = state?.transaction as ITransaction | undefined;
+  const { data: fetchedTx } = useEspoQuery(
+    ["transaction", txId],
+    () => apiController.getTransaction(txId as string),
+    { enabled: !passedTx && !!txId }
   );
+  const tx =
+    passedTx ?? transactions?.find((i) => i.txid === txId) ?? fetchedTx;
 
   const { network, explorerUrl: explorerOverride } = useAppState(
     ss(["network", "explorerUrl"])
@@ -84,12 +92,6 @@ const TransactionInfo = () => {
       active: true,
     });
   };
-
-  useEffect(() => {
-    if (!state?.transaction && txId) {
-      apiController.getTransaction(txId).then(setTx).catch(console.error);
-    }
-  }, [state?.transaction, txId, apiController]);
 
   return (
     <div className={s.transactionInfoDiv}>

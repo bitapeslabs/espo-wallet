@@ -12,10 +12,17 @@ import stateController from "./controllers/stateController";
 import { keyringController } from "./controllers";
 import { providerController } from "./controllers";
 import notificationController from "./controllers/notificationController";
+import { applySidebarMode, getSidebarMode } from "@/shared/utils/sidebar";
 
 const { PortMessage } = Message;
 
 export function initBackground() {
+  // Restore the toolbar-icon behaviour (popup vs side panel) on every worker
+  // start, since setPopup/setPanelBehavior don't persist across restarts.
+  getSidebarMode()
+    .then(applySidebarMode)
+    .catch(() => undefined);
+
   // for page provider
   browserRuntimeOnConnect((port: any) => {
     if (

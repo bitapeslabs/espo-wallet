@@ -20,7 +20,8 @@
     "holders": "Держатели",
     "age": "Возраст",
     "deploy_tx": "Транзакция деплоя",
-    "no_chart": "Нет данных графика"
+    "no_chart": "Нет данных графика",
+    "alkane_id": "ID алкана"
   },
   "activity": {
     "swapped": "Обмен",
@@ -304,5 +305,15 @@
     "address_type": "Тип адреса",
     "show_mnemonic": "Показать фразу",
     "advanced": "Дополнительно"
+  },
+  "edit_account": {
+    "title": "Изменить аккаунт",
+    "account_name": "Имя аккаунта"
+  },
+  "search": {
+    "placeholder": "Поиск токенов",
+    "trending": "Популярные токены",
+    "no_results": "Токены не найдены",
+    "results_for": "Результаты поиска"
   }
 }

@@ -22,7 +22,8 @@
     "holders": "Holders",
     "age": "Age",
     "deploy_tx": "Deploy tx",
-    "no_chart": "No chart data"
+    "no_chart": "No chart data",
+    "alkane_id": "Alkane ID"
   },
   "activity": {
     "swapped": "Swapped",
@@ -353,5 +354,15 @@
     "address_type": "Address Type",
     "show_mnemonic": "Show Mnemonic",
     "advanced": "Advanced"
+  },
+  "edit_account": {
+    "title": "Edit Account",
+    "account_name": "Account name"
+  },
+  "search": {
+    "placeholder": "Search tokens",
+    "trending": "Trending Tokens",
+    "no_results": "No tokens found",
+    "results_for": "Search results for"
   }
 }

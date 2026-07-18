@@ -1,0 +1,115 @@
+/* icon wrap matches the balance cards (28px) */
+.card :global(.alk-icon-wrap) {
+  width: 28px;
+  height: 28px;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.clickable:hover {
+  transition: none;
+  filter: brightness(1.12);
+}
+
+/* Chevron that slides in on the right when a card is hovered. */
+.cardCaret {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted2);
+  overflow: hidden;
+  width: 0;
+  opacity: 0;
+  /* cancel the .alk-line 8px gap while collapsed so there's no idle space */
+  margin-left: -8px;
+  transform: translateX(-4px);
+  transition: width 0.18s ease, opacity 0.18s ease, margin-left 0.18s ease,
+    transform 0.18s ease;
+}
+
+.clickable:hover .cardCaret {
+  width: 14px;
+  opacity: 1;
+  margin-left: -2px;
+  transform: translateX(0);
+  color: var(--text);
+}
+
+/* podium medal on the bottom-right of the icon (ribbons + medallion) */
+.medal {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: inline-flex;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verified {
+  flex: 0 0 auto;
+  color: var(--link);
+}
+
+.mcap {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.price {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.change {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted2);
+}
+
+.up {
+  color: var(--success);
+}
+
+.down {
+  color: var(--danger);
+}

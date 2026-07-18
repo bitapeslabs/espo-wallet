@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import s from "./styles.module.scss";
 import cn from "classnames";
 import { CaretLeftBoldIcon, PlusCircleIcon } from "@/ui/icons/phosphor";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGetCurrentAccount, useWalletState } from "@/ui/states/walletState";
 import { useControllersState } from "@/ui/states/controllerState";
 import { t } from "i18next";
@@ -27,6 +27,13 @@ export default function PagesLayout() {
 
   const currentRoute = useLocation();
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Start each page at the top; the content container persists across routes.
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+    window.scrollTo(0, 0);
+  }, [currentRoute.pathname]);
   const { wallets } = useWalletState(ss(["wallets"]));
   const { updateAppState } = useAppState(ss(["updateAppState"]));
   const createNewAccount = useCreateNewAccount();
@@ -253,7 +260,7 @@ export default function PagesLayout() {
           ) : undefined}
         </div>
       }
-      <div className={s.contentDiv}>
+      <div className={cn(s.contentDiv, "page-content")} ref={contentRef}>
         <Outlet />
       </div>
     </div>

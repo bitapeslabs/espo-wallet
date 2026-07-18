@@ -74,6 +74,15 @@ body {
   min-height: 600px;
 }
 
+/* side-panel mode: fill the panel instead of the fixed 350px popup width
+   (overrides the >=455px expanded-tab rule below too) */
+html.sidepanel body {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 a {
   color: var(--link);
   text-decoration: none;
@@ -272,6 +281,11 @@ button.danger:hover {
   padding: 16px;
   margin-top: 14px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+/* the first panel on a page already gets the uniform gap from the content
+   wrapper's top padding, so don't stack its own 14px on top of that */
+.page-content .panel:first-child {
+  margin-top: 0;
 }
 .panel-head {
   font-size: 15px;

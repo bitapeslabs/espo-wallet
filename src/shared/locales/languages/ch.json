@@ -20,7 +20,8 @@
     "holders": "持有者",
     "age": "年龄",
     "deploy_tx": "部署交易",
-    "no_chart": "暂无图表数据"
+    "no_chart": "暂无图表数据",
+    "alkane_id": "Alkane ID"
   },
   "activity": {
     "swapped": "已兑换",
@@ -296,5 +297,15 @@
     "address_type": "地址类型",
     "show_mnemonic": "显示助记词",
     "advanced": "高级"
+  },
+  "edit_account": {
+    "title": "编辑账户",
+    "account_name": "账户名称"
+  },
+  "search": {
+    "placeholder": "搜索代币",
+    "trending": "热门代币",
+    "no_results": "未找到代币",
+    "results_for": "搜索结果"
   }
 }

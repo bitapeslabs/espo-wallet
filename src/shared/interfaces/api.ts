@@ -119,6 +119,22 @@ export interface ICandle {
   price: number;
 }
 
+/** A token row for the search/trending list (price, market cap, 24h change). */
+export interface ITokenSummary {
+  /** Alkane id "block:tx". */
+  id: string;
+  name: string;
+  symbol: string;
+  /** Latest USD price, or null when unavailable. */
+  priceUsd: number | null;
+  /** 24h price change, percent. */
+  change24h: number | null;
+  /** Market cap in USD. */
+  marketCapUsd: number | null;
+  /** Cumulative trading volume (USD), used to rank trending tokens. */
+  volumeUsd: number | null;
+}
+
 /** On-chain deploy + holder metadata from essentials.get_alkane_info. */
 export interface IAlkaneMeta {
   /** Block height the alkane was created at. */

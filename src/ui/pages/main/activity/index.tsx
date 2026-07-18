@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { t } from "i18next";
 import cn from "classnames";
 import { useInView } from "react-intersection-observer";
 import { useNavigate } from "react-router-dom";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import LoadingIcons, { TailSpin } from "react-loading-icons";
 import type { ActivityKind, IActivityEntry } from "@/shared/interfaces/api";
 import { useControllersState } from "@/ui/states/controllerState";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAppState } from "@/ui/states/appState";
 import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
+import { espoKey } from "@/ui/utils/query";
+import { networkSlug } from "@/shared/networks";
 import { ss } from "@/ui/utils";
 import { shortAddress } from "@/shared/utils/transactions";
 import { alkaneSymbol, formatSignedAlkaneAmount } from "@/shared/utils/alkanes";
@@ -67,13 +70,34 @@ const Activity = () => {
       state: { activity: entry },
     });
 
-  const [entries, setEntries] = useState<IActivityEntry[] | undefined>(
-    undefined
-  );
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
   const { ref, inView } = useInView();
+
+  // Paginated feed: fires immediately, refetches on new blocks (invalidation).
+  const activityQuery = useInfiniteQuery({
+    queryKey: espoKey("activity", address, networkSlug(network)),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => apiController.getActivity(address as string, pageParam),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage && lastPage.length > 0 ? allPages.length + 1 : undefined,
+    enabled: !!address,
+  });
+
+  const entries = useMemo(() => {
+    if (!activityQuery.isFetched) return undefined;
+    const seen = new Set<string>();
+    const out: IActivityEntry[] = [];
+    for (const page of activityQuery.data?.pages ?? []) {
+      for (const e of page ?? []) {
+        if (!seen.has(e.txid)) {
+          seen.add(e.txid);
+          out.push(e);
+        }
+      }
+    }
+    return out;
+  }, [activityQuery.data, activityQuery.isFetched]);
+
+  const loadingMore = activityQuery.isFetchingNextPage;
 
   // Symbol resolver: prefer the portfolio's names, fall back to known alkanes.
   const symbolMap = useMemo(() => {
@@ -91,43 +115,14 @@ const Activity = () => {
     [portfolio, symbolMap]
   );
 
-  useEffect(() => {
-    if (!address) return;
-    setEntries(undefined);
-    setPage(1);
-    setHasMore(true);
-    apiController
-      .getActivity(address, 1)
-      .then((res) => {
-        setEntries(res ?? []);
-        setHasMore((res?.length ?? 0) > 0);
-      })
-      // Never leave the loader up on failure — resolve to an empty feed.
-      .catch(() => setEntries([]));
-  }, [address, network, apiController]);
-
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || !address || entries === undefined) return;
-    setLoadingMore(true);
-    try {
-      const next = page + 1;
-      const res = await apiController.getActivity(address, next);
-      if (res && res.length) {
-        setEntries((prev) => {
-          const seen = new Set((prev ?? []).map((e) => e.txid));
-          return [...(prev ?? []), ...res.filter((e) => !seen.has(e.txid))];
-        });
-        setPage(next);
-      } else {
-        setHasMore(false);
-      }
-    } finally {
-      setLoadingMore(false);
+  const loadMore = useCallback(() => {
+    if (activityQuery.hasNextPage && !activityQuery.isFetchingNextPage) {
+      activityQuery.fetchNextPage().catch(console.error);
     }
-  }, [apiController, address, entries, hasMore, loadingMore, page]);
+  }, [activityQuery]);
 
   useEffect(() => {
-    if (inView) loadMore().catch(console.error);
+    if (inView) loadMore();
   }, [inView, loadMore]);
 
   return (

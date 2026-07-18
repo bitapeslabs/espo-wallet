@@ -99,12 +99,44 @@ export function isVerifiedToken(id: string): boolean {
   return VERIFIED_TOKEN_IDS.has(id);
 }
 
-/** Well-known alkane names/symbols, mirroring the espo explorer overrides. */
+/** Well-known alkane names/symbols (the curated whitelist + BTC family). */
 export const KNOWN_ALKANES: Record<string, { name: string; symbol: string }> = {
   "2:0": { name: "DIESEL", symbol: "DIESEL" },
-  "32:0": { name: "frBTC", symbol: "frBTC" },
+  "2:16": { name: "METHANE", symbol: "METHANE" },
+  "2:69": { name: "FARTANE", symbol: "FARTANE" },
+  "2:25349": { name: "ARBUZ", symbol: "ARBUZ" },
+  "2:25720": { name: "ALKAMIST", symbol: "MIST" },
+  "2:35275": { name: "GOLD DUST", symbol: "DUST" },
+  "2:56801": { name: "bUSD", symbol: "bUSD" },
   "2:68479": { name: "TORTILLA", symbol: "TORTILLA" },
+  "2:77313": { name: "BB", symbol: "BB" },
+  "2:77623": { name: "FIRE", symbol: "FIRE" },
+  "32:0": { name: "frBTC", symbol: "frBTC" },
 };
+
+/** Abbreviated USD (e.g. 17_000_000 -> "$17M", 689_000 -> "$689K"). */
+export function formatCompactUsd(value: number): string {
+  if (!Number.isFinite(value)) return "$0";
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  const unit = (n: number, suffix: string) => {
+    const s = n >= 100 ? n.toFixed(0) : n.toFixed(1).replace(/\.0$/, "");
+    return `${sign}$${s}${suffix}`;
+  };
+  if (abs >= 1e9) return unit(abs / 1e9, "B");
+  if (abs >= 1e6) return unit(abs / 1e6, "M");
+  if (abs >= 1e3) return unit(abs / 1e3, "K");
+  return `${sign}$${abs.toFixed(2)}`;
+}
+
+/** Signed percentage change like "+1,386.09%" / "-7.09%". */
+export function formatPercentChange(pct: number): string {
+  const sign = pct >= 0 ? "+" : "-";
+  return `${sign}${Math.abs(pct).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`;
+}
 
 /**
  * Display symbol for an asset id: "btc" -> BTC, a known alkane -> its symbol,

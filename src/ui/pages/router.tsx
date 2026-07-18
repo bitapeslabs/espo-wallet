@@ -10,6 +10,7 @@ import PagesLayout from "@/ui/components/layout";
 import Receive from "./main/receive";
 import SwitchWallet from "./main/switch-wallet";
 import EditWallet from "./main/edit-wallet";
+import EditAccount from "./main/edit-account";
 import NewWallet from "./main/new-wallet";
 import NewMnemonic from "./main/new-wallet/new-mnemonic";
 import RestoreMnemonic from "./main/new-wallet/restore-mnemonic";
@@ -63,6 +64,10 @@ export const authenticatedRouter = createHashRouter([
   { path: "/", element: <Home /> },
   { path: "manage-wallets", element: <SwitchWallet /> },
   { path: "edit-wallet/:walletId", element: <EditWallet /> },
+  {
+    path: "edit-account/:walletId/:accountId",
+    element: <EditAccount />,
+  },
   {
     element: <TabsShell />,
     children: [

@@ -8,11 +8,13 @@ import type {
   ICandle,
   IPortfolio,
   IPortfolioAsset,
+  ITokenSummary,
   ITransaction,
   Vin,
   Vout,
 } from "@/shared/interfaces/api";
-import { espoRpc, EspoRpcError } from "@/shared/utils";
+import { espoRpc, espoRpcBatch, EspoRpcError } from "@/shared/utils";
+import { KNOWN_ALKANES, VERIFIED_TOKEN_IDS } from "@/shared/utils/alkanes";
 import { storageService } from "../services";
 import { DEFAULT_FEES } from "@/shared/constant";
 import { networkInfo, networkSlug } from "@/shared/networks";
@@ -51,6 +53,8 @@ export interface IApiController {
     limit: number
   ): Promise<ICandle[] | undefined>;
   getAlkaneMeta(assetId: string): Promise<IAlkaneMeta | undefined>;
+  getTrendingTokens(): Promise<ITokenSummary[] | undefined>;
+  searchTokens(prefix: string): Promise<ITokenSummary[] | undefined>;
 }
 
 /** Number of transactions fetched per history page. */
@@ -73,6 +77,58 @@ function scaleUsd(v: string | number | undefined): number {
   }
   const n = Number(v);
   return Number.isFinite(n) ? n / PRICE_SCALE : NaN;
+}
+
+/** Trending = curated/whitelisted alkane tokens (excludes the BTC family). */
+const TRENDING_TOKEN_IDS: string[] = [...VERIFIED_TOKEN_IDS].filter(
+  (id) => id !== "btc" && id !== "32:0"
+);
+
+/** A token id prices directly in USD (DIESEL/FIRE) vs via the DIESEL-derived leg. */
+function isDirectUsdToken(id: string): boolean {
+  return id === "2:0" || id === "2:77623";
+}
+function tokenPricePool(id: string): string {
+  return isDirectUsdToken(id) ? `${id}-usd` : `${id}-derived_2:0-usd`;
+}
+function tokenMcapPool(id: string): string {
+  return isDirectUsdToken(id) ? `${id}-mcusd` : `${id}-derived_2:0-mcusd`;
+}
+
+type EspoCandleRes = {
+  ok?: boolean;
+  candles?: { ts: number; close: string; volume?: string }[];
+};
+
+/** Sorted (oldest-first) USD closes from a candle response. */
+function usdClosesFromCandles(res: EspoCandleRes | undefined): number[] {
+  return (res?.candles ?? [])
+    .map((c) => ({ ts: Number(c.ts) || 0, val: scaleUsd(c.close) }))
+    .filter((c) => c.ts > 0 && Number.isFinite(c.val))
+    .sort((a, b) => a.ts - b.ts)
+    .map((c) => c.val);
+}
+
+/** Total USD volume across a candle response's buckets (each scaled 10^16). */
+function candleVolumeSum(res: EspoCandleRes | undefined): number {
+  let sum = 0;
+  for (const c of res?.candles ?? []) {
+    const v = scaleUsd(c.volume);
+    if (Number.isFinite(v)) sum += v;
+  }
+  return sum;
+}
+
+/** Latest USD price + first→last % change from a candle response. */
+function priceChangeFromCandles(res: EspoCandleRes | undefined): {
+  price: number | null;
+  change: number | null;
+} {
+  const vals = usdClosesFromCandles(res);
+  if (!vals.length) return { price: null, change: null };
+  const first = vals[0];
+  const last = vals[vals.length - 1];
+  return { price: last, change: first > 0 ? ((last - first) / first) * 100 : null };
 }
 
 /** A single alkane/rune balance entry attached to an outpoint. */
@@ -799,11 +855,8 @@ class ApiController implements IApiController {
    * DIESEL (2:0) and FIRE (2:77623) price off their direct `<id>-usd` pool;
    * every other alkane off the DIESEL-derived USD leg `<id>-derived_2:0-usd`.
    *
-   * BTC and frBTC (32:0) are special: frBTC's own `-usd` pool is illiquid and
-   * goes stale, and espo does NOT expose its indexed BTC/USD line as a candle
-   * pool. Since espo defines `token_usd = token_sats * btc_usd_line`, the real
-   * BTC/USD history is recovered as `usd / sats` of a liquid token (DIESEL);
-   * frBTC is pegged 1:1 to BTC so it uses that same series.
+   * BTC and frBTC (32:0) use espo's native indexed BTC/USD history
+   * (ammdata.get_btc_usd_candles); frBTC is pegged 1:1 to BTC.
    *
    * Returned oldest-first for charting.
    */
@@ -813,7 +866,7 @@ class ApiController implements IApiController {
     limit: number
   ): Promise<ICandle[] | undefined> {
     if (assetId === "btc" || assetId === "32:0") {
-      return this.btcIndexCandles(timeframe, limit);
+      return this.btcCandles(timeframe, limit);
     }
     const direct = assetId === "2:0" || assetId === "2:77623";
     const pool = direct ? `${assetId}-usd` : `${assetId}-derived_2:0-usd`;
@@ -822,6 +875,56 @@ class ApiController implements IApiController {
     return rows
       .map((r) => ({ ts: r.ts, price: r.val }))
       .sort((a, b) => a.ts - b.ts);
+  }
+
+  /**
+   * Espo's native BTC/USD candle index. It only supports 10m/1h/4h/1d/1w/1M, so
+   * the requested (timeframe, limit) is mapped to the nearest supported bucket
+   * while preserving the total time window.
+   */
+  private async btcCandles(
+    timeframe: string,
+    limit: number
+  ): Promise<ICandle[] | undefined> {
+    const TF_SECS: Record<string, number> = {
+      "1m": 60,
+      "5m": 300,
+      "10m": 600,
+      "15m": 900,
+      "1h": 3600,
+      "4h": 14400,
+      "1d": 86400,
+      "1w": 604800,
+      "1M": 2592000,
+    };
+    // Sub-hourly requests collapse to the 10m bucket (the finest BTC supports).
+    const BTC_TF: Record<string, string> = {
+      "1m": "10m",
+      "5m": "10m",
+      "10m": "10m",
+      "15m": "10m",
+      "1h": "1h",
+      "4h": "4h",
+      "1d": "1d",
+      "1w": "1w",
+      "1M": "1M",
+    };
+    const tf = BTC_TF[timeframe] ?? "1h";
+    const window = (TF_SECS[timeframe] ?? 3600) * limit;
+    const btcLimit = Math.max(2, Math.ceil(window / (TF_SECS[tf] ?? 3600)));
+    try {
+      const res = await this.call<{
+        ok: boolean;
+        candles?: { ts: number; close: string }[];
+      }>("ammdata.get_btc_usd_candles", { timeframe: tf, limit: btcLimit });
+      if (!res?.ok || !Array.isArray(res.candles)) return undefined;
+      return res.candles
+        .map((c) => ({ ts: Number(c.ts) || 0, price: scaleUsd(c.close) }))
+        .filter((c) => c.ts > 0 && Number.isFinite(c.price))
+        .sort((a, b) => a.ts - b.ts);
+    } catch {
+      return undefined;
+    }
   }
 
   /** Raw {ts, USD-scaled close} rows for a candle pool (unsorted). */
@@ -844,28 +947,6 @@ class ApiController implements IApiController {
     }
   }
 
-  /**
-   * Espo's indexed BTC/USD history, reconstructed as `usd / sats * 1e8` from
-   * DIESEL's liquid candle series (both scaled by 10^16, so the scale cancels).
-   */
-  private async btcIndexCandles(
-    timeframe: string,
-    limit: number
-  ): Promise<ICandle[] | undefined> {
-    const [usd, sats] = await Promise.all([
-      this.poolCandles("2:0-usd", timeframe, limit),
-      this.poolCandles("2:0-sats", timeframe, limit),
-    ]);
-    if (!usd || !sats) return undefined;
-    const satsByTs = new Map(sats.map((c) => [c.ts, c.val]));
-    const out: ICandle[] = [];
-    for (const c of usd) {
-      const s = satsByTs.get(c.ts);
-      if (s && s > 0) out.push({ ts: c.ts, price: (c.val / s) * 1e8 });
-    }
-    return out.sort((a, b) => a.ts - b.ts);
-  }
-
   /** Deploy height/time/txid + holder count via essentials.get_alkane_info. */
   async getAlkaneMeta(assetId: string): Promise<IAlkaneMeta | undefined> {
     if (assetId === "btc") return undefined;
@@ -885,6 +966,94 @@ class ApiController implements IApiController {
         creationTxid: res.creation_txid,
         holderCount: res.holder_count ?? 0,
       };
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Whitelisted tokens with price/mcap/24h-change, ranked by 24h volume. */
+  async getTrendingTokens(): Promise<ITokenSummary[] | undefined> {
+    const bases = TRENDING_TOKEN_IDS.map((id) => ({
+      id,
+      name: KNOWN_ALKANES[id]?.name ?? id,
+      symbol: KNOWN_ALKANES[id]?.symbol ?? id,
+    }));
+    const rows = await this.tokenSummaries(bases);
+    return rows?.sort((a, b) => (b.volumeUsd ?? 0) - (a.volumeUsd ?? 0));
+  }
+
+  /** Prefix search (essentials.search_alkane) enriched with price/mcap/change. */
+  async searchTokens(prefix: string): Promise<ITokenSummary[] | undefined> {
+    const q = prefix.trim();
+    if (!q) return [];
+    // An exact alkane id ("block:tx") skips the name/symbol search and renders
+    // just that token (names come from get_alkane_info or the known list).
+    if (/^\d+:\d+$/.test(q)) {
+      const info = await this.call<{ name?: string; symbol?: string }>(
+        "essentials.get_alkane_info",
+        { alkane: q }
+      ).catch(() => undefined);
+      const name = info?.name || KNOWN_ALKANES[q]?.name || q;
+      const symbol = (
+        info?.symbol ||
+        KNOWN_ALKANES[q]?.symbol ||
+        q
+      ).toUpperCase();
+      return this.tokenSummaries([{ id: q, name, symbol }]);
+    }
+    try {
+      const res = await this.call<{
+        ok: boolean;
+        items?: { alkane: string; name?: string; symbol?: string }[];
+      }>("essentials.search_alkane", { prefix: q, limit: 20 });
+      if (!res?.ok || !Array.isArray(res.items)) return undefined;
+      const bases = res.items.map((i) => ({
+        id: i.alkane,
+        name: i.name || i.symbol || i.alkane,
+        symbol: (i.symbol || i.name || i.alkane).toUpperCase(),
+      }));
+      return this.tokenSummaries(bases);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Fill price + 24h change + market cap + 24h volume for a set of token bases
+   * in a single batched RPC round-trip. Price/change/volume come from the token's
+   * hourly USD candles (24h window); market cap from its `-mcusd` candles.
+   */
+  private async tokenSummaries(
+    bases: { id: string; name: string; symbol: string }[]
+  ): Promise<ITokenSummary[] | undefined> {
+    if (!bases.length) return [];
+    const calls = bases.flatMap((b) => [
+      {
+        method: "ammdata.get_candles",
+        params: { pool: tokenPricePool(b.id), timeframe: "1h", limit: 25 },
+      },
+      {
+        method: "ammdata.get_candles",
+        params: { pool: tokenMcapPool(b.id), timeframe: "1d", limit: 2 },
+      },
+    ]);
+    try {
+      const res = await espoRpcBatch<EspoCandleRes>(this.rpcUrl, calls);
+      return bases.map((b, i) => {
+        const priceRes = res[i * 2];
+        const mcapRes = res[i * 2 + 1];
+        const { price, change } = priceChangeFromCandles(priceRes);
+        const mcapVals = usdClosesFromCandles(mcapRes);
+        return {
+          id: b.id,
+          name: b.name,
+          symbol: b.symbol,
+          priceUsd: price,
+          change24h: change,
+          marketCapUsd: mcapVals.length ? mcapVals[mcapVals.length - 1] : null,
+          volumeUsd: candleVolumeSum(priceRes),
+        };
+      });
     } catch {
       return undefined;
     }

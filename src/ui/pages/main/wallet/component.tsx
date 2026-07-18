@@ -4,7 +4,6 @@ import { t } from "i18next";
 import { useNavigate } from "react-router-dom";
 import s from "./styles.module.scss";
 import { TailSpin } from "react-loading-icons";
-import WalletPanel from "./wallet-panel";
 import TokensTab from "./tokens-tab";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
@@ -39,8 +38,6 @@ const Wallet = () => {
 
   return (
     <div className={s.walletDiv}>
-      <WalletPanel />
-
       <div className={s.worth}>
         {worthUsd === undefined ? (
           <div className={s.balanceSkeleton} />
