@@ -14,6 +14,13 @@ import HDSimpleKey from "./hdw/simple";
 import { INewWalletProps } from "@/shared/interfaces";
 import apiController from "@/background/controllers/apiController";
 import { hdPathForAddressType } from "@/shared/constant";
+import { networkInfo, networkSlug } from "@/shared/networks";
+import {
+  Provider,
+  getProtostoneUnsignedPsbtBase64,
+  consumeOrThrow,
+  type SingularTransfer,
+} from "alkanesjs";
 
 export const KEYRING_SDK_TYPES = {
   SimpleKey,
@@ -221,6 +228,77 @@ class KeyringService {
     });
 
     return psbt.toHex();
+  }
+
+  /**
+   * Build + sign a transfer (BTC or an alkane) with alkanesjs — the wallet's
+   * PSBT builder for both. It pulls UTXOs from espo (the same endpoint the rest
+   * of the wallet uses), builds the transfer PSBT, signs it with this account's
+   * keyring, and returns the finalized raw tx hex (the UI broadcasts it).
+   *
+   * Amounts arrive as strings (sats for BTC, raw 8-decimal for an alkane) since
+   * bigints don't survive the port bridge.
+   */
+  async sendTransfer(params: {
+    assetId: string; // "btc" or "block:tx"
+    toAddress: string;
+    rawAmount: string;
+    feeRate: number;
+  }): Promise<{ rawtx: string; fee: number }> {
+    const account = storageService.currentAccount;
+    if (!account?.address) throw new Error("No current account");
+
+    const network = storageService.appState.network;
+    const slug = networkSlug(network);
+    const espoUrl = (
+      storageService.appState.rpcUrl?.[slug]?.trim() ||
+      networkInfo(network).rpcUrl
+    ).replace(/\/+$/, "");
+
+    const provider = new Provider({
+      // Transfers pull UTXOs from espo and take an explicit feeRate, so the
+      // sandshrew/electrum surfaces aren't exercised (espoUrl is a safe stand-in).
+      sandshrewUrl: espoUrl,
+      electrumApiUrl: espoUrl,
+      espoUrl,
+      network,
+      explorerUrl: networkInfo(network).explorerUrl,
+      btcTicker: "BTC",
+    });
+
+    let transfer: SingularTransfer;
+    if (params.assetId === "btc") {
+      transfer = {
+        asset: "btc",
+        amount: Number(params.rawAmount),
+        address: params.toAddress,
+      };
+    } else {
+      const [block, tx] = params.assetId.split(":");
+      transfer = {
+        asset: { block: BigInt(block), tx: BigInt(tx) },
+        amount: BigInt(params.rawAmount),
+        address: params.toAddress,
+      };
+    }
+
+    const { psbtBase64, fee } = consumeOrThrow(
+      await getProtostoneUnsignedPsbtBase64(account.address, {
+        provider,
+        transfers: [transfer],
+        callData: [],
+        feeRate: params.feeRate,
+      })
+    );
+
+    const psbt = Psbt.fromBase64(psbtBase64);
+    this.signPsbt(psbt);
+    if (
+      psbt.data.inputs.some((i) => !i.finalScriptWitness && !i.finalScriptSig)
+    ) {
+      psbt.finalizeAllInputs();
+    }
+    return { rawtx: psbt.extractTransaction().toHex(), fee };
   }
 
   changeAddressType(index: number, addressType: AddressType): string[] {

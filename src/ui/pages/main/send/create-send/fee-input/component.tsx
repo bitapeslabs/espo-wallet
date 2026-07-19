@@ -15,18 +15,15 @@ interface Props {
 
 const MAX_FEE = 200_000;
 
+/** Card index for the custom (manual) fee input. */
+const CUSTOM_INDEX = 2;
+
 const FeeInput: FC<Props> = ({ onChange, value }) => {
   const { feeRates } = useTransactionManagerContext();
-  const [selected, setSelected] = useState<number>(
-    feeRates?.slow ?? DEFAULT_FEES.slow
-  );
-
-  const onSelect = (value: number) => {
-    setSelected(value);
-    if (value !== 3) {
-      onChange(value);
-    }
-  };
+  // Track the selected CARD by index, not by fee value — two presets can share
+  // the same sat/vB (e.g. a quiet mempool), and selecting by value would light
+  // up both cards at once.
+  const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
   const cards = useMemo(
     () => [
@@ -43,19 +40,22 @@ const FeeInput: FC<Props> = ({ onChange, value }) => {
       {
         title: t("send.create_send.fee_input.custom"),
         description: "",
-        value: 3,
+        value: undefined,
       },
     ],
     [feeRates]
   );
 
+  const onSelect = (idx: number) => {
+    setSelectedIdx(idx);
+    if (idx !== CUSTOM_INDEX) onChange(cards[idx].value);
+  };
+
+  // When fees refresh, keep the current preset selected but push its new value.
   useEffect(() => {
-    setSelected((prev) => {
-      if (prev === 3) return prev;
-      if (cards.some((i) => i.value === prev)) return prev;
-      return feeRates?.slow ?? DEFAULT_FEES.slow;
-    });
-  }, [feeRates, cards]);
+    if (selectedIdx !== CUSTOM_INDEX) onChange(cards[selectedIdx].value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feeRates]);
 
   return (
     <div className={s.container}>
@@ -65,12 +65,12 @@ const FeeInput: FC<Props> = ({ onChange, value }) => {
             key={i}
             description={f.description}
             title={f.title}
-            onSelect={() => onSelect(f.value)}
-            selected={f.value === selected}
+            onSelect={() => onSelect(i)}
+            selected={i === selectedIdx}
           />
         ))}
       </div>
-      {selected === 3 && (
+      {selectedIdx === CUSTOM_INDEX && (
         <InputNumber
           value={value}
           onChange={(value) => {

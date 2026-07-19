@@ -42,7 +42,8 @@
     "reflect-metadata": "0.2.2",
     "webextension-polyfill": "^0.12.0",
     "zod": "^4.4.3",
-    "zustand": "4.5.4"
+    "zustand": "4.5.4",
+    "alkanesjs": "file:./.lib/alkanesjs"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.3",

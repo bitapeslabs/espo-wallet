@@ -1,5 +1,6 @@
 import { FC } from "react";
 import cn from "classnames";
+import { TailSpin } from "react-loading-icons";
 import type { Network } from "bitcoinjs-lib";
 import type { IActivityEntry } from "@/shared/interfaces/api";
 import NetworkIcon from "@/ui/components/network-icon";
@@ -33,6 +34,7 @@ interface Props {
  */
 const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
   const tokenLegs = entry.legs.filter((l) => l.assetId !== "btc");
+  const pending = !entry.confirmed;
 
   // Wrap/unwrap is a BTC <-> frBTC conversion: show the two as a pair, back =
   // what you give, front = what you get.
@@ -71,14 +73,17 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
   }
 
   const primaryId = tokenLegs[0]?.assetId ?? "btc";
-  const badge =
-    entry.kind === "receive" ? (
-      <ArrowDownFillIcon size={11} />
-    ) : entry.kind === "send" ? (
-      <PaperPlaneRightFillIcon size={11} />
-    ) : entry.kind === "split" ? (
-      <ScissorsFillIcon size={11} />
-    ) : undefined;
+  // While unconfirmed the status badge is a spinner (on a --panel circle);
+  // once confirmed it's the send/receive/split direction glyph.
+  const badge = pending ? (
+    <TailSpin className={s.badgeSpin} strokeWidth={6} />
+  ) : entry.kind === "receive" ? (
+    <ArrowDownFillIcon size={11} />
+  ) : entry.kind === "send" ? (
+    <PaperPlaneRightFillIcon size={11} />
+  ) : entry.kind === "split" ? (
+    <ScissorsFillIcon size={11} />
+  ) : undefined;
 
   return (
     <div className={s.iconBadgeWrap}>
@@ -89,7 +94,11 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
           <AlkaneIcon id={primaryId} symbol={sym(primaryId)} />
         </span>
       )}
-      {badge ? <span className={s.badge}>{badge}</span> : undefined}
+      {badge ? (
+        <span className={cn(s.badge, { [s.badgePending]: pending })}>
+          {badge}
+        </span>
+      ) : undefined}
     </div>
   );
 };

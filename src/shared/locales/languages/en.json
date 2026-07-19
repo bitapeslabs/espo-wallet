@@ -35,6 +35,8 @@
     "unwrapped": "Unwrapped",
     "sent": "Sent",
     "received": "Received",
+    "sending": "Sending...",
+    "receiving": "Receiving...",
     "app_interaction": "App interaction",
     "failed": "Failed",
     "to": "To",
@@ -57,6 +59,8 @@
     "layout": {
       "create_new_wallet": "Create New Wallet",
       "send": "Send",
+      "send_asset": "Send {{name}}",
+      "receive_asset": "Receive {{name}}",
       "connected_sites": "Connected Sites",
       "change_language": "Change Language",
       "switch_account": "Switch Account",
@@ -188,7 +192,10 @@
   },
   "receive": {
     "click_to_copy": "Click to copy",
-    "copy_address": "Copy address"
+    "copy_address": "Copy address",
+    "copy": "Copy",
+    "copied": "Copied.",
+    "disclaimer": "Use to receive Alkanes and BTC on the Bitcoin network only."
   },
   "send": {
     "confirm_send": {

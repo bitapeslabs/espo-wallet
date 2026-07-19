@@ -28,6 +28,10 @@ i18n
     resources,
     lng: "en",
     fallbackLng: "en",
+    // React escapes text nodes itself, so i18next's default HTML-escaping is
+    // redundant and mangles interpolated values that contain characters like
+    // "/" (rendered as &#x2F;) — e.g. an alkane name "FARTANE / TORTILLA LP".
+    interpolation: { escapeValue: false },
   });
 
 export const isRTL = false;

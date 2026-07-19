@@ -72,6 +72,7 @@
   flex: 0 0 auto;
 }
 
+
 /* two overlapping token icons for swaps / LP; each icon is a full 28px circle
    (same size as a main icon), overlapped so the pair reads as a set */
 .pair {
@@ -138,6 +139,17 @@
   justify-content: center;
   /* ring blends into whatever surface the icon sits on (card by default) */
   border: 2px solid var(--badge-ring, var(--panel2));
+}
+
+/* unconfirmed: the status circle turns neutral (--panel) and holds a spinner */
+.badgePending {
+  background: var(--panel);
+}
+
+.badgeSpin {
+  width: 11px;
+  height: 11px;
+  stroke: var(--text);
 }
 
 .rowMain {

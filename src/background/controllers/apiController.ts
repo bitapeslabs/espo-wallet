@@ -497,13 +497,28 @@ function mapRawTxActivity(tx: EspoEnrichedTx, address: string): IActivityEntry {
     }
   }
 
-  // A protostone tx we couldn't decode into alkane legs (a pointer-only
-  // transfer whose amount isn't recoverable, or another alkane op) is an alkane
-  // interaction, NOT a BTC transfer — the dust/fee BTC delta is incidental.
-  // Only plain (non-protostone) txs are BTC sends/receives.
+  // A protostone tx that didn't decode into alkane legs synchronously is
+  // deferred: getActivity resolves it via outpoint balances / tx summary, and
+  // when it carries NO message and moves NO alkanes (an inert protostone) it
+  // falls back to a plain BTC transfer. The sync pass can't do those lookups,
+  // so mark it "other" for now.
   if (protostones.length) return { ...base, kind: "other", legs: [] };
 
-  // Plain BTC movement.
+  // Plain (non-protostone) BTC movement.
+  return { ...base, ...btcMovement(tx, address) };
+}
+
+/**
+ * Classify a tx's net BTC movement from the address's perspective. Used for
+ * plain (non-protostone) txs, and as the fallback for a protostone that has no
+ * message and moves no alkanes (the dust/fee BTC delta is the real transfer).
+ * A zero net delta (e.g. a self-consolidation the address merely funded) is a
+ * generic "other".
+ */
+function btcMovement(
+  tx: EspoEnrichedTx,
+  address: string
+): { kind: ActivityKind; legs: IActivityLeg[]; peer?: string } {
   const outToSelf = tx.outputs
     .filter((o) => o.address === address)
     .reduce((a, o) => a + (o.amount ?? 0), 0);
@@ -512,14 +527,13 @@ function mapRawTxActivity(tx: EspoEnrichedTx, address: string): IActivityEntry {
     .reduce((a, i) => a + (i.amount ?? 0), 0);
   const delta = outToSelf - inFromSelf; // + received, - sent (incl. fee)
 
-  if (delta === 0) return { ...base, kind: "other", legs: [] };
+  if (delta === 0) return { kind: "other", legs: [] };
 
   const isReceive = delta > 0;
   const peer = isReceive
     ? tx.inputs.map((i) => i.address).find((a) => a && a !== address)
     : tx.outputs.map((o) => o.address).find((a) => a && a !== address);
   return {
-    ...base,
     kind: isReceive ? "receive" : "send",
     legs: [{ assetId: "btc", delta: String(delta) }],
     peer: peer ?? undefined,
@@ -633,25 +647,38 @@ class ApiController implements IApiController {
     }
   }
 
+  /**
+   * Address tx history from espo. On page 1 we opt into espo's mempool
+   * transactions (`include_mempool`) so pending sends/receives surface at the
+   * top; a node without the esplora backend rejects that flag (ok:false), so we
+   * transparently retry without it. Mempool txs only ever ride on page 1.
+   */
+  private async callAddressTxs(
+    address: string,
+    page: number,
+    limit: number
+  ): Promise<EspoAddressTransactionsResult | undefined> {
+    const base = { address, page, limit, only_alkane_txs: false };
+    if (page === 1) {
+      const withMempool = await this.call<EspoAddressTransactionsResult>(
+        "essentials.get_address_transactions",
+        { ...base, include_mempool: true }
+      ).catch(() => undefined);
+      if (withMempool?.ok) return withMempool;
+    }
+    return this.call<EspoAddressTransactionsResult>(
+      "essentials.get_address_transactions",
+      base
+    ).catch(() => undefined);
+  }
+
   private async fetchTransactions(
     address: string,
     page: number
   ): Promise<ITransaction[] | undefined> {
-    try {
-      const res = await this.call<EspoAddressTransactionsResult>(
-        "essentials.get_address_transactions",
-        {
-          address,
-          page,
-          limit: TX_PAGE_LIMIT,
-          only_alkane_txs: false,
-        }
-      );
-      if (!res?.ok || !Array.isArray(res.transactions)) return;
-      return res.transactions.map(mapEspoTx);
-    } catch {
-      return;
-    }
+    const res = await this.callAddressTxs(address, page, TX_PAGE_LIMIT);
+    if (!res?.ok || !Array.isArray(res.transactions)) return;
+    return res.transactions.map(mapEspoTx);
   }
 
   async getTransactions(address: string): Promise<ITransaction[] | undefined> {
@@ -754,10 +781,7 @@ class ApiController implements IApiController {
         limit,
         dir: "desc",
       }).catch(() => undefined),
-      this.call<EspoAddressTransactionsResult>(
-        "essentials.get_address_transactions",
-        { address, page, limit, only_alkane_txs: false }
-      ).catch(() => undefined),
+      this.callAddressTxs(address, page, limit),
     ]);
 
     // The tx history is the base feed; if it failed, treat as a load error.
@@ -837,6 +861,13 @@ class ApiController implements IApiController {
           entry.kind = resolved.kind;
           entry.legs = resolved.legs;
           entry.peer = resolved.peer;
+        } else {
+          // No message and no alkane movement: the protostone is inert, so the
+          // tx is really a plain BTC transfer (or a no-op "other").
+          const btc = btcMovement(tx, address);
+          entry.kind = btc.kind;
+          entry.legs = btc.legs;
+          entry.peer = btc.peer;
         }
       }),
     ]);

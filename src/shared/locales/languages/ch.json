@@ -33,6 +33,8 @@
     "unwrapped": "已解包",
     "sent": "已发送",
     "received": "已接收",
+    "sending": "发送中...",
+    "receiving": "接收中...",
     "app_interaction": "应用交互",
     "failed": "失败",
     "to": "发送至",
@@ -55,6 +57,8 @@
     "layout": {
       "create_new_wallet": "创建新的钱包",
       "send": "发送",
+      "send_asset": "发送 {{name}}",
+      "receive_asset": "接收 {{name}}",
       "connected_sites": "已连接的网站",
       "change_language": "更改语言",
       "switch_account": "切换账户",
@@ -164,7 +168,10 @@
   },
   "receive": {
     "click_to_copy": "点击复制",
-    "copy_address": "复制地址"
+    "copy_address": "复制地址",
+    "copy": "复制",
+    "copied": "已复制。",
+    "disclaimer": "仅用于在 Bitcoin 网络上接收 Alkanes 和 BTC。"
   },
   "send": {
     "confirm_send": {

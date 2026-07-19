@@ -3,12 +3,26 @@
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  height: 100%;
+  // min-height (not a fixed height) so that when the custom fee input expands
+  // the form, the wrapper grows past the viewport and the scroll container
+  // (PagesLayout .contentDiv) can scroll to the toggles below the button.
+  min-height: 100%;
 }
 
 .send {
   padding-top: 16px;
   align-items: flex-start;
+}
+
+// In the popup the Continue button is position:fixed at the bottom, so it
+// overlays the scroll content. Pad the form so its last controls (the
+// save-address toggle, and the custom-fee input when expanded) can scroll
+// clear of the fixed button instead of hiding beneath it. At >=455px the
+// button returns to normal flow, so the padding isn't needed.
+@media (max-width: 454px) {
+  .send {
+    padding-bottom: calc(var(--control-h) + 32px);
+  }
 }
 
 .inputs {
@@ -30,6 +44,14 @@
   white-space: nowrap;
 }
 
+.usdHint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .feeDiv {
   width: 100%;
   display: flex;
@@ -38,24 +60,9 @@
   gap: 14px;
 }
 
-.balanceRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 16px;
-  margin-bottom: 72px;
-}
-
-.balanceLabel {
-  color: var(--muted2);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.balanceValue {
-  font-size: 13.5px;
-  font-weight: 600;
+// The asset balance card sits at the top; the form's own padding-top supplies
+// the gap above it, so the bottom margin just matches that for equal spacing.
+.balanceCard {
+  width: 100%;
+  margin-bottom: 16px;
 }

@@ -66,8 +66,14 @@ export default function PagesLayout() {
           title: t("components.layout.security"),
         },
         {
+          // From a token's page the receive route carries that asset, so the
+          // title reads "Receive {token}"; from home it stays the account name.
           route: "/pages/receive",
-          title: currentAccount?.name ?? "Account",
+          title: currentRoute.state?.receiveAsset?.name
+            ? t("components.layout.receive_asset", {
+                name: currentRoute.state.receiveAsset.name,
+              })
+            : currentAccount?.name ?? "Account",
         },
         {
           route: "/pages/switch-wallet",
@@ -131,13 +137,17 @@ export default function PagesLayout() {
         },
         {
           route: "/pages/create-send",
-          title: t("components.layout.send"),
+          title: currentRoute.state?.sendAsset?.name
+            ? t("components.layout.send_asset", {
+                name: currentRoute.state.sendAsset.name,
+              })
+            : t("components.layout.send"),
           backAction: () => {
             navigate("/home");
           },
         },
       ] as IRouteTitle[],
-    [currentAccount?.name, navigate]
+    [currentAccount?.name, navigate, currentRoute.state]
   );
 
   const routeTitles = useMemo(

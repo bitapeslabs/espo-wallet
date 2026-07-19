@@ -27,6 +27,12 @@ export interface IKeyringController {
   exportPublicKey(address: string): Promise<string>;
   serializeKeyringById(index: number): Promise<any>;
   signPsbtBase64(psbtBase64: string): Promise<string>;
+  sendTransfer(params: {
+    assetId: string;
+    toAddress: string;
+    rawAmount: string;
+    feeRate: number;
+  }): Promise<{ rawtx: string; fee: number }>;
 }
 
 class KeyringController implements IKeyringController {
@@ -98,6 +104,15 @@ class KeyringController implements IKeyringController {
    */
   async sendBTC(data: SendBTC): Promise<string> {
     return await keyringService.sendBTC(data);
+  }
+
+  async sendTransfer(params: {
+    assetId: string;
+    toAddress: string;
+    rawAmount: string;
+    feeRate: number;
+  }): Promise<{ rawtx: string; fee: number }> {
+    return keyringService.sendTransfer(params);
   }
 
   async exportPublicKey(address: string): Promise<string> {

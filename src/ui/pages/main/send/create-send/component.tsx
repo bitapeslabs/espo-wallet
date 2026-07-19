@@ -1,6 +1,7 @@
-import { useCreateBtcTxCallback } from "@/ui/hooks/transactions";
+import { useCreateTransferCallback } from "@/ui/hooks/transactions";
 import {
   useEffect,
+  useMemo,
   useState,
   ChangeEventHandler,
   MouseEventHandler,
@@ -14,17 +15,27 @@ import FeeInput from "./fee-input";
 import Switch from "@/ui/components/switch";
 import AddressBookModal from "./address-book-modal";
 import AddressInput from "./address-input";
+import AssetCard from "@/ui/components/asset-card";
 import { getAddressType, normalizeAmount, ss } from "@/ui/utils";
 import { isSendValid } from "@/shared/validators";
+import { formatAlkaneAmount, formatUsdPrice } from "@/shared/utils/alkanes";
+import type { IPortfolioAsset } from "@/shared/interfaces/api";
 import { t } from "i18next";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAppState } from "@/ui/states/appState";
+import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
 
 interface FormType {
   address: string;
   amount: string;
   feeAmount: number;
-  includeFeeInAmount: boolean;
+}
+
+/** Decimal display string -> raw 8-decimal base units (sats / alkane raw). */
+function toRawAmount(value: string): bigint {
+  const [int = "0", frac = ""] = value.split(".");
+  const fracPadded = (frac + "00000000").slice(0, 8);
+  return BigInt(int || "0") * 100000000n + BigInt(fracPadded || "0");
 }
 
 const CreateSend = () => {
@@ -35,37 +46,71 @@ const CreateSend = () => {
   const [formData, setFormData] = useState<FormType>({
     address: "",
     amount: "",
-    includeFeeInAmount: false,
     feeAmount: 10,
   });
-  const [includeFeeLocked, setIncludeFeeLocked] = useState<boolean>(false);
   const currentAccount = useGetCurrentAccount();
-  const createTx = useCreateBtcTxCallback();
+  const createTransfer = useCreateTransferCallback();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState<boolean>(false);
   const { network } = useAppState(ss(["network"]));
+  const { portfolio } = useAssetManagerContext();
 
-  const send = async ({
-    address,
-    amount: amountStr,
-    feeAmount: feeRate,
-    includeFeeInAmount,
-  }: FormType) => {
+  // The asset being sent: passed via navigation (BTC or an alkane), else a
+  // BTC fallback built from the portfolio / current account.
+  const sendAsset: IPortfolioAsset = useMemo(() => {
+    const passed = location.state?.sendAsset as IPortfolioAsset | undefined;
+    if (passed) return passed;
+    const btcSats = portfolio?.btc
+      ? Number(portfolio.btc.balance)
+      : currentAccount?.balance ?? 0;
+    return (
+      portfolio?.btc ?? {
+        id: "btc",
+        name: t("wallet_page.bitcoin"),
+        symbol: "BTC",
+        balance: String(btcSats),
+        priceUsd: null,
+        valueUsd: null,
+        change24h: null,
+        valueChangeUsd24h: null,
+      }
+    );
+  }, [location.state?.sendAsset, portfolio?.btc, currentAccount?.balance]);
+
+  const isBtc = sendAsset.id === "btc";
+
+  // USD estimate of the entered amount (only when the asset has a live price).
+  const usdValue = useMemo(() => {
+    const price = sendAsset.priceUsd;
+    if (price == null) return null;
+    const amt = parseFloat(formData.amount);
+    if (!Number.isFinite(amt) || amt <= 0) return null;
+    return amt * price;
+  }, [sendAsset.priceUsd, formData.amount]);
+
+  const rawBalance = useMemo(() => {
+    try {
+      return BigInt(sendAsset.balance || "0");
+    } catch {
+      return 0n;
+    }
+  }, [sendAsset.balance]);
+
+  const send = async ({ address, amount: amountStr, feeAmount: feeRate }: FormType) => {
     try {
       setLoading(true);
-      const balance = currentAccount?.balance ?? 0;
-      const amount = parseFloat(amountStr);
 
       if (typeof getAddressType(address, network) === "undefined") {
         return toast.error(t("send.create_send.address_error"));
       }
-
-      if (Number.isNaN(amount) || amount < 1e-5) {
-        return toast.error(t("send.create_send.minimum_amount_error"));
-      }
       if (address.trim().length <= 0) {
         return toast.error(t("send.create_send.address_error"));
+      }
+
+      const rawAmount = toRawAmount(normalizeAmount(amountStr));
+      if (rawAmount <= 0n) {
+        return toast.error(t("send.create_send.minimum_amount_error"));
       }
       if (feeRate % 1 !== 0) {
         return toast.error(t("send.create_send.fee_is_text_error"));
@@ -73,19 +118,13 @@ const CreateSend = () => {
       if (typeof feeRate !== "number" || !feeRate || feeRate < 1) {
         return toast.error(t("send.create_send.not_enough_fee_error"));
       }
-      if (amount > balance / 10 ** 8) {
+      if (rawAmount > rawBalance) {
         return toast.error(t("send.create_send.not_enough_money_error"));
       }
 
       let data;
-
       try {
-        data = await createTx(
-          address,
-          Number((amount * 10 ** 8).toFixed(0)),
-          feeRate,
-          includeFeeInAmount
-        );
+        data = await createTransfer(sendAsset.id, address, rawAmount, feeRate);
       } catch (e) {
         const error = e as Error;
         if ("message" in error) {
@@ -100,9 +139,10 @@ const CreateSend = () => {
 
       navigate("/pages/confirm-send", {
         state: {
+          sendAsset,
+          symbol: sendAsset.symbol.toUpperCase(),
           toAddress: address,
           amount: normalizeAmount(amountStr),
-          includeFeeInAmount,
           fromAddress: currentAccount?.address ?? "",
           feeAmount: fee,
           inputedFee: feeRate,
@@ -122,66 +162,33 @@ const CreateSend = () => {
     }
   };
 
+  // Restore the form when returning from the confirm screen.
   useEffect(() => {
-    if (
-      !currentAccount ||
-      !currentAccount.address ||
-      typeof currentAccount.balance === "undefined"
-    )
-      return;
-
-    if (location.state) {
+    if (!currentAccount?.address) return;
+    if (location.state?.toAddress) {
       setFormData((prev) => {
-        if (prev.address === "") {
-          if (location.state.toAddress) {
-            if (location.state.save) {
-              setIsSaveAddress(true);
-            }
-            if (currentAccount.balance! / 10 ** 8 <= location.state.amount)
-              setIncludeFeeLocked(true);
-
-            return {
-              address: location.state.toAddress,
-              amount: location.state.amount,
-              feeAmount: location.state.inputedFee,
-              includeFeeInAmount: location.state.includeFeeInAmount,
-            };
-          }
-
-        }
-        return prev;
+        if (prev.address !== "") return prev;
+        if (location.state.save) setIsSaveAddress(true);
+        return {
+          address: location.state.toAddress,
+          amount: location.state.amount ?? "",
+          feeAmount: location.state.inputedFee ?? prev.feeAmount,
+        };
       });
     }
-  }, [location.state, setFormData, currentAccount]);
+  }, [location.state, currentAccount]);
 
   const onAmountChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    if (!currentAccount || !currentAccount.address || !currentAccount.balance)
-      return;
-    setFormData((prev) => ({
-      ...prev,
-      amount: normalizeAmount(e.target.value),
-    }));
-    if (currentAccount.balance / 10 ** 8 > Number(e.target.value)) {
-      setIncludeFeeLocked(false);
-    } else {
-      setIncludeFeeLocked(true);
-      setFormData((prev) => ({
-        ...prev,
-        includeFeeInAmount: true,
-      }));
-    }
+    setFormData((prev) => ({ ...prev, amount: normalizeAmount(e.target.value) }));
   };
 
   const onMaxClick: MouseEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
-    if (currentAccount?.balance) {
-      setFormData((prev) => ({
-        ...prev,
-        amount: (currentAccount.balance! / 10 ** 8).toString(),
-        includeFeeInAmount: true,
-      }));
-      setIncludeFeeLocked(true);
-    }
+    // BTC needs headroom for the fee (paid from extra sats); alkanes send the
+    // whole balance since the fee is covered separately in BTC.
+    const reserve = isBtc ? BigInt(Math.ceil(formData.feeAmount * 300)) : 0n;
+    const max = rawBalance > reserve ? rawBalance - reserve : 0n;
+    setFormData((prev) => ({ ...prev, amount: formatAlkaneAmount(max.toString()) }));
   };
 
   return (
@@ -194,6 +201,14 @@ const CreateSend = () => {
           await send(formData);
         }}
       >
+        <div className={s.balanceCard}>
+          <AssetCard
+            asset={sendAsset}
+            network={network}
+            fallbackName={t("wallet_page.bitcoin")}
+          />
+        </div>
+
         <div className={s.inputs}>
           <div className="form-field">
             <span className="input-span">{t("send.create_send.address")}</span>
@@ -213,10 +228,13 @@ const CreateSend = () => {
                 value={formData.amount}
                 onChange={onAmountChange}
               />
-              <button className="btn ghost small" onClick={onMaxClick}>
+              <button className="btn ghost" onClick={onMaxClick}>
                 {t("send.create_send.max_amount")}
               </button>
             </div>
+            {usdValue != null ? (
+              <span className={s.usdHint}>≈ ${formatUsdPrice(usdValue)}</span>
+            ) : undefined}
           </div>
         </div>
 
@@ -234,15 +252,6 @@ const CreateSend = () => {
           </div>
 
           <Switch
-            label={t("send.create_send.include_fee_in_the_amount_label")}
-            onChange={(v) =>
-              setFormData((prev) => ({ ...prev, includeFeeInAmount: v }))
-            }
-            value={formData.includeFeeInAmount}
-            locked={includeFeeLocked}
-          />
-
-          <Switch
             label={t(
               "send.create_send.save_address_for_the_next_payments_label"
             )}
@@ -254,14 +263,6 @@ const CreateSend = () => {
       </form>
 
       <div>
-        <div className={s.balanceRow}>
-          <div className={s.balanceLabel}>{`${t(
-            "wallet_page.amount_in_transactions"
-          )}`}</div>
-          <span className={s.balanceValue}>
-            {`${((currentAccount?.balance ?? 0) / 10 ** 8).toFixed(8)} BTC`}
-          </span>
-        </div>
         <button
           disabled={loading || !isSendValid(formData.address, formData.amount)}
           type="submit"

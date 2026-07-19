@@ -73,6 +73,10 @@ const Activity = () => {
   const { ref, inView } = useInView();
 
   // Paginated feed: fires immediately, refetches on new blocks (invalidation).
+  // History now includes mempool txs, which appear/change BETWEEN blocks, so we
+  // also poll every 10s while the tab is open; a pending send/receive then shows
+  // up without reopening the popup. Block-advance invalidation still handles the
+  // confirmed transitions.
   const activityQuery = useInfiniteQuery({
     queryKey: espoKey("activity", address, networkSlug(network)),
     initialPageParam: 1,
@@ -80,6 +84,7 @@ const Activity = () => {
     getNextPageParam: (lastPage, allPages) =>
       lastPage && lastPage.length > 0 ? allPages.length + 1 : undefined,
     enabled: !!address,
+    refetchInterval: 10_000,
   });
 
   const entries = useMemo(() => {
@@ -174,7 +179,11 @@ const Activity = () => {
                         <ActivityIcon entry={e} network={network} sym={sym} />
                         <div className={s.rowMain}>
                           <span className={s.rowTitle}>
-                            {t(`activity.${TITLE_KEY[e.kind]}`)}
+                            {!e.confirmed && e.kind === "receive"
+                              ? t("activity.receiving")
+                              : !e.confirmed && e.kind === "send"
+                              ? t("activity.sending")
+                              : t(`activity.${TITLE_KEY[e.kind]}`)}
                           </span>
                           <span
                             className={cn(s.rowSub, { [s.rowFail]: !e.success })}

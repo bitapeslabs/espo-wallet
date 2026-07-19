@@ -1,5 +1,8 @@
 # Dependencies
 node_modules
+# local-dependency packages (e.g. alkanesjs) are their own git repos, pushed
+# separately; the extension consumes them via a file: dep but does not track them
+.lib/
 
 # Build output
 .output

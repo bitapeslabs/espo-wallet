@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
 import cn from "classnames";
 import { TailSpin } from "react-loading-icons";
 import s from "./styles.module.scss";
@@ -188,11 +187,8 @@ const Asset = () => {
   }, [meta, network, explorerUrl]);
 
   const onSend = () => {
-    if (isBtc) {
-      navigate("/pages/create-send");
-      return;
-    }
-    toast(t("asset.send_alkane_unavailable"));
+    if (!cardAsset) return;
+    navigate("/pages/create-send", { state: { sendAsset: cardAsset } });
   };
 
   return (
@@ -216,8 +212,8 @@ const Asset = () => {
       <div className={s.price}>
         <FitText
           className={s.priceValue}
-          maxFont={34}
-          minFont={16}
+          maxFont={44}
+          minFont={18}
           screenMargin={20}
         >
           {priceUsd != null ? `$${formatUsdPrice(priceUsd)}` : "-"}
@@ -278,6 +274,7 @@ const Asset = () => {
         />
         <SquareAction
           to={"/pages/receive"}
+          state={cardAsset ? { receiveAsset: cardAsset } : undefined}
           icon={<QrCodeBoldIcon size={26} />}
           iconHover={<QrCodeFillIcon size={26} />}
           label={t("wallet_page.receive")}

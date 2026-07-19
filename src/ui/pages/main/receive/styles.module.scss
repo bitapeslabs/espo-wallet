@@ -1,23 +1,36 @@
 .receive {
   width: 100%;
   height: 100%;
-  padding: 0 16px 88px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.container {
+  padding: 0 16px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 24px 16px;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* the QR is enclosed in a white rounded card; its data is drawn in the page
+   background colour rather than sitting light directly on the page */
+.qrCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.qrWrap {
+  position: relative;
+  width: fit-content;
+  line-height: 0;
 }
 
 .qr {
-  cursor: pointer;
   max-width: 100%;
+  line-height: 0;
+  /* round the QR's own corners so they echo the white card's rounding */
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .qr svg {
@@ -25,14 +38,110 @@
   max-width: 100%;
 }
 
+/* centre badge, overlaid on the QR's reserved (dot-free) centre, framed with a
+   border in the page bg colour so it reads as its own tile on the white card */
+.qrCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  border: 5px solid var(--panel3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* BTC / home: the Bitcoin glyph on a white tile, glyph in the page bg colour.
+   The B mark sits slightly high in its own viewBox, so nudge it down to centre. */
+.qrCenterBtc {
+  background: #fff;
+  color: var(--panel3);
+}
+
+.qrCenterBtc svg {
+  width: 84%;
+  height: 84%;
+  transform: translateY(1px);
+}
+
+/* a token: its icon fills the rounded tile. The bg matches the border so any
+   corner reveal is invisible; the image is absolutely filled (no flex sizing
+   quirk) and scaled up a touch so the CDN icon's own baked-in rounded corners
+   are pushed past the tile's clip, leaving only the tile's rounding. */
+.qrCenterToken {
+  background: var(--panel3);
+}
+
+.qrCenterToken :global(img) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  display: block;
+}
+
+.qrCenter :global(.alk-icon-letter) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text);
+}
+
+/* the address lives in a card; the copy control is a row beneath it */
+/* address card + primary copy button read as one segmented block: squared-off
+   inner edges, a small gap between them, rounded outer corners */
+.addressGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.addressCard {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  margin-top: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .address {
+  width: 100%;
+  text-align: center;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+
+/* primary button (.btn), spanning the card width with room for the copy icon,
+   but keeping the segmented radius: squared top, rounded bottom */
+.copyBtn {
+  width: 100%;
+  gap: 8px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+
+.disclaimer {
   width: 100%;
   text-align: center;
   color: var(--muted);
   font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
-.copyButton svg {
-  display: none;
+  line-height: 1.45;
 }

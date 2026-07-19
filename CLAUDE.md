@@ -198,9 +198,17 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
   decimals (`ALKANE_DECIMALS`). Alkane icons come from the ordiscan CDN like
   the espo explorer: `https://cdn.ordiscan.com/alkanes/{block}_{tx}` with the
   explorer's per-id overrides, via `alkaneIconUrl` + the `AlkaneIcon`
-  component (letter-avatar fallback on load error). Alkane SENDING is not
-  implemented: the asset page's Send action shows a toast
-  (`asset.send_alkane_unavailable`); only BTC send is wired.
+  component (letter-avatar fallback on load error). BTC AND alkane sending are
+  both wired through the `alkanesjs` SDK (local `file:` dep at
+  `.lib/alkanesjs`, `main` branch): the background `keyringService.sendTransfer`
+  ({assetId "btc"|"block:tx", toAddress, rawAmount string, feeRate}) builds the
+  PSBT via `getProtostoneUnsignedPsbtBase64` (espo-driven UTXOs, `callData:[]`
+  for plain transfers), signs it in-process (taproot auto-patched), and returns
+  the finalized raw tx. The asset-page Send passes the tapped `IPortfolioAsset`
+  to `/pages/create-send` as `location.state.sendAsset`; create-send renders
+  that asset's balance card above the address input and builds through
+  `useCreateTransferCallback`. Edit the SDK under `.lib/alkanesjs`, then
+  `npm run build` there + `bun install` here to re-sync.
 - Block explorer: each network has its own `explorerUrl` (mainnet
   https://espo.sh, regtest https://regtest.espo.sh), user-overridable from
   Settings > Network (`appState.explorerUrl`). `explorerTxUrl(network, txid,
@@ -286,8 +294,8 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
   pages, contexts, interfaces, and locale keys) has been fully removed; this
   wallet has no inscriptions, so the word "inscription" appears nowhere in
   the codebase. Assets are alkanes only, live via the espo portfolio (see the
-  Portfolio/assets note under Architecture); only alkane SENDING remains
-  unimplemented (Send shows a toast).
+  Portfolio/assets note under Architecture); both BTC and alkane sending are
+  wired through the `alkanesjs` SDK.
 - Headless verification trick: the popup + background can be run together
   under bun with happy-dom and a stubbed `chrome.*` (in-memory port
   bridge). See git history for `popup-harness.ts` (scratchpad, ephemeral):
