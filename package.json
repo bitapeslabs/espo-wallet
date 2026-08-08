@@ -12,6 +12,7 @@
     "zip:firefox": "wxt zip -b firefox --mv3",
     "release": "wxt zip && wxt zip -b firefox --mv3",
     "compile": "tsc --noEmit",
+    "check": "tsc --noEmit",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
@@ -19,7 +20,7 @@
     "@headlessui/react": "2.1.2",
     "@noble/hashes": "1.4.0",
     "@tanstack/react-query": "^5.101.2",
-    "alkanesjs": "file:./.lib/alkanesjs",
+    "alkanesjs": "*",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.7",
@@ -63,7 +64,7 @@
     "bun-types": "^1.3.14",
     "eslint": "^9.8.0",
     "eslint-plugin-react": "^7.35.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.12.0",
     "postcss": "^8.5.19",
     "sass": "^1.69.7",
