@@ -23,6 +23,7 @@ import TransactionInfo from "./main/transaction-info";
 import FinalleSend from "./main/send/finalle-send";
 import CreateSend from "./main/send/create-send";
 import ConfirmSend from "./main/send/confirm-send";
+import ConfirmSwap from "./main/swap/confirm-swap";
 import Connect from "./provider/connect";
 import SignMessage from "./provider/sign-message";
 import CreateTx from "./provider/create-tx/component";
@@ -42,6 +43,8 @@ import TabsShell from "@/ui/components/tabs-shell";
 import Swap from "./main/swap";
 import Search from "./main/search";
 import Activity from "./main/activity";
+import Unwraps from "./main/unwraps";
+import UnwrapInfo from "./main/unwraps/unwrap-info";
 import Asset from "./main/asset";
 import ImportWallet from "./main/welcome/import";
 import SwitchNetwork from "./provider/switch-network";
@@ -75,9 +78,12 @@ export const authenticatedRouter = createHashRouter([
       { path: "asset/:assetId", element: <Asset /> },
       { path: "swap", element: <Swap /> },
       { path: "activity", element: <Activity /> },
+      { path: "unwraps", element: <Unwraps /> },
       { path: "search", element: <Search /> },
     ],
   },
+  // Outside PagesLayout: the broadcast result screen renders without a header.
+  { path: "pages/finalle-send", element: <FinalleSend /> },
   {
     path: "pages",
     element: <PagesLayout />,
@@ -95,9 +101,10 @@ export const authenticatedRouter = createHashRouter([
       { path: "show-mnemonic/:walletId", element: <ShowMnemonic /> },
       { path: "change-addr-type", element: <ChangeAddrType /> },
       { path: "transaction-info/:txId", element: <TransactionInfo /> },
-      { path: "finalle-send/:txId", element: <FinalleSend /> },
+      { path: "unwrap-info/:txId", element: <UnwrapInfo /> },
       { path: "create-send", element: <CreateSend /> },
       { path: "confirm-send", element: <ConfirmSend /> },
+      { path: "confirm-swap", element: <ConfirmSwap /> },
       { path: "connected-sites", element: <ConnectedSites /> },
       { path: "language", element: <Language /> },
       { path: "security", element: <Security /> },

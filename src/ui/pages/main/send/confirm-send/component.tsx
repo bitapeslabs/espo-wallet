@@ -1,86 +1,81 @@
-import { usePushBtcTxCallback } from "@/ui/hooks/transactions";
-import s from "./styles.module.scss";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useUpdateAddressBook } from "@/ui/hooks/app";
 import { t } from "i18next";
-import { useUpdateCurrentAccountBalance } from "@/ui/hooks/wallet";
-import { useTransactionManagerContext } from "@/ui/utils/tx-ctx";
-import { useGetCurrentAccount } from "@/ui/states/walletState";
+import { useAppState } from "@/ui/states/appState";
+import { ss } from "@/ui/utils";
+import type { IActivityEntry, IPortfolioAsset } from "@/shared/interfaces/api";
+import { toRawAmount } from "@/ui/pages/main/send/create-send/validate";
+import OverviewLayout from "@/ui/components/overview-layout";
 
 const ConfirmSend = () => {
   const location = useLocation();
-  const pushTx = usePushBtcTxCallback();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const updateAddressBook = useUpdateAddressBook();
-  const updateBalance = useUpdateCurrentAccountBalance();
-  const { updateTransactions } = useTransactionManagerContext();
-  const currentAccount = useGetCurrentAccount();
+  const { network } = useAppState(ss(["network"]));
 
-  const confirmSend = async () => {
+  const sendAsset = location.state?.sendAsset as IPortfolioAsset | undefined;
+  const assetId = sendAsset?.id ?? "btc";
+  const symbol = location.state?.symbol ?? "BTC";
+  const amount = location.state?.amount ?? "";
+
+  const entry: IActivityEntry = useMemo(
+    () => ({
+      txid: location.state?.toAddress ?? "",
+      kind: "send",
+      timestamp: 0,
+      confirmed: true,
+      success: true,
+      legs: [{ assetId, delta: "0" }],
+      peer: location.state?.toAddress,
+    }),
+    [assetId, location.state?.toAddress]
+  );
+
+  // The result screen owns the broadcast so it can show its loading animation
+  // while the tx is in flight, then flip to the success state.
+  const confirmSend = () => {
     setLoading(true);
+    // The tx shape is fully known here, so the result screen can drop it into
+    // the local feed the instant the broadcast succeeds (before espo indexes).
+    let rawAmount = "0";
     try {
-      const data = await pushTx(location.state.hex);
-      if (!data || !data.txid) {
-        throw new Error(data?.error ?? "Failed pushing transaction");
-      }
-
-      setTimeout(() => {
-        updateBalance().catch(console.error);
-        if (currentAccount?.address) {
-          updateTransactions(currentAccount.address).catch(console.error);
-        }
-      }, 100);
-
-      navigate(`/pages/finalle-send/${data.txid}`);
-
-      if (location.state.save) {
-        await updateAddressBook(location.state.toAddress);
-      }
-    } catch (e) {
-      toast.error((e as Error).message);
-      console.error(e);
-      navigate(-1);
+      rawAmount = toRawAmount(String(amount)).toString();
+    } catch {
+      // display-only; the optimistic amount just stays 0
     }
+    navigate("/pages/finalle-send", {
+      state: {
+        hex: location.state.hex,
+        save: location.state.save,
+        toAddress: location.state.toAddress,
+        kind: "send",
+        optimistic: [
+          {
+            kind: "send",
+            timestamp: 0,
+            confirmed: false,
+            success: true,
+            legs: [{ assetId, delta: `-${rawAmount}` }],
+            peer: location.state.toAddress,
+          },
+        ],
+      },
+    });
   };
 
-  const fields = [
-    {
-      label: t("send.confirm_send.to_addrses"),
-      value: location.state.toAddress,
-    },
-    {
-      label: t("send.confirm_send.from_address"),
-      value: location.state.fromAddress,
-    },
-    {
-      label: t("send.confirm_send.amount"),
-      value: `${location.state.amount} ${location.state.symbol ?? "BTC"}`,
-    },
-    {
-      label: t("send.confirm_send.fee"),
-      value: `${location.state.feeAmount / 10 ** 8} BTC`,
-    },
-  ];
-
   return (
-    <div className={s.wrapper}>
-      <div className="panel">
-        <div className={s.list}>
-          {fields.map((i) => (
-            <div key={i.label} className="review-card">
-              <div className="stat-label">{i.label}</div>
-              <div className="stat-value">{i.value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <button disabled={loading} className={"bottom-btn"} onClick={confirmSend}>
-        {t("send.confirm_send.confirm")}
-      </button>
-    </div>
+    <OverviewLayout
+      entry={entry}
+      network={network}
+      sym={() => symbol}
+      headerName={`${t("transaction_info.kind.transfer")} ${amount} ${symbol}`}
+      rawTx={location.state.hex}
+      fromAddress={location.state.fromAddress}
+      feeRate={location.state.inputedFee}
+      actionLabel={t("send.confirm_send.confirm")}
+      onAction={confirmSend}
+      actionDisabled={loading}
+    />
   );
 };
 

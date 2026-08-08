@@ -1,0 +1,237 @@
+.wrapper {
+  width: 100%;
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* same activity-style header the overview page uses */
+.overviewHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 0 6px;
+}
+
+.overviewIcon {
+  display: inline-flex;
+  transform: scale(1.55);
+  transform-origin: center;
+  --badge-ring: var(--panel3);
+}
+
+.overviewKind {
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+
+/* lifecycle stepper: a circle per state joined by connectors, label beneath */
+.steps {
+  display: flex;
+  margin-top: 6px;
+}
+
+.step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* connector to the NEXT step, drawn from this circle's edge to the next's */
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: calc(50% + 12px);
+  width: calc(100% - 24px);
+  height: 2px;
+  border-radius: 999px;
+  background: var(--panel2);
+  transition: background 0.3s ease;
+}
+
+.stepLineOn:not(:last-child)::after {
+  background: var(--success);
+}
+
+/* plain circles: filled when reached, panel when not; the current one pulses */
+.stepCircle {
+  position: relative;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--panel2);
+  transition: background 0.3s ease;
+}
+
+.stepDone,
+.stepCurrent {
+  background: var(--success);
+}
+
+/* a soft ring breathing out of the current step instead of yet another spinner */
+.stepCurrent::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--success);
+  animation: stepPulse 1.8s ease-out infinite;
+}
+
+@keyframes stepPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* same type as the tx card titles below; unreached steps read muted */
+.stepLabel {
+  margin-top: 5px;
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.stepLabelUpcoming {
+  color: var(--muted2);
+}
+
+/* the two transactions, in the activity rows' visual language */
+.txs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.txRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel2);
+  border-radius: 8px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  min-width: 0;
+  transition: filter 0.15s ease;
+}
+
+.txRow:hover {
+  transition: none;
+  filter: brightness(1.12);
+}
+
+.txRowDisabled {
+  cursor: default;
+}
+
+.txRowDisabled:hover {
+  filter: none;
+}
+
+/* a wash of the page background over a not-yet-clickable card, so it reads
+   disabled (sits above every child, badges included) */
+.txRowDisabled::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 8px;
+  background: var(--panel3);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.txMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.txTitle {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txSub {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txCaret {
+  flex: 0 0 auto;
+  color: var(--muted2);
+}
+
+.txRow:hover .txCaret {
+  color: var(--text);
+}
+
+/* the fulfillment tx icon: snowflake on a panel tile, like the app icon */
+.flakeWrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+.flakeIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--panel3);
+  color: var(--link);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* the History tab's pending status circle, worn by the tile while unfulfilled */
+.cardBadge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--panel);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--panel2);
+}
+
+.cardBadgeSpin {
+  width: 11px;
+  height: 11px;
+  stroke: var(--text);
+}

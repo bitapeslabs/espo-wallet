@@ -75,6 +75,13 @@
   font-size: 14px;
 }
 
+.amountLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .assetAmount :global(.alk-amt) {
   font-size: 14px;
   font-weight: 500;

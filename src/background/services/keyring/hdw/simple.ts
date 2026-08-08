@@ -4,7 +4,13 @@ import { networks, Psbt } from "bitcoinjs-lib";
 import type { ECPairInterface } from "ecpair";
 
 import { BaseWallet } from "./base";
-import { ECPair, tweakSigner, ZERO_KEY, ZERO_PRIVKEY } from "./crypto";
+import {
+  ECPair,
+  tweakSigner,
+  privateKeyToWIF,
+  ZERO_KEY,
+  ZERO_PRIVKEY,
+} from "./crypto";
 import {
   AddressType,
   Hex,
@@ -89,7 +95,11 @@ class HDSimpleKey extends BaseWallet implements Keyring<SerializedSimpleKey> {
     _options?: Record<string, unknown> | undefined
   ) {
     this.initPair();
-    return this.pair!.toWIF();
+    return privateKeyToWIF(
+      Buffer.from(this.privateKey),
+      this.network ?? networks.bitcoin,
+      this.pair?.compressed ?? true
+    );
   }
 
   exportPublicKey(_address: string) {

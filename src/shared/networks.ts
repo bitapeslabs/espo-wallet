@@ -14,6 +14,18 @@ export interface INetworkInfo {
   explorerUrl: string;
   /** Whether fiat price data is available for this network */
   hasPrice: boolean;
+  /**
+   * The Oyl AMM factory/router alkane id ("block:tx") swaps are routed through.
+   * Mainnet is 4:65522 (matches espo's own `get_amm_contract`); a regtest
+   * deployment assigns its own ids, so it is overridable per network.
+   */
+  ammFactoryId: string;
+}
+
+/** An alkane id parsed from "block:tx". */
+export function parseAlkaneId(id: string): { block: bigint; tx: bigint } {
+  const [block, tx] = id.split(":");
+  return { block: BigInt(block), tx: BigInt(tx) };
 }
 
 export const NETWORKS: INetworkInfo[] = [
@@ -25,6 +37,7 @@ export const NETWORKS: INetworkInfo[] = [
     rpcUrl: process.env.API_URL ?? "https://api.alkanode.com/rpc",
     explorerUrl: process.env.EXPLORER_URL ?? "https://espo.sh",
     hasPrice: true,
+    ammFactoryId: process.env.AMM_FACTORY_ID ?? "4:65522",
   },
   {
     slug: "regtest",
@@ -35,6 +48,7 @@ export const NETWORKS: INetworkInfo[] = [
     explorerUrl: process.env.REGTEST_EXPLORER_URL ?? "https://regtest.espo.sh",
     // regtest has no ammdata price module, so no USD valuation
     hasPrice: false,
+    ammFactoryId: process.env.REGTEST_AMM_FACTORY_ID ?? "4:65522",
   },
 ];
 
@@ -68,4 +82,28 @@ export function explorerTxUrl(
     ""
   );
   return `${base}/tx/${txid}`;
+}
+
+export function explorerAddressUrl(
+  network: Network,
+  address: string,
+  override?: string
+): string {
+  const base = (override?.trim() || networkInfo(network).explorerUrl).replace(
+    /\/+$/,
+    ""
+  );
+  return `${base}/address/${address}`;
+}
+
+export function explorerAlkaneUrl(
+  network: Network,
+  id: string,
+  override?: string
+): string {
+  const base = (override?.trim() || networkInfo(network).explorerUrl).replace(
+    /\/+$/,
+    ""
+  );
+  return `${base}/alkane/${id}`;
 }

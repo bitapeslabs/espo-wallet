@@ -6,7 +6,14 @@ import type { ECPairInterface } from "ecpair";
 import type { BIP32Interface } from "bip32";
 
 import { BaseWallet } from "./base";
-import { ECPair, bip32, tweakSigner, ZERO_KEY, ZERO_PRIVKEY } from "./crypto";
+import {
+  ECPair,
+  bip32,
+  tweakSigner,
+  privateKeyToWIF,
+  ZERO_KEY,
+  ZERO_PRIVKEY,
+} from "./crypto";
 import {
   AddressType,
   FromMnemonicOpts,
@@ -118,7 +125,14 @@ class HDPrivateKey extends BaseWallet implements Keyring<SerializedHDKey> {
 
   exportAccount(address: Hex) {
     const account = this.findAccount(address);
-    return account.toWIF();
+    if (!account.privateKey) {
+      throw new Error("HDPrivateKey: account has no private key");
+    }
+    return privateKeyToWIF(
+      Buffer.from(account.privateKey),
+      this.network ?? networks.bitcoin,
+      account.compressed
+    );
   }
 
   signPsbt(psbt: Psbt, inputs: ToSignInput[]) {

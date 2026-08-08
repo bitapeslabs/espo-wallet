@@ -68,13 +68,15 @@
       "receive_bel": "Получить BTC",
       "switch_wallet": "Переключить кошелек",
       "transaction_info": "Информация о транзакции",
+      "overview": "Обзор",
       "settings": "Настройки",
       "show_mnemonic": "Показать мнемонику",
       "show_private_key": "Показать приватный ключ",
       "restore_from_mnemonic": "Восстановить из мнемоника",
       "restore_from_private_key": "Восстановить кошелек",
       "assets": "Assets",
-      "confirmation": "Подтверждение"
+      "confirmation": "Подтверждение",
+      "unwrap_overview": "Обзор развёртывания"
     },
     "check_password": {
       "incorrect_password_error": "Неверный пароль",
@@ -194,7 +196,8 @@
       "minimum_amount_error": "Минимальная сумма - 0.00001 BTC",
       "fee_exceeds_amount_error": "Сбор превышает сумму",
       "address_error": "Неверный адрес получателя",
-      "not_enough_money_error": "На вашем счету недостаточно средств",
+      "not_enough_money_error": "На вашем счету недостаточно {{token}}",
+      "available_balance": "Доступно:",
       "not_enough_fee_error": "Увеличьте сбор",
       "fee_is_text_error": "Сбор должен быть числом",
       "default_error": "Произошла ошибка",
@@ -220,6 +223,13 @@
       }
     },
     "finalle_send": {
+      "transaction_sent": "Транзакция отправлена",
+      "transfer_sent": "Перевод отправлен",
+      "swap_sent": "Обмен отправлен",
+      "wrap_sent": "Обёртывание отправлено",
+      "unwrap_sent": "Развёртывание отправлено",
+      "view_transaction": "Посмотреть транзакцию",
+      "close": "Закрыть",
       "success": "Успешно",
       "explorer": "Обзор",
       "back": "Назад"
@@ -247,12 +257,30 @@
     "add_wallet": "Добавить кошелёк",
     "add_account": "Добавить аккаунт"
   },
+  "transaction_overview": {
+    "inputs": "Входы",
+    "you": "Вы",
+    "outputs": "Выходы",
+    "contract_call": "Вызов контракта",
+    "alkane_transfer": "Перевод Alkanes",
+    "result_pending": "Результат транзакции определяется после подтверждения",
+    "waiting": "Ожидание подтверждения блока...",
+    "call_successful": "Вызов успешен",
+    "call_reverted": "Вызов отклонён",
+    "protostone_message": "Сообщение Protostone",
+    "call_generic": "вызов контракта",
+    "opcode": "опкод",
+    "sat_vb": "sat/vB",
+    "decode_error": "Не удалось декодировать эту транзакцию",
+    "swap_route": "Маршрут обмена"
+  },
   "transaction_info": {
     "txid": "TxId",
     "confirmations_label": "Подтверждения:",
     "fee_label": "Сбор:",
     "value_label": "Значение:",
     "open_in_explorer": "Открыть в обозревателе",
+    "view_on_espo": "Открыть в Espo",
     "copied": "Скопировано",
     "inputs": "Входы",
     "outputs": "Выходы",
@@ -263,6 +291,8 @@
       "unwrap": "Развёртывание",
       "split": "Разделение",
       "transfer": "Перевод",
+      "sent": "Отправлено",
+      "received": "Получено",
       "add_liquidity": "Добавление ликвидности",
       "remove_liquidity": "Вывод ликвидности",
       "create_pool": "Создание пула",
@@ -298,7 +328,8 @@
     "home": "Главная",
     "swap": "Обмен",
     "activity": "Активность",
-    "search": "Поиск"
+    "search": "Поиск",
+    "unwraps": "Развёртывания"
   },
   "forgot": {
     "description": "Чтобы сбросить пароль, вам придётся стереть кошелёк. Espo Wallet не может восстановить ваш пароль.",
@@ -322,5 +353,35 @@
     "trending": "Популярные токены",
     "no_results": "Токены не найдены",
     "results_for": "Результаты поиска"
+  },
+  "swap": {
+    "you_pay": "Вы платите",
+    "you_receive": "Вы получаете",
+    "select": "Выбрать",
+    "select_asset": "Выберите актив",
+    "balance": "Баланс",
+    "flip": "Сменить направление",
+    "swap_action": "Обменять",
+    "enter_amount": "Введите сумму",
+    "select_asset_first": "Выберите актив",
+    "no_route": "Нет пула для этой пары",
+    "insufficient_balance": "Недостаточно средств",
+    "building": "Создание транзакции...",
+    "min_received": "Минимум к получению",
+    "slippage": "Проскальзывание",
+    "route_via_frbtc": "Маршрут через frBTC",
+    "transaction_settings": "Настройки транзакции",
+    "max_sent": "Максимум к отправке",
+    "deadline_blocks": "Срок (блоков)",
+    "transaction_fee": "Комиссия транзакции"
+  },
+  "unwraps": {
+    "title": "Развёртывания",
+    "no_unwraps": "Пока нет развёртываний",
+    "state_unconfirmed": "Не подтверждено",
+    "state_confirmed": "Подтверждено",
+    "state_fulfilled": "Исполнено",
+    "pending_fulfillment": "Ожидание исполнения...",
+    "fulfillment": "Исполнение"
   }
 }

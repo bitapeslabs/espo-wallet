@@ -46,3 +46,26 @@
 .russian {
   font-size: 12.5px;
 }
+
+/* custom sat/vByte input with a fixed unit label pinned to the right */
+.customWrap {
+  position: relative;
+  width: 100%;
+}
+
+/* pad the number so it can never slide under the unit label */
+.customWrap :global(.input) {
+  width: 100%;
+  padding-right: 62px;
+}
+
+.customUnit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  pointer-events: none;
+}

@@ -39,3 +39,29 @@
 .active:hover {
   color: var(--link);
 }
+
+.iconWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* unread count: a status circle pinned to the icon's top-right corner */
+.unread {
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--link-dark);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--panel3);
+  box-sizing: content-box;
+}

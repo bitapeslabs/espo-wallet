@@ -75,9 +75,13 @@ export function getAddressType(
     if (version === network.scriptHash) return;
   } catch {
     try {
-      const version = address.fromBech32(addressStr).version;
-      if (version === 0x00) return 1;
-      if (version === 0x01) return 2;
+      const decoded = address.fromBech32(addressStr);
+      // The witness version (0/1) is identical across networks — only the HRP
+      // distinguishes them (bc / bcrt / tb), so it must match this network or a
+      // regtest address would validate on mainnet and vice versa.
+      if (decoded.prefix !== network.bech32) return;
+      if (decoded.version === 0x00) return 1;
+      if (decoded.version === 0x01) return 2;
     } catch {
       return;
     }

@@ -5,31 +5,38 @@ import s from "./styles.module.scss";
 import { FC, useState } from "react";
 import { useAppState } from "@/ui/states/appState";
 import { t } from "i18next";
-import { ss } from "@/ui/utils";
+import { getAddressType, ss } from "@/ui/utils";
 
 interface Props {
   address: string;
   onChange: (value: string) => void;
   onOpenModal: () => void;
+  /** When true, the input renders with a red (danger) border. */
+  error?: boolean;
 }
 
-const AddressInput: FC<Props> = ({ address, onChange, onOpenModal }) => {
+const AddressInput: FC<Props> = ({ address, onChange, onOpenModal, error }) => {
   const [filtered, setFiltered] = useState<string[]>([]);
 
-  const { addressBook } = useAppState(ss(["addressBook"]));
+  const { addressBook, network } = useAppState(ss(["addressBook", "network"]));
 
+  // Saved addresses are network-specific: only suggest ones valid on the
+  // current network (a mainnet address can't be selected on regtest, etc.).
   const getFiltered = (query: string) => {
-    return addressBook.filter((i) => i.startsWith(query));
+    return addressBook.filter(
+      (i) => getAddressType(i, network) !== undefined && i.startsWith(query)
+    );
   };
 
   return (
     <div className={s.wrapper}>
-      <Combobox value={address} onChange={onChange}>
+      {/* headlessui hands back `null` when the selection is cleared. */}
+      <Combobox value={address} onChange={(v) => onChange(v ?? "")}>
         <div className={s.comboWrap}>
           <Combobox.Input
             displayValue={(address: string) => address}
             autoComplete="off"
-            className="input"
+            className={error ? "input inputError" : "input"}
             value={address}
             placeholder={t(
               "send.create_send.address_input.address_placeholder"

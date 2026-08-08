@@ -68,13 +68,15 @@
       "receive_bel": "接收 BTC",
       "switch_wallet": "切换钱包",
       "transaction_info": "交易信息",
+      "overview": "概览",
       "settings": "设置",
       "show_mnemonic": "显示助记词",
       "show_private_key": "显示私钥",
       "restore_from_mnemonic": "从助记词恢复",
       "restore_from_private_key": "从私钥恢复",
       "assets": "资产",
-      "confirmation": "确认"
+      "confirmation": "确认",
+      "unwrap_overview": "解包概览"
     },
     "check_password": {
       "incorrect_password_error": "密码错误",
@@ -186,7 +188,8 @@
     "create_send": {
       "minimum_amount_error": "最小金额 - 0.00001 BTC",
       "address_error": "请输入收件人地址",
-      "not_enough_money_error": "你的账户资金不足",
+      "not_enough_money_error": "你的账户中 {{token}} 不足",
+      "available_balance": "可用：",
       "not_enough_fee_error": "请提升费用",
       "fee_is_text_error": "费用必须是数字",
       "default_error": "出现错误",
@@ -215,6 +218,15 @@
       "success": "成功",
       "explorer": "查找器",
       "back": "返回"
+    },
+    "finalle_send": {
+      "transaction_sent": "交易已发送",
+      "transfer_sent": "转账已发送",
+      "swap_sent": "兑换已发送",
+      "wrap_sent": "包装已发送",
+      "unwrap_sent": "解包已发送",
+      "view_transaction": "查看交易",
+      "close": "关闭"
     }
   },
   "switch_account": {
@@ -239,12 +251,30 @@
     "add_wallet": "添加钱包",
     "add_account": "添加账户"
   },
+  "transaction_overview": {
+    "inputs": "输入",
+    "you": "你",
+    "outputs": "输出",
+    "contract_call": "合约调用",
+    "alkane_transfer": "Alkanes 转账",
+    "result_pending": "交易结果将在确认后确定",
+    "waiting": "等待区块确认...",
+    "call_successful": "调用成功",
+    "call_reverted": "调用已回滚",
+    "protostone_message": "Protostone 消息",
+    "call_generic": "合约调用",
+    "opcode": "操作码",
+    "sat_vb": "sat/vB",
+    "decode_error": "无法解码此交易",
+    "swap_route": "兑换路径"
+  },
   "transaction_info": {
     "txid": "交易 ID",
     "confirmations_label": "确认：",
     "fee_label": "费用：",
     "value_label": "价值：",
     "open_in_explorer": "在查找器中打开",
+    "view_on_espo": "在 Espo 上查看",
     "copied": "已复制",
     "inputs": "输入",
     "outputs": "输出",
@@ -255,6 +285,8 @@
       "unwrap": "解包",
       "split": "拆分",
       "transfer": "转账",
+      "sent": "已发送",
+      "received": "已接收",
       "add_liquidity": "添加流动性",
       "remove_liquidity": "移除流动性",
       "create_pool": "创建池",
@@ -290,7 +322,8 @@
     "home": "首页",
     "swap": "兑换",
     "activity": "活动",
-    "search": "搜索"
+    "search": "搜索",
+    "unwraps": "解包"
   },
   "forgot": {
     "description": "要重置密码，您需要清除您的钱包。Espo Wallet 无法为您找回密码。",
@@ -314,5 +347,35 @@
     "trending": "热门代币",
     "no_results": "未找到代币",
     "results_for": "搜索结果"
+  },
+  "swap": {
+    "you_pay": "你支付",
+    "you_receive": "你获得",
+    "select": "选择",
+    "select_asset": "选择资产",
+    "balance": "余额",
+    "flip": "切换方向",
+    "swap_action": "兑换",
+    "enter_amount": "请输入金额",
+    "select_asset_first": "请选择资产",
+    "no_route": "该交易对没有资金池",
+    "insufficient_balance": "余额不足",
+    "building": "正在创建交易...",
+    "min_received": "最少获得",
+    "slippage": "滑点",
+    "route_via_frbtc": "通过 frBTC 路由",
+    "transaction_settings": "交易设置",
+    "max_sent": "最多发送",
+    "deadline_blocks": "有效期（区块）",
+    "transaction_fee": "交易手续费"
+  },
+  "unwraps": {
+    "title": "解包",
+    "no_unwraps": "暂无解包记录",
+    "state_unconfirmed": "未确认",
+    "state_confirmed": "已确认",
+    "state_fulfilled": "已完成",
+    "pending_fulfillment": "等待完成...",
+    "fulfillment": "完成交易"
   }
 }

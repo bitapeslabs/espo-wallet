@@ -36,6 +36,14 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
   const tokenLegs = entry.legs.filter((l) => l.assetId !== "btc");
   const pending = !entry.confirmed;
 
+  // While unconfirmed every icon variant wears the same status circle the
+  // send/receive rows use: a --panel circle holding a spinner, bottom-right.
+  const pendingBadge = pending ? (
+    <span className={cn(s.badge, s.badgePending)}>
+      <TailSpin className={s.badgeSpin} strokeWidth={6} />
+    </span>
+  ) : undefined;
+
   // Wrap/unwrap is a BTC <-> frBTC conversion: show the two as a pair, back =
   // what you give, front = what you get.
   if (entry.kind === "wrap" || entry.kind === "unwrap") {
@@ -47,6 +55,7 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
       <div className={s.pair}>
         <span className={s.pairA}>{wrap ? btc : frbtc}</span>
         <span className={s.pairB}>{wrap ? frbtc : btc}</span>
+        {pendingBadge}
       </div>
     );
   }
@@ -60,6 +69,7 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
         <span className={s.pairB}>
           <AlkaneIcon id={tokenLegs[1].assetId} symbol={sym(tokenLegs[1].assetId)} />
         </span>
+        {pendingBadge}
       </div>
     );
   }

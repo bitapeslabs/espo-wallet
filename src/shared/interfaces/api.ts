@@ -185,6 +185,24 @@ export interface IActivityEntry {
   peer?: string;
 }
 
+/** Lifecycle of a subfrost unwrap request (frBTC -> BTC). */
+export type UnwrapState = "unconfirmed" | "confirmed" | "fulfilled";
+
+/** One row of subfrost.get_unwrap_requests_by_address (or a mempool unwrap). */
+export interface IUnwrapRequest {
+  /** Txid of the unwrap transaction itself. */
+  txid: string;
+  /** The signer-anchor vout inside that tx. */
+  vout: number;
+  /** Unix seconds; 0 when unknown (mempool). */
+  timestamp: number;
+  /** Raw 8-decimal frBTC base units burned (1:1 with sats). */
+  amount: string;
+  state: UnwrapState;
+  /** The signer's BTC payout tx, once the request is fulfilled. */
+  fulfillmentTxid?: string;
+}
+
 /** Parsed ammdata.get_portfolio_stats result for one address. */
 export interface IPortfolio {
   address: string;

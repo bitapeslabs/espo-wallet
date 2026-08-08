@@ -44,6 +44,33 @@
   white-space: nowrap;
 }
 
+/* the amount input with the sent-token icon pinned inside it, on the left */
+.amountField {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.amountIcon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.amountInput {
+  width: 100%;
+}
+
+/* scoped so it outranks the global .input's padding shorthand */
+.amountField .amountInput {
+  padding-left: 44px;
+}
+
 .usdHint {
   display: block;
   margin-top: 6px;

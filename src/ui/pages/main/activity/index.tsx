@@ -3,15 +3,11 @@ import { t } from "i18next";
 import cn from "classnames";
 import { useInView } from "react-intersection-observer";
 import { useNavigate } from "react-router-dom";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import LoadingIcons, { TailSpin } from "react-loading-icons";
 import type { ActivityKind, IActivityEntry } from "@/shared/interfaces/api";
-import { useControllersState } from "@/ui/states/controllerState";
-import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAppState } from "@/ui/states/appState";
 import { useAssetManagerContext } from "@/ui/utils/assets-ctx";
-import { espoKey } from "@/ui/utils/query";
-import { networkSlug } from "@/shared/networks";
+import { useActivityFeed } from "@/ui/utils/feeds";
 import { ss } from "@/ui/utils";
 import { shortAddress } from "@/shared/utils/transactions";
 import { alkaneSymbol, formatSignedAlkaneAmount } from "@/shared/utils/alkanes";
@@ -55,11 +51,8 @@ const TITLE_KEY: Record<ActivityKind, string> = {
 
 /** The clock tab: a Phantom-style activity feed (swaps, LP, mints, sends). */
 const Activity = () => {
-  const { apiController } = useControllersState(ss(["apiController"]));
   const { network } = useAppState(ss(["network"]));
   const { portfolio } = useAssetManagerContext();
-  const currentAccount = useGetCurrentAccount();
-  const address = currentAccount?.address;
   const navigate = useNavigate();
 
   // Open the in-app transaction overview (which itself links out to the
@@ -72,35 +65,10 @@ const Activity = () => {
 
   const { ref, inView } = useInView();
 
-  // Paginated feed: fires immediately, refetches on new blocks (invalidation).
-  // History now includes mempool txs, which appear/change BETWEEN blocks, so we
-  // also poll every 10s while the tab is open; a pending send/receive then shows
-  // up without reopening the popup. Block-advance invalidation still handles the
-  // confirmed transitions.
-  const activityQuery = useInfiniteQuery({
-    queryKey: espoKey("activity", address, networkSlug(network)),
-    initialPageParam: 1,
-    queryFn: ({ pageParam }) => apiController.getActivity(address as string, pageParam),
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage && lastPage.length > 0 ? allPages.length + 1 : undefined,
-    enabled: !!address,
-    refetchInterval: 10_000,
-  });
-
-  const entries = useMemo(() => {
-    if (!activityQuery.isFetched) return undefined;
-    const seen = new Set<string>();
-    const out: IActivityEntry[] = [];
-    for (const page of activityQuery.data?.pages ?? []) {
-      for (const e of page ?? []) {
-        if (!seen.has(e.txid)) {
-          seen.add(e.txid);
-          out.push(e);
-        }
-      }
-    }
-    return out;
-  }, [activityQuery.data, activityQuery.isFetched]);
+  // The shared feed (same cache the Unwraps tab and the unread watcher use):
+  // espo's paginated history, polled every 10s, with the wallet's own
+  // just-broadcast txs merged on top before espo indexes them.
+  const { query: activityQuery, entries } = useActivityFeed();
 
   const loadingMore = activityQuery.isFetchingNextPage;
 

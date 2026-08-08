@@ -97,7 +97,15 @@ export default function PagesLayout() {
         },
         {
           route: "/pages/transaction-info/@",
-          title: t("components.layout.transaction_info"),
+          title: t("components.layout.overview"),
+        },
+        {
+          route: "/pages/unwrap-info/@",
+          title: t("components.layout.unwrap_overview"),
+        },
+        {
+          route: "/pages/confirm-swap",
+          title: t("components.layout.overview"),
         },
         {
           route: "/pages/settings",
@@ -187,7 +195,7 @@ export default function PagesLayout() {
             });
           },
           route: "/pages/confirm-send",
-          title: t("components.layout.send"),
+          title: t("components.layout.overview"),
         },
         {
           route: "/pages/switch-account",

@@ -12,12 +12,61 @@ import type {
   ITransaction,
   Vin,
   Vout,
+  IUnwrapRequest,
 } from "@/shared/interfaces/api";
 import { espoRpc, espoRpcBatch, EspoRpcError } from "@/shared/utils";
 import { KNOWN_ALKANES, VERIFIED_TOKEN_IDS } from "@/shared/utils/alkanes";
 import { storageService } from "../services";
 import { DEFAULT_FEES } from "@/shared/constant";
 import { networkInfo, networkSlug } from "@/shared/networks";
+import { espoProvider } from "../services/espoProvider";
+import { decodeCellpackHex } from "@/shared/utils/cellpack";
+import {
+  DEFAULT_POOL_FEE_PER_1000,
+  FRBTC_ALKANE_ID,
+  FRBTC_PREMIUM_DENOMINATOR,
+  alkaneIdKey,
+  applyFrbtcPremium,
+  DEFAULT_FRBTC_PREMIUM,
+  getFrbtcPremium,
+  quoteExactIn,
+  quoteExactOut,
+  isBoxedError,
+} from "alkanesjs";
+
+/** A quote for one side of the swap form. */
+export interface ISwapQuote {
+  /** Raw 8-decimal amount the user pays. */
+  amountIn: string;
+  /** Raw 8-decimal amount the user receives. */
+  amountOut: string;
+  /** The AMM pool used for the swap leg, if any ("block:tx"). */
+  poolId?: string;
+  /**
+   * FULL token path of the AMM leg (sell first, buy last, BTC mapped onto
+   * frBTC), e.g. ["32:0", "2:0"] or a multi-hop route from espo.
+   */
+  path?: string[];
+  /** Whether the route hops through frBTC (BTC<->token). */
+  viaFrbtc: boolean;
+}
+
+/** One pool as indexed by espo's ammdata module (reserves are live). */
+interface EspoPool {
+  base: string;
+  base_reserve: string;
+  quote: string;
+  quote_reserve: string;
+  source?: string;
+}
+
+interface EspoPoolsResult {
+  ok: boolean;
+  pools?: Record<string, EspoPool>;
+  has_more?: boolean;
+  page?: number;
+  total?: number;
+}
 
 export interface UtxoQueryParams {
   hex?: boolean;
@@ -41,7 +90,21 @@ export interface IApiController {
   getAccountStats(address: string): Promise<IAccountStats | undefined>;
   getTransactionHex(txid: string): Promise<string | undefined>;
   getTransaction(txid: string): Promise<ITransaction | undefined>;
+  getEnrichedTx(txid: string): Promise<EspoEnrichedTx | undefined>;
+  getTxTraceStatus(
+    txid: string
+  ): Promise<"success" | "reverted" | "pending" | "none">;
   getUtxoValues(outpoints: string[]): Promise<number[] | undefined>;
+  getOutpointAlkanes(
+    outpoints: string[]
+  ): Promise<Record<string, { alkane: string; amount: string }[]>>;
+  getOutpointValues(outpoints: string[]): Promise<Record<string, number>>;
+  getSwapQuote(
+    fromId: string,
+    toId: string,
+    rawAmount: string,
+    exactOut?: boolean
+  ): Promise<ISwapQuote | undefined>;
   getPortfolioStats(address: string): Promise<IPortfolio | undefined>;
   getActivity(
     address: string,
@@ -53,12 +116,45 @@ export interface IApiController {
     limit: number
   ): Promise<ICandle[] | undefined>;
   getAlkaneMeta(assetId: string): Promise<IAlkaneMeta | undefined>;
+  getAlkaneInfo(id: string): Promise<
+    | { name?: string; methods: { opcode: number; name: string }[]; factory?: string }
+    | undefined
+  >;
   getTrendingTokens(): Promise<ITokenSummary[] | undefined>;
   searchTokens(prefix: string): Promise<ITokenSummary[] | undefined>;
+  getUnwrapRequests(
+    address: string,
+    page: number
+  ): Promise<IUnwrapRequest[] | undefined>;
+  getPoolTokenIds(): Promise<string[] | undefined>;
+  getProjectionData(): Promise<
+    | {
+        signerScriptHex?: string;
+        pools: Record<
+          string,
+          { base: string; quote: string; baseReserve: string; quoteReserve: string }
+        >;
+      }
+    | undefined
+  >;
+}
+
+/** Espo's Upgradeable-proxy fingerprint: initialize@32767 + forward@36863. */
+function isUpgradeableProxy(
+  methods: { opcode: number; name: string }[]
+): boolean {
+  const has = (name: string, opcode: number) =>
+    methods.some(
+      (m) => m.opcode === opcode && m.name.toLowerCase() === name
+    );
+  return has("initialize", 32767) && has("forward", 36863);
 }
 
 /** Number of transactions fetched per history page. */
 const TX_PAGE_LIMIT = 50;
+
+/** Number of unwrap requests fetched per page. */
+const UNWRAP_PAGE_LIMIT = 20;
 /** espo scales its BTC/USD price by 10^16 (PRICE_SCALE_DECIMALS). */
 const PRICE_SCALE = 1e16;
 
@@ -161,7 +257,7 @@ interface EspoSpendableOutpointsResult {
 }
 
 /** One input of an enriched espo transaction. */
-interface EspoTxInput {
+export interface EspoTxInput {
   txid: string;
   vout: number;
   amount?: number;
@@ -170,7 +266,7 @@ interface EspoTxInput {
 }
 
 /** One output of an enriched espo transaction. */
-interface EspoTxOutput {
+export interface EspoTxOutput {
   amount: number;
   scriptPubKey: string;
   address?: string;
@@ -178,20 +274,21 @@ interface EspoTxOutput {
 }
 
 /** A protorune edict: transfer `amount` of alkane `id` to output vout `output`. */
-interface EspoEdict {
+export interface EspoEdict {
   id: { block: number; tx: number };
   amount: number;
   output: number;
 }
 
-interface EspoProtostone {
+export interface EspoProtostone {
   edicts?: EspoEdict[];
   pointer?: number | null;
+  /** Hex-encoded cellpack bytes (empty string when a plain transfer). */
   message?: string;
 }
 
 /** An enriched transaction as returned by essentials.get_address_transactions. */
-interface EspoEnrichedTx {
+export interface EspoEnrichedTx {
   txid: string;
   blockHeight: number | null;
   confirmations: number | null;
@@ -284,6 +381,12 @@ const ACTIVITY_KINDS: ReadonlySet<string> = new Set([
 ]);
 
 /** A single espo trace event ({event:"invoke"|"create"|"return"|...}). */
+/** An alkane amount inside a trace ({id, value} with hex fields). */
+interface EspoTraceAlkane {
+  id?: { block?: string; tx?: string };
+  value?: string;
+}
+
 interface EspoTraceEvent {
   event?: string;
   data?: {
@@ -292,7 +395,17 @@ interface EspoTraceEvent {
       myself?: { block?: string; tx?: string };
       /** Call inputs; inputs[0] is the opcode (hex string). */
       inputs?: string[];
+      /** Alkanes flowing INTO this frame. */
+      incomingAlkanes?: EspoTraceAlkane[];
     };
+    /** On a `return` event, the alkanes the frame hands back. */
+    response?: { alkanes?: EspoTraceAlkane[] };
+    /**
+     * On a `return` event, the frame's exit status. espo serializes
+     * EspoSandshrewLikeTraceStatus with `rename_all = "lowercase"`, so this is
+     * "success" | "failure".
+     */
+    status?: string;
   };
 }
 
@@ -349,10 +462,11 @@ function activityFromOutflow(
   const legs: IActivityLeg[] = Object.entries(summary.net)
     .filter(([, amt]) => amt !== 0)
     .map(([id, amt]) => ({ assetId: id, delta: String(-amt) }));
-  if (!legs.length) return undefined;
   // frBTC wrap (BTC -> frBTC, net +frBTC) / unwrap (frBTC -> BTC, net -frBTC),
-  // identified from the trace regardless of the net leg count.
+  // identified from the trace regardless of the net leg count (an unwrap often
+  // has an empty net outflow — the leg is recovered from the trace upstream).
   if (summary.frbtc) return { kind: summary.frbtc, legs };
+  if (!legs.length) return undefined;
   // A trace-confirmed AMM swap.
   if (summary.isSwap) return { kind: "buy", legs };
   const hasIn = legs.some((l) => !l.delta.startsWith("-"));
@@ -361,6 +475,45 @@ function activityFromOutflow(
   // router), not a swap: leave it "other".
   if (hasIn && hasOut) return undefined;
   return { kind: hasIn ? "receive" : "send", legs };
+}
+
+/**
+ * Classify a wrap/unwrap from the protostone's cellpack ALONE, without traces.
+ * A tx still in the mempool has no espo summary, so a wrap ([77] on 32:0) or
+ * unwrap ([78, vout, amount]) would otherwise sit as "App Interaction" until
+ * its first confirmation. The wrap amount is what the tx pays to scripts the
+ * address does not own (the signer output), minus the standard premium; the
+ * unwrap amount is right in the cellpack.
+ */
+function frbtcCellpackActivity(
+  tx: EspoEnrichedTx,
+  address: string
+): { kind: ActivityKind; legs: IActivityLeg[] } | undefined {
+  for (const ps of tx.runestone?.protostones ?? []) {
+    if (!ps.message) continue;
+    const cell = decodeCellpackHex(ps.message);
+    if (!cell || cell.target.block !== 32n || cell.target.tx !== 0n) continue;
+
+    if (cell.opcode === 77n) {
+      const paid = (tx.outputs ?? [])
+        .filter((o) => o.address && o.address !== address)
+        .reduce((acc, o) => acc + (o.amount ?? 0), 0);
+      if (paid <= 0) return undefined;
+      const minted = applyFrbtcPremium(BigInt(paid), DEFAULT_FRBTC_PREMIUM);
+      return {
+        kind: "wrap",
+        legs: [{ assetId: "32:0", delta: minted.toString() }],
+      };
+    }
+
+    if (cell.opcode === 78n && cell.inputs.length >= 2) {
+      return {
+        kind: "unwrap",
+        legs: [{ assetId: "32:0", delta: `-${cell.inputs[1]}` }],
+      };
+    }
+  }
+  return undefined;
 }
 
 /** True when an outpoint carries no alkanes or runes and is safe to spend as BTC. */
@@ -816,7 +969,7 @@ class ApiController implements IApiController {
     // a plain send/receive. A pure TRANSFER (edicts/pointer, NO message) that
     // stayed "other" is a "transfer all" (amount 0) or pointer we resolve from
     // the destination output's alkane balance.
-    const needSummary: IActivityEntry[] = [];
+    const needSummary: { entry: IActivityEntry; tx: EspoEnrichedTx }[] = [];
     const needTransfer: { entry: IActivityEntry; tx: EspoEnrichedTx }[] = [];
     for (const tx of rawTxs.transactions) {
       if (seen.has(tx.txid)) continue;
@@ -825,16 +978,20 @@ class ApiController implements IApiController {
       const protostones = tx.runestone?.protostones ?? [];
       if (!protostones.length) continue;
       if (protostones.some((p) => p.message && p.message.length > 0)) {
-        needSummary.push(entry);
+        needSummary.push({ entry, tx });
       } else if (entry.kind === "other") {
         needTransfer.push({ entry, tx });
       }
     }
 
     await Promise.all([
-      ...needSummary.map(async (entry) => {
+      ...needSummary.map(async ({ entry, tx }) => {
         const summary = await this.alkaneTxSummary(entry.txid);
-        const inferred = summary && activityFromOutflow(summary);
+        // A mempool tx has no summary yet; a frBTC wrap/unwrap is still fully
+        // classifiable from its cellpack so it never flashes "App Interaction".
+        const inferred =
+          (summary && activityFromOutflow(summary)) ??
+          frbtcCellpackActivity(tx, address);
         if (inferred) {
           entry.kind = inferred.kind;
           entry.legs = inferred.legs;
@@ -1002,6 +1159,117 @@ class ApiController implements IApiController {
     }
   }
 
+  /**
+   * The contract ABI/creation display info for an alkane via
+   * essentials.get_alkane_info. Mirrors espo's explorer name/method resolution:
+   * the display name is inspection.metadata.name (the ABI name) when non-empty,
+   * else the top-level creation-record name; each method exposes its opcode +
+   * name so a contract call can be labelled. Full upgradeable-proxy resolution
+   * (following /implementation to another alkane's ABI) is NOT exposed here, so
+   * a proxy's own ABI (e.g. the Oyl AMM at 4:65522) is empty — callers keep the
+   * hardcoded overrides/opcode fallbacks for those.
+   */
+  async getAlkaneInfo(
+    id: string
+  ): Promise<
+    | { name?: string; methods: { opcode: number; name: string }[]; factory?: string }
+    | undefined
+  > {
+    const direct = await this.alkaneInfoOnce(id);
+    if (!direct) return undefined;
+    /*
+      An Upgradeable proxy's own ABI is just initialize/upgrade/forward; the
+      real contract lives at the alkane its /implementation (or /beacon)
+      storage slot points to. Espo resolves it the same way (tx_view.rs), so a
+      factory call shows "swap_exact_tokens_for_tokens" instead of the proxy.
+    */
+    if (isUpgradeableProxy(direct.methods)) {
+      const implId = await this.proxyImplementation(id);
+      if (implId && implId !== id) {
+        const impl = await this.alkaneInfoOnce(implId);
+        if (impl && impl.methods.length) {
+          return {
+            name: impl.name ?? direct.name,
+            methods: impl.methods,
+            factory: direct.factory,
+          };
+        }
+      }
+    }
+    return direct;
+  }
+
+  /** One get_alkane_info fetch, no proxy chasing. */
+  private async alkaneInfoOnce(
+    id: string
+  ): Promise<
+    | { name?: string; methods: { opcode: number; name: string }[]; factory?: string }
+    | undefined
+  > {
+    try {
+      const res = await this.call<{
+        ok?: boolean;
+        name?: string;
+        inspection?: {
+          metadata?: {
+            name?: string;
+            methods?: { name?: string; opcode?: number | string }[];
+          } | null;
+          factory_alkane?: string | null;
+        } | null;
+      }>("essentials.get_alkane_info", { alkane: id });
+      if (!res?.ok) return undefined;
+      const meta = res.inspection?.metadata ?? undefined;
+      const abiName = meta?.name && meta.name.length ? meta.name : undefined;
+      const methods: { opcode: number; name: string }[] = (meta?.methods ?? [])
+        .filter((m) => m.name != null && m.opcode != null)
+        .map((m) => ({ opcode: Number(BigInt(m.opcode!)), name: String(m.name) }));
+      return {
+        name: abiName ?? (res.name || undefined),
+        methods,
+        factory: res.inspection?.factory_alkane ?? undefined,
+      };
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * The implementation id behind an Upgradeable proxy: the /implementation
+   * (fallback /beacon) storage slot, 32 bytes of two little-endian u128s.
+   */
+  private async proxyImplementation(id: string): Promise<string | undefined> {
+    try {
+      const res = await this.call<{
+        ok?: boolean;
+        items?: Record<string, { value_hex?: string | null }>;
+      }>("essentials.get_keys", {
+        alkane: id,
+        keys: ["/implementation", "/beacon"],
+      });
+      if (!res?.ok || !res.items) return undefined;
+      const hex = (
+        res.items["/implementation"]?.value_hex ||
+        res.items["/beacon"]?.value_hex ||
+        ""
+      ).replace(/^0x/, "");
+      if (hex.length < 64) return undefined;
+      const le = (h: string) => {
+        let v = 0n;
+        for (let i = h.length - 2; i >= 0; i -= 2) {
+          v = (v << 8n) | BigInt(parseInt(h.slice(i, i + 2), 16));
+        }
+        return v;
+      };
+      const block = le(hex.slice(0, 32));
+      const tx = le(hex.slice(32, 64));
+      if (block > 0xffffffffn || tx > 0xffffffffffffffffn) return undefined;
+      return `${block}:${tx}`;
+    } catch {
+      return undefined;
+    }
+  }
+
   /** Whitelisted tokens with price/mcap/24h-change, ranked by 24h volume. */
   async getTrendingTokens(): Promise<ITokenSummary[] | undefined> {
     const bases = TRENDING_TOKEN_IDS.map((id) => ({
@@ -1044,6 +1312,117 @@ class ApiController implements IApiController {
         symbol: (i.symbol || i.name || i.alkane).toUpperCase(),
       }));
       return this.tokenSummaries(bases);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Everything the UI's contract projection (espo's mempool estimation model,
+   * ported for frBTC + the AMM) needs: the live signer script and every
+   * pool's pair + reserves. One get_pools sweep + one get_signer call.
+   */
+  async getProjectionData(): Promise<
+    | {
+        signerScriptHex?: string;
+        pools: Record<
+          string,
+          { base: string; quote: string; baseReserve: string; quoteReserve: string }
+        >;
+      }
+    | undefined
+  > {
+    try {
+      const [pools, signer] = await Promise.all([
+        this.allPools().catch(() => ({}) as Record<string, EspoPool>),
+        this.call<{ ok: boolean; script_pubkey?: string }>(
+          "subfrost.get_signer"
+        ).catch(() => undefined),
+      ]);
+      const mapped: Record<
+        string,
+        { base: string; quote: string; baseReserve: string; quoteReserve: string }
+      > = {};
+      for (const [id, p] of Object.entries(pools)) {
+        mapped[id] = {
+          base: p.base,
+          quote: p.quote,
+          baseReserve: p.base_reserve ?? "0",
+          quoteReserve: p.quote_reserve ?? "0",
+        };
+      }
+      return {
+        ...(signer?.ok && signer.script_pubkey
+          ? {
+              signerScriptHex: signer.script_pubkey
+                .replace(/^0x/, "")
+                .toLowerCase(),
+            }
+          : {}),
+        pools: mapped,
+      };
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Every token id ("block:tx") that sits in at least one AMM pool - the set
+   * of assets that can actually be swapped. Derived from ammdata.get_pools.
+   */
+  async getPoolTokenIds(): Promise<string[] | undefined> {
+    try {
+      const pools = await this.allPools();
+      const ids = new Set<string>();
+      for (const p of Object.values(pools)) {
+        if (p.base) ids.add(p.base);
+        if (p.quote) ids.add(p.quote);
+      }
+      return [...ids];
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * The address's subfrost unwrap requests (frBTC -> BTC), newest first, one
+   * page of UNWRAP_PAGE_LIMIT. Espo only indexes CONFIRMED unwraps, so every
+   * row here is "confirmed" or "fulfilled"; mempool unwraps (the "unconfirmed"
+   * state) are surfaced by the caller from the activity feed instead.
+   * NOTE: the subfrost module's success envelope has NO `ok` field.
+   */
+  async getUnwrapRequests(
+    address: string,
+    page: number
+  ): Promise<IUnwrapRequest[] | undefined> {
+    try {
+      const res = await this.call<{
+        ok?: boolean;
+        error?: string;
+        items?: {
+          txid: string;
+          vout: number;
+          timestamp: number;
+          amount: string;
+          address_spk: string;
+          fulfilled: boolean;
+          fulfillment_tx: string | null;
+        }[];
+        total?: number;
+      }>("subfrost.get_unwrap_requests_by_address", {
+        address,
+        count: UNWRAP_PAGE_LIMIT,
+        offset: (page - 1) * UNWRAP_PAGE_LIMIT,
+      });
+      if (res?.ok === false || !Array.isArray(res?.items)) return undefined;
+      return res.items.map((r) => ({
+        txid: r.txid,
+        vout: r.vout,
+        timestamp: r.timestamp,
+        amount: String(r.amount),
+        state: r.fulfilled ? ("fulfilled" as const) : ("confirmed" as const),
+        ...(r.fulfillment_tx ? { fulfillmentTxid: r.fulfillment_tx } : {}),
+      }));
     } catch {
       return undefined;
     }
@@ -1110,7 +1489,6 @@ class ApiController implements IApiController {
           net[id] = (net[id] ?? 0) + Number(amt);
         }
       }
-      if (!Object.keys(net).length) return undefined;
       const events = (res.traces ?? []).flatMap(
         (tr) => tr.events ?? tr.trace?.events ?? []
       );
@@ -1134,6 +1512,46 @@ class ApiController implements IApiController {
           isSwap = true;
         }
       }
+      // A frBTC wrap/unwrap burns/mints frBTC against BTC, so get_alkane_tx_summary
+      // frequently reports NO net alkane outflow (empty `outflows`). Recover the
+      // frBTC amount from the trace: what entered the frBTC frame minus what it
+      // returned, so the entry still carries a leg AND classifies as wrap/unwrap.
+      if (frbtc && net[FRBTC_ID] === undefined) {
+        const sumFrbtc = (arr?: EspoTraceAlkane[]) =>
+          (arr ?? []).reduce((acc, x) => {
+            const b = parseInt(x.id?.block ?? "", 16);
+            const tx = parseInt(x.id?.tx ?? "", 16);
+            return b === FRBTC_CONTRACT.block && tx === FRBTC_CONTRACT.tx
+              ? acc + parseInt(x.value ?? "0", 16)
+              : acc;
+          }, 0);
+        let incoming = 0;
+        let returned = 0;
+        for (const e of events) {
+          if (e.event === "invoke") {
+            const m = e.data?.context?.myself;
+            if (
+              m &&
+              parseInt(m.block ?? "", 16) === FRBTC_CONTRACT.block &&
+              parseInt(m.tx ?? "", 16) === FRBTC_CONTRACT.tx
+            ) {
+              incoming += sumFrbtc(e.data?.context?.incomingAlkanes);
+            }
+          } else if (e.event === "return") {
+            returned = sumFrbtc(e.data?.response?.alkanes); // last return wins
+          }
+        }
+        const delta = incoming - returned;
+        if (delta !== 0) net[FRBTC_ID] = delta;
+      }
+      if (
+        !Object.keys(net).length &&
+        !frbtc &&
+        !isSwap &&
+        !hasCreate
+      ) {
+        return undefined;
+      }
       return { net, hasCreate, frbtc, isSwap };
     } catch {
       return undefined;
@@ -1141,6 +1559,363 @@ class ApiController implements IApiController {
   }
 
   /** Alkane balances {id: amount} sitting at an outpoint (empty once spent). */
+  /**
+   * Alkane balances for a set of outpoints ("txid:vout"), keyed by outpoint,
+   * with amounts as raw 8-decimal strings (u128-safe). Used by the transaction
+   * overview to show what each input holds. Missing/empty outpoints are omitted.
+   */
+  async getOutpointAlkanes(
+    outpoints: string[]
+  ): Promise<Record<string, { alkane: string; amount: string }[]>> {
+    const out: Record<string, { alkane: string; amount: string }[]> = {};
+    await Promise.all(
+      outpoints.map(async (outpoint) => {
+        try {
+          const res = await this.call<{
+            ok: boolean;
+            items?: { entries?: { alkane: string; amount: string }[] }[];
+          }>("essentials.get_outpoint_balances", { outpoint });
+          if (!res?.ok || !Array.isArray(res.items)) return;
+          const entries: { alkane: string; amount: string }[] = [];
+          for (const it of res.items) {
+            for (const e of it.entries ?? []) {
+              entries.push({ alkane: e.alkane, amount: String(e.amount) });
+            }
+          }
+          if (entries.length) out[outpoint] = entries;
+        } catch {
+          // per-outpoint failures are non-fatal
+        }
+      })
+    );
+    return out;
+  }
+
+  /**
+   * BTC value (sats) for each requested outpoint, keyed by outpoint. Reads the
+   * current account's spendable outpoints WITHOUT the pure-BTC filter, so an
+   * alkane-bearing input still reports its sat value (unlike getUtxoValues).
+   */
+  /**
+   * Every AMM pool with its live reserves, from espo's ammdata index. This
+   * deliberately avoids simulating the factory (opcode 2 / 97): simulation is
+   * unreliable on some nodes, and espo already indexes pools + reserves.
+   */
+  private async allPools(): Promise<Record<string, EspoPool>> {
+    const pools: Record<string, EspoPool> = {};
+    for (let page = 1; page <= 10; page++) {
+      const res = await this.call<EspoPoolsResult>("ammdata.get_pools", {
+        page,
+        limit: 500,
+      });
+      if (!res?.ok || !res.pools) break;
+      Object.assign(pools, res.pools);
+      if (!res.has_more) break;
+    }
+    return pools;
+  }
+
+  /**
+   * A pool alkane's live reserves: its own on-chain alkane balances, keyed by
+   * token id ("block:tx"). Preferred over the indexed reserve snapshot.
+   */
+  private async poolReserves(
+    poolId: string
+  ): Promise<Record<string, string> | undefined> {
+    try {
+      const res = await this.call<{
+        ok: boolean;
+        balances?: Record<string, string>;
+      }>("essentials.get_alkane_balances", { alkane: poolId });
+      if (!res?.ok || !res.balances) return undefined;
+      return res.balances;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * The pool holding exactly this unordered pair, with reserves oriented. The
+   * pair mapping comes from the pool index, but the RESERVES are read live from
+   * the pool's own alkane balances — and since that map is keyed by token id,
+   * the in/out orientation is unambiguous (no base/quote guessing).
+   */
+  private async findPool(
+    sellId: string,
+    buyId: string
+  ): Promise<
+    { poolId: string; reserveIn: bigint; reserveOut: bigint } | undefined
+  > {
+    const pools = await this.allPools();
+    for (const [poolId, p] of Object.entries(pools)) {
+      const pair = new Set([p.base, p.quote]);
+      if (!pair.has(sellId) || !pair.has(buyId)) continue;
+
+      const balances = await this.poolReserves(poolId);
+      if (!balances) continue;
+      const reserveIn = BigInt(balances[sellId] ?? "0");
+      const reserveOut = BigInt(balances[buyId] ?? "0");
+      if (reserveIn <= 0n || reserveOut <= 0n) continue;
+
+      return { poolId, reserveIn, reserveOut };
+    }
+    return undefined;
+  }
+
+  /**
+   * The best multi-hop route for a pair from espo's ammdata pathfinder, as
+   * {path (token ids, sell..buy), pools (one per hop)}. Falls back to the
+   * direct pair when the RPC is unavailable or returns nothing.
+   */
+  private async bestSwapRoute(
+    sellId: string,
+    buyId: string,
+    amount: bigint,
+    exactOut: boolean
+  ): Promise<{ path: string[]; pools: string[] } | undefined> {
+    try {
+      const res = await this.call<{
+        ok?: boolean;
+        hops?: {
+          pool: string;
+          token_in: string;
+          token_out: string;
+        }[];
+      }>("ammdata.find_best_swap_path", {
+        mode: exactOut ? "exact_out" : "exact_in",
+        token_in: sellId,
+        token_out: buyId,
+        ...(exactOut
+          ? { amount_out: amount.toString() }
+          : { amount_in: amount.toString() }),
+      });
+      if (
+        res?.ok &&
+        Array.isArray(res.hops) &&
+        res.hops.length &&
+        res.hops[0].token_in === sellId &&
+        res.hops[res.hops.length - 1].token_out === buyId
+      ) {
+        return {
+          path: [sellId, ...res.hops.map((h) => h.token_out)],
+          pools: res.hops.map((h) => h.pool),
+        };
+      }
+    } catch {
+      // fall through to the direct pair
+    }
+    const direct = await this.findPool(sellId, buyId);
+    if (!direct) return undefined;
+    return { path: [sellId, buyId], pools: [direct.poolId] };
+  }
+
+  /**
+   * Emulate a route hop by hop against each pool's LIVE reserves
+   * (get_alkane_balances). Exact-in walks forward; exact-out walks backward
+   * through quoteExactOut so the returned input actually covers the request.
+   */
+  private async emulateSwapPath(
+    pools: string[],
+    path: string[],
+    amount: bigint,
+    exactOut: boolean
+  ): Promise<{ amountIn: bigint; amountOut: bigint } | undefined> {
+    if (pools.length !== path.length - 1 || amount <= 0n) return undefined;
+    const balances = await Promise.all(
+      pools.map((poolId) => this.poolReserves(poolId))
+    );
+    const reserveAt = (hop: number): [bigint, bigint] | undefined => {
+      const b = balances[hop];
+      if (!b) return undefined;
+      const rIn = BigInt(b[path[hop]] ?? "0");
+      const rOut = BigInt(b[path[hop + 1]] ?? "0");
+      return rIn > 0n && rOut > 0n ? [rIn, rOut] : undefined;
+    };
+    const feePer1000 = DEFAULT_POOL_FEE_PER_1000;
+
+    if (!exactOut) {
+      let amt = amount;
+      for (let i = 0; i < pools.length; i++) {
+        const r = reserveAt(i);
+        if (!r) return undefined;
+        amt = quoteExactIn({
+          amountIn: amt,
+          reserveIn: r[0],
+          reserveOut: r[1],
+          feePer1000,
+        });
+        if (amt <= 0n) return undefined;
+      }
+      return { amountIn: amount, amountOut: amt };
+    }
+
+    let amt = amount;
+    for (let i = pools.length - 1; i >= 0; i--) {
+      const r = reserveAt(i);
+      if (!r) return undefined;
+      if (amt >= r[1]) return undefined;
+      amt = quoteExactOut({
+        amountOut: amt,
+        reserveIn: r[0],
+        reserveOut: r[1],
+        feePer1000,
+      });
+      if (amt <= 0n) return undefined;
+    }
+    return { amountIn: amt, amountOut: amount };
+  }
+
+  /**
+   * Quote one side of the swap form, in either direction.
+   *
+   * `exactOut: false` (default) treats `rawAmount` as what the user pays and
+   * returns what they receive; `exactOut: true` treats it as the amount they
+   * want to receive and returns the input required.
+   *
+   * BTC is not an alkane, so a BTC leg routes through frBTC: BTC->token wraps
+   * first (minus the wrap premium) then swaps, token->BTC swaps to frBTC then
+   * unwraps 1:1. A BTC<->frBTC pair has no pool leg at all. Returns undefined
+   * when no pool exists for the pair.
+   */
+  async getSwapQuote(
+    fromId: string,
+    toId: string,
+    rawAmount: string,
+    exactOut = false
+  ): Promise<ISwapQuote | undefined> {
+    try {
+      const amount = BigInt(rawAmount);
+      if (amount <= 0n) return undefined;
+
+      const frbtcKey = alkaneIdKey(FRBTC_ALKANE_ID);
+      const fromIsBtc = fromId === "btc";
+      const toIsBtc = toId === "btc";
+      if (fromIsBtc && toIsBtc) return undefined;
+
+      const provider = espoProvider();
+      const premiumOf = async () => {
+        const p = await getFrbtcPremium(provider);
+        return isBoxedError(p) ? 0n : p.data;
+      };
+
+      // BTC -> frBTC is a plain wrap (premium deducted); frBTC -> BTC is a 1:1
+      // unwrap. Neither touches a pool.
+      if (fromIsBtc && toId === frbtcKey) {
+        const premium = await premiumOf();
+        if (exactOut) {
+          // Gross the requested output back up through the premium.
+          const denom = FRBTC_PREMIUM_DENOMINATOR;
+          const grossed =
+            premium > 0n
+              ? (amount * denom + (denom - premium) - 1n) / (denom - premium)
+              : amount;
+          return {
+            amountIn: grossed.toString(),
+            amountOut: amount.toString(),
+            viaFrbtc: true,
+          };
+        }
+        return {
+          amountIn: amount.toString(),
+          amountOut: applyFrbtcPremium(amount, premium).toString(),
+          viaFrbtc: true,
+        };
+      }
+      if (fromId === frbtcKey && toIsBtc) {
+        return {
+          amountIn: amount.toString(),
+          amountOut: amount.toString(),
+          viaFrbtc: true,
+        };
+      }
+
+      // Everything else has an AMM leg. Map each BTC side onto frBTC.
+      const sellId = fromIsBtc ? frbtcKey : fromId;
+      const buyId = toIsBtc ? frbtcKey : toId;
+      if (sellId === buyId) return undefined;
+
+      if (exactOut) {
+        // The route must output exactly what the user asked for (token->BTC
+        // unwraps 1:1, so the route target equals the requested BTC).
+        const route = await this.bestSwapRoute(sellId, buyId, amount, true);
+        if (!route) return undefined;
+        const legs = await this.emulateSwapPath(
+          route.pools,
+          route.path,
+          amount,
+          true
+        );
+        if (!legs) return undefined;
+        // A BTC input is wrapped first, so gross the route input up through
+        // the premium to get the BTC the user must actually pay.
+        let amountIn = legs.amountIn;
+        if (fromIsBtc) {
+          const premium = await premiumOf();
+          const denom = FRBTC_PREMIUM_DENOMINATOR;
+          amountIn =
+            premium > 0n
+              ? (amountIn * denom + (denom - premium) - 1n) / (denom - premium)
+              : amountIn;
+        }
+        return {
+          amountIn: amountIn.toString(),
+          amountOut: amount.toString(),
+          poolId: route.pools[0],
+          path: route.path,
+          viaFrbtc: fromIsBtc || toIsBtc,
+        };
+      }
+
+      // Exact-in: a BTC input is wrapped first, so the route only ever sees
+      // the post-premium amount.
+      let poolIn = amount;
+      if (fromIsBtc) poolIn = applyFrbtcPremium(amount, await premiumOf());
+
+      const route = await this.bestSwapRoute(sellId, buyId, poolIn, false);
+      if (!route) return undefined;
+      const legs = await this.emulateSwapPath(
+        route.pools,
+        route.path,
+        poolIn,
+        false
+      );
+      if (!legs) return undefined;
+
+      return {
+        amountIn: amount.toString(),
+        amountOut: legs.amountOut.toString(),
+        poolId: route.pools[0],
+        path: route.path,
+        viaFrbtc: fromIsBtc || toIsBtc,
+      };
+    } catch {
+      return undefined;
+    }
+  }
+
+  async getOutpointValues(
+    outpoints: string[]
+  ): Promise<Record<string, number>> {
+    const address = storageService.currentAccount?.address;
+    if (!address) return {};
+    try {
+      const res = await this.call<EspoSpendableOutpointsResult>(
+        "essentials.get_address_spendable_outpoints",
+        { address, omit_raw_tx: true }
+      );
+      if (!res?.ok || !Array.isArray(res.outpoints)) return {};
+      const byOutpoint = new Map(res.outpoints.map((o) => [o.outpoint, o.value]));
+      const out: Record<string, number> = {};
+      for (const op of outpoints) {
+        const v = byOutpoint.get(op);
+        if (v != null) out[op] = v;
+      }
+      return out;
+    } catch {
+      return {};
+    }
+  }
+
   private async outpointAlkanes(
     outpoint: string
   ): Promise<Record<string, number> | undefined> {
@@ -1259,6 +2034,52 @@ class ApiController implements IApiController {
     if (!address) return undefined;
     const txs = await this.fetchTransactions(address, 1);
     return txs?.find((t) => t.txid === txid);
+  }
+
+  /**
+   * The raw espo enriched transaction for a txid (inputs/outputs with real
+   * addresses + sat values, and the decoded runestone protostones). espo has no
+   * arbitrary-txid lookup, so this resolves from the current account's history
+   * (page 1, mempool-inclusive) — the only context the tx overview needs it for.
+   */
+  async getEnrichedTx(txid: string): Promise<EspoEnrichedTx | undefined> {
+    const address = storageService.currentAccount?.address;
+    if (!address) return undefined;
+    const res = await this.callAddressTxs(address, 1, TX_PAGE_LIMIT);
+    if (!res?.ok || !Array.isArray(res.transactions)) return undefined;
+    return res.transactions.find((t) => t.txid === txid);
+  }
+
+  /**
+   * The alkane trace outcome for a confirmed tx via get_alkane_tx_summary. Walks
+   * every trace's flattened events; the LAST `return` event's status decides it —
+   * espo serializes the status lowercase ("success" | "failure"), so a "failure"
+   * (or any non-success) return is a revert. No traces / no return event → "none"
+   * (the overview then shows no status line for a plain data tx).
+   */
+  async getTxTraceStatus(
+    txid: string
+  ): Promise<"success" | "reverted" | "pending" | "none"> {
+    try {
+      const res = await this.call<EspoTxSummary>(
+        "essentials.get_alkane_tx_summary",
+        { txid }
+      );
+      if (!res?.ok || !Array.isArray(res.traces)) return "none";
+      const events = res.traces.flatMap(
+        (tr) => tr.events ?? tr.trace?.events ?? []
+      );
+      let last: string | undefined;
+      for (const e of events) {
+        if ((e.event ?? "").toLowerCase() !== "return") continue;
+        const status = e.data?.status;
+        if (typeof status === "string") last = status.toLowerCase();
+      }
+      if (last === undefined) return "none";
+      return last === "success" ? "success" : "reverted";
+    } catch {
+      return "none";
+    }
   }
 
   async getTransactionHex(txid: string) {

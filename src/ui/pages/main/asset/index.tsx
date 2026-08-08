@@ -267,7 +267,20 @@ const Asset = () => {
           label={t("wallet_page.send")}
         />
         <SquareAction
-          onClick={() => navigate("/swap")}
+          onClick={() =>
+            navigate("/swap", {
+              state: cardAsset
+                ? {
+                    swapAsset: {
+                      id: cardAsset.id,
+                      name: cardAsset.name,
+                      symbol: cardAsset.symbol,
+                      priceUsd: cardAsset.priceUsd,
+                    },
+                  }
+                : undefined,
+            })
+          }
           icon={<SwapBoldIcon size={26} />}
           iconHover={<SwapFillIcon size={26} />}
           label={t("nav.swap")}

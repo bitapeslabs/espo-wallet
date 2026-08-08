@@ -33,6 +33,19 @@ export interface IKeyringController {
     rawAmount: string;
     feeRate: number;
   }): Promise<{ rawtx: string; fee: number }>;
+  buildSwapPackage(params: {
+    fromId: string;
+    toId: string;
+    rawAmountIn: string;
+    minAmountOut: string;
+    feeRate: number;
+    mode?: "exactIn" | "exactOut";
+    deadlineBlocks?: number;
+    path?: string[];
+  }): Promise<{
+    txs: { hex: string; txid: string; label: string; vsize: number; fee: number }[];
+    packageFeeRate?: number;
+  }>;
 }
 
 class KeyringController implements IKeyringController {
@@ -113,6 +126,19 @@ class KeyringController implements IKeyringController {
     feeRate: number;
   }): Promise<{ rawtx: string; fee: number }> {
     return keyringService.sendTransfer(params);
+  }
+
+  async buildSwapPackage(params: {
+    fromId: string;
+    toId: string;
+    rawAmountIn: string;
+    minAmountOut: string;
+    feeRate: number;
+    mode?: "exactIn" | "exactOut";
+    deadlineBlocks?: number;
+    path?: string[];
+  }) {
+    return keyringService.buildSwapPackage(params);
   }
 
   async exportPublicKey(address: string): Promise<string> {

@@ -89,13 +89,22 @@ export function useEspoTipInvalidation(): number | undefined {
 export function useEspoQuery<T>(
   key: QueryKey,
   queryFn: () => Promise<T>,
-  options?: { enabled?: boolean }
+  options?: {
+    enabled?: boolean;
+    /** Static interval, or derive it from the latest data (false = stop). */
+    refetchInterval?: number | ((data: T | undefined) => number | false);
+  }
 ): UseQueryResult<T> {
   const { network } = useAppState(ss(["network"]));
+  const refetchInterval = options?.refetchInterval;
   return useQuery({
     queryKey: [ESPO_KEY, ...(key as unknown[]), networkSlug(network)],
     queryFn,
     enabled: options?.enabled ?? true,
+    refetchInterval:
+      typeof refetchInterval === "function"
+        ? (query) => refetchInterval(query.state.data as T | undefined)
+        : refetchInterval,
   });
 }
 

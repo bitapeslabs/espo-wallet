@@ -24,6 +24,8 @@ interface Props {
   onClick?: () => void;
   /** Name to show when the asset has none (e.g. "Bitcoin"). */
   fallbackName?: string;
+  /** Optional label rendered before the amount (e.g. "Available Balance:"). */
+  amountLabel?: string;
 }
 
 /**
@@ -31,7 +33,13 @@ interface Props {
  * on the home token list and the single-asset page. Interactive only when an
  * `onClick` is given; otherwise it's a static card with no hover/caret.
  */
-const AssetCard: FC<Props> = ({ asset, network, onClick, fallbackName }) => {
+const AssetCard: FC<Props> = ({
+  asset,
+  network,
+  onClick,
+  fallbackName,
+  amountLabel,
+}) => {
   const isBtc = asset.id === "btc";
   const change = asset.valueChangeUsd24h;
 
@@ -63,6 +71,9 @@ const AssetCard: FC<Props> = ({ asset, network, onClick, fallbackName }) => {
             ) : undefined}
           </span>
           <span className={s.assetAmount}>
+            {amountLabel ? (
+              <span className={s.amountLabel}>{amountLabel}</span>
+            ) : undefined}
             <FitText
               className="alk-amt"
               maxFont={14}

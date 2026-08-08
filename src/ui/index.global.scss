@@ -383,6 +383,10 @@ textarea:focus,
 .input:focus {
   border-color: var(--link-dark);
 }
+.input.inputError,
+.input.inputError:focus {
+  border-color: var(--danger);
+}
 input[type="text"]:disabled,
 input[type="password"]:disabled,
 input[type="number"]:disabled {
@@ -973,6 +977,467 @@ input[type="number"] {
 }
 
 /* ---- espo alkane balance cards (address page component) ---- */
+/* --- espo transaction io-grid (transaction overview card) --- */
+.tx-io-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 12px;
+}
+@media (max-width: 800px) {
+  .tx-io-grid {
+    grid-template-columns: 1fr;
+  }
+  .tx-io-grid > .io-col + .io-col {
+    border-top: 1px solid var(--panel2);
+    padding-top: 12px;
+  }
+}
+.io-col {
+  min-width: 0;
+}
+/* the extension is always <800px (single column), so the titles always show */
+.io-col-title {
+  display: block;
+  color: var(--muted2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+/* espo link styling */
+.link {
+  color: var(--link);
+  text-decoration: none;
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.io-list {
+  display: flex;
+  flex-direction: column;
+}
+.io-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 0;
+}
+.io-arrow {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.io-arrow svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.io-arrow.in,
+.io-arrow.out.spent {
+  color: var(--danger);
+}
+.io-arrow.out {
+  color: var(--success);
+}
+.io-arrow.out.opret-arrow {
+  color: var(--muted);
+}
+.io-main {
+  flex: 1;
+  min-width: 0;
+}
+.io-addr-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.io-addr {
+  font-weight: 500;
+  line-height: 1.3;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.addr-inline {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.addr-prefix {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.addr-suffix {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.io-amount {
+  color: var(--muted2);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+.alk-arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.alk-arrow svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted2);
+  display: block;
+}
+
+/* --- espo OP_RETURN / protostone body --- */
+.io-addr-row.opret-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+.io-opret {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.opret-summary {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted2);
+}
+.opret-summary::-webkit-details-marker {
+  display: none;
+}
+.opret-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.opret-caret {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: transform 120ms ease, color 120ms ease;
+}
+.io-opret[open] .opret-caret {
+  transform: rotate(90deg);
+  color: var(--link);
+}
+.opret-title {
+  letter-spacing: 0.4px;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.opret-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted2);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.opret-diamond {
+  width: 10px;
+  height: 10px;
+  background: #25a6ff;
+  display: inline-block;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+.opret-body {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  white-space: pre-wrap;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+  padding: 10px 12px;
+  display: none;
+}
+.io-opret[open] + .opret-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.protostone-body {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.opret-toggle {
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 8px;
+  background: var(--panel3);
+  overflow: hidden;
+}
+.trace-view > .opret-toggle {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.opret-toggle:first-of-type {
+  margin-top: 0;
+}
+.opret-toggle + .opret-toggle {
+  margin-top: 12px;
+}
+.opret-toggle-summary {
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--link);
+  padding: 10px 12px;
+  list-style: none;
+}
+.opret-toggle-summary::-webkit-details-marker {
+  display: none;
+}
+.opret-toggle-caret {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: transform 120ms ease, color 120ms ease;
+}
+.opret-toggle[open] .opret-toggle-caret {
+  transform: rotate(90deg);
+  color: var(--link);
+}
+.opret-toggle-body {
+  padding: 0 12px 12px;
+}
+.trace-view {
+  margin-top: 12px;
+  display: grid;
+}
+.trace-view:first-child {
+  margin-top: 0;
+}
+
+/* --- espo contract-call trace summary --- */
+.trace-summary {
+  background: var(--panel2);
+  border-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+.trace-summary-label {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.trace-contract-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.trace-contract-icon {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--panel3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.trace-contract-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+}
+.trace-contract-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.trace-contract-row .io-arrow {
+  margin-top: 0;
+  color: var(--muted);
+}
+.trace-method-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 500;
+  width: fit-content;
+}
+.trace-method-name {
+  white-space: nowrap;
+  word-break: break-word;
+}
+.trace-opcode {
+  color: var(--muted2);
+}
+.trace-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  word-break: break-word;
+  color: var(--muted);
+}
+.trace-status svg {
+  width: 16px;
+  height: 16px;
+}
+.trace-status.success {
+  color: var(--success);
+}
+.trace-status.failure {
+  color: var(--danger);
+}
+.trace-status.pending {
+  color: var(--muted);
+  font-weight: 500;
+}
+.trace-status-text {
+  line-height: 1.4;
+}
+.trace-status-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.28);
+  border-top-color: var(--muted);
+  animation: tx-wait-spin 0.85s linear infinite;
+  flex: 0 0 auto;
+}
+@keyframes tx-wait-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* JSON dump for the protostone message — espo's colored json viewer.
+   Monospace is intentionally allowed here (a raw data dump), unlike the rest
+   of the UI. */
+.json-viewer {
+  position: relative;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  color: rgba(215, 221, 230, 0.92);
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.json-raw {
+  display: block;
+  margin: 0;
+  overflow: auto;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.json-raw .jv-key {
+  color: #ff6f81;
+}
+.json-raw .jv-sep {
+  color: var(--muted2);
+}
+.json-raw .jv-val.string {
+  color: #78e69b;
+}
+.json-raw .jv-val.boolean {
+  color: #ffc067;
+}
+.json-raw .jv-val.null {
+  color: #ff6f81;
+}
+.json-raw .jv-val.number {
+  color: #7bdcff;
+}
+.json-raw .jv-brace,
+.json-raw .jv-comma {
+  color: #dfe7f3;
+}
+
+/* --- espo tx pill row --- */
+.tx-pill-row {
+  padding: 0 12px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tx-pill {
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--panel2);
+  color: var(--text);
+  border: 0;
+  min-width: 0;
+  padding: 4px 10px;
+}
+.tx-pill-fee {
+  color: #fff;
+  white-space: nowrap;
+}
+.tx-pill-status {
+  margin-left: auto;
+  color: var(--muted);
+}
+
 .io-alkanes {
   display: flex;
   flex-direction: column;

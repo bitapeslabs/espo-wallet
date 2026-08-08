@@ -2,6 +2,8 @@ import { FC } from "react";
 import cn from "classnames";
 import type { ITokenSummary } from "@/shared/interfaces/api";
 import AlkaneIcon from "@/ui/components/alkane-icon";
+import NetworkIcon from "@/ui/components/network-icon";
+import type { Network } from "bitcoinjs-lib";
 import Medal from "@/ui/components/medal";
 import {
   formatCompactUsd,
@@ -17,6 +19,8 @@ interface Props {
   /** Podium rank (1-3 render a medal); omit or >3 for none. */
   rank?: number;
   onClick?: () => void;
+  /** Needed to draw the network roundel for the BTC row. */
+  network?: Network;
 }
 
 /**
@@ -24,14 +28,18 @@ interface Props {
  * market cap under its name and USD price + 24h change on the right. Top-3
  * trending tokens get a metallic medal badge on the icon.
  */
-const TokenCard: FC<Props> = ({ token, rank, onClick }) => {
+const TokenCard: FC<Props> = ({ token, rank, onClick, network }) => {
   const change = token.change24h;
   return (
     <div className={cn("alk-card", s.card, { [s.clickable]: !!onClick })} onClick={onClick}>
       <div className="alk-line">
         <span className="alk-token-icon" aria-hidden="true">
           <div className="alk-icon-wrap">
-            <AlkaneIcon id={token.id} symbol={token.symbol} />
+            {token.id === "btc" && network ? (
+              <NetworkIcon network={network} size={28} />
+            ) : (
+              <AlkaneIcon id={token.id} symbol={token.symbol} />
+            )}
           </div>
           {rank && rank <= 3 ? (
             <span className={s.medal}>

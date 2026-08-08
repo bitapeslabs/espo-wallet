@@ -71,14 +71,17 @@ const FeeInput: FC<Props> = ({ onChange, value }) => {
         ))}
       </div>
       {selectedIdx === CUSTOM_INDEX && (
-        <InputNumber
-          value={value}
-          onChange={(value) => {
-            onChange(value);
-          }}
-          onlyInt
-          max={MAX_FEE}
-        />
+        <div className={s.customWrap}>
+          <InputNumber
+            value={value}
+            onChange={(value) => {
+              onChange(value);
+            }}
+            onlyInt
+            max={MAX_FEE}
+          />
+          <span className={s.customUnit}>sat/Vb</span>
+        </div>
       )}
     </div>
   );

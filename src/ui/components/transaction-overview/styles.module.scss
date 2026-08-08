@@ -1,0 +1,115 @@
+/* espo .tx-card: the io-grid, arrows, OP_RETURN and pill come from the global
+   stylesheet (ported from espo) so the markup uses espo's own class names */
+.txCard {
+  width: 100%;
+  background: var(--panel);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.error {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 16px;
+}
+
+/* ---- package switcher (2+ transactions, e.g. a CPFP parent + child) ---- */
+
+/* the switcher and the selected transaction's card stack as one block */
+.stack {
+  display: flex;
+  flex-direction: column;
+  /* matches the 20px above the switcher (header padding + page gap), so the
+     tabs sit evenly between the title and the card */
+  gap: 20px;
+  width: 100%;
+}
+
+/* a --panel2 track holding equal-width segments, one control tall */
+/* the text-tab switcher the wallet home uses for Tokens / Collectibles */
+.segmented {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.segment {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted2);
+  font-size: 15.5px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segment:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+.segmentActive,
+.segmentActive:hover {
+  color: var(--text);
+}
+
+/* subfrost-style swap route chips inside the contract-call summary */
+.routeWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.routeLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.routeStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.routeNum {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--panel2);
+  color: var(--link);
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routeSym {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.routeArrow {
+  color: var(--muted2);
+  margin-left: 1px;
+}

@@ -16,8 +16,10 @@ import Switch from "@/ui/components/switch";
 import AddressBookModal from "./address-book-modal";
 import AddressInput from "./address-input";
 import AssetCard from "@/ui/components/asset-card";
+import NetworkIcon from "@/ui/components/network-icon";
+import AlkaneIcon from "@/ui/components/alkane-icon";
 import { getAddressType, normalizeAmount, ss } from "@/ui/utils";
-import { isSendValid } from "@/shared/validators";
+import { validateSendForm, toRawAmount } from "./validate";
 import { formatAlkaneAmount, formatUsdPrice } from "@/shared/utils/alkanes";
 import type { IPortfolioAsset } from "@/shared/interfaces/api";
 import { t } from "i18next";
@@ -29,13 +31,6 @@ interface FormType {
   address: string;
   amount: string;
   feeAmount: number;
-}
-
-/** Decimal display string -> raw 8-decimal base units (sats / alkane raw). */
-function toRawAmount(value: string): bigint {
-  const [int = "0", frac = ""] = value.split(".");
-  const fracPadded = (frac + "00000000").slice(0, 8);
-  return BigInt(int || "0") * 100000000n + BigInt(fracPadded || "0");
 }
 
 const CreateSend = () => {
@@ -53,7 +48,10 @@ const CreateSend = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState<boolean>(false);
-  const { network } = useAppState(ss(["network"]));
+  const { network, addressBook } = useAppState(ss(["network", "addressBook"]));
+  // Already-saved recipient (picked from, or matching, the address book): no
+  // point offering to save it again.
+  const isAddressSaved = addressBook.includes((formData.address ?? "").trim());
   const { portfolio } = useAssetManagerContext();
 
   // The asset being sent: passed via navigation (BTC or an alkane), else a
@@ -97,14 +95,21 @@ const CreateSend = () => {
     }
   }, [sendAsset.balance]);
 
+  // Whole-form zod validation: gates Continue and drives the red input borders.
+  const validation = useMemo(
+    () =>
+      validateSendForm(formData.address, formData.amount, network, rawBalance),
+    [formData.address, formData.amount, network, rawBalance]
+  );
+
   const send = async ({ address, amount: amountStr, feeAmount: feeRate }: FormType) => {
     try {
       setLoading(true);
 
-      if (typeof getAddressType(address, network) === "undefined") {
+      if (!address || address.trim().length <= 0) {
         return toast.error(t("send.create_send.address_error"));
       }
-      if (address.trim().length <= 0) {
+      if (typeof getAddressType(address, network) === "undefined") {
         return toast.error(t("send.create_send.address_error"));
       }
 
@@ -119,7 +124,11 @@ const CreateSend = () => {
         return toast.error(t("send.create_send.not_enough_fee_error"));
       }
       if (rawAmount > rawBalance) {
-        return toast.error(t("send.create_send.not_enough_money_error"));
+        return toast.error(
+          t("send.create_send.not_enough_money_error", {
+            token: sendAsset.name || sendAsset.symbol,
+          })
+        );
       }
 
       let data;
@@ -206,6 +215,7 @@ const CreateSend = () => {
             asset={sendAsset}
             network={network}
             fallbackName={t("wallet_page.bitcoin")}
+            amountLabel={t("send.create_send.available_balance")}
           />
         </div>
 
@@ -216,18 +226,33 @@ const CreateSend = () => {
               address={formData.address}
               onChange={(v) => setFormData((p) => ({ ...p, address: v }))}
               onOpenModal={() => setOpenModal(true)}
+              error={validation.addressError}
             />
           </div>
           <div className="form-field">
             <span className="input-span">{t("send.create_send.amount")}</span>
             <div className={s.amountRow}>
-              <input
-                type="number"
-                placeholder={t("send.create_send.amount_to_send")}
-                className="input"
-                value={formData.amount}
-                onChange={onAmountChange}
-              />
+              <div className={s.amountField}>
+                <span
+                  className={cn("alk-icon-wrap", s.amountIcon)}
+                  aria-hidden="true"
+                >
+                  {isBtc ? (
+                    <NetworkIcon network={network} size={24} />
+                  ) : (
+                    <AlkaneIcon id={sendAsset.id} symbol={sendAsset.symbol} />
+                  )}
+                </span>
+                <input
+                  type="number"
+                  placeholder={t("send.create_send.amount_to_send")}
+                  className={cn("input", s.amountInput, {
+                    inputError: validation.amountError,
+                  })}
+                  value={formData.amount}
+                  onChange={onAmountChange}
+                />
+              </div>
               <button className="btn ghost" onClick={onMaxClick}>
                 {t("send.create_send.max_amount")}
               </button>
@@ -251,20 +276,22 @@ const CreateSend = () => {
             />
           </div>
 
-          <Switch
-            label={t(
-              "send.create_send.save_address_for_the_next_payments_label"
-            )}
-            value={isSaveAddress}
-            onChange={setIsSaveAddress}
-            locked={false}
-          />
+          {!isAddressSaved ? (
+            <Switch
+              label={t(
+                "send.create_send.save_address_for_the_next_payments_label"
+              )}
+              value={isSaveAddress}
+              onChange={setIsSaveAddress}
+              locked={false}
+            />
+          ) : undefined}
         </div>
       </form>
 
       <div>
         <button
-          disabled={loading || !isSendValid(formData.address, formData.amount)}
+          disabled={loading || !validation.canSubmit}
           type="submit"
           className={"bottom-btn"}
           form={formId}

@@ -71,6 +71,7 @@
       "receive_bel": "Receive BTC",
       "switch_wallet": "Switch Wallet",
       "transaction_info": "Transaction Info",
+      "overview": "Overview",
       "settings": "Settings",
       "show_mnemonic": "Show Mnemonic",
       "show_private_key": "Show Private Key",
@@ -81,7 +82,8 @@
       "discover": "Discover",
       "wallet_settings": "Wallet Settings",
       "assets": "Assets",
-      "confirmation": "Confirmation"
+      "confirmation": "Confirmation",
+      "unwrap_overview": "Unwrap Overview"
     },
     "check_password": {
       "incorrect_password_error": "Incorrect password",
@@ -211,7 +213,8 @@
       "minimum_amount_error": "Minimum amount is 0.00001 BTC",
       "fee_exceeds_amount_error": "Fee exceeds amount",
       "address_error": "Invalid receiver's address",
-      "not_enough_money_error": "There's not enough money in your account",
+      "not_enough_money_error": "There's not enough {{token}} in your account",
+      "available_balance": "Available:",
       "not_enough_fee_error": "Increase the fee",
       "fee_is_text_error": "Fee should be integer",
       "default_error": "Error has occurred",
@@ -238,6 +241,13 @@
       }
     },
     "finalle_send": {
+      "transaction_sent": "Transaction Sent",
+      "transfer_sent": "Transfer Sent",
+      "swap_sent": "Swap Sent",
+      "wrap_sent": "Wrap Sent",
+      "unwrap_sent": "Unwrap Sent",
+      "view_transaction": "View Transaction",
+      "close": "Close",
       "success": "Success",
       "explorer": "Explorer",
       "back": "Back",
@@ -267,12 +277,30 @@
     "add_wallet": "Add wallet",
     "add_account": "Add account"
   },
+  "transaction_overview": {
+    "inputs": "Inputs",
+    "you": "You",
+    "outputs": "Outputs",
+    "contract_call": "Contract call",
+    "alkane_transfer": "Alkane transfer",
+    "result_pending": "Tx result determined after confirmation",
+    "waiting": "Waiting for block confirmation...",
+    "call_successful": "Call successful",
+    "call_reverted": "Call reverted",
+    "protostone_message": "Protostone message",
+    "call_generic": "contract call",
+    "opcode": "opcode",
+    "sat_vb": "sat/vB",
+    "decode_error": "Could not decode this transaction",
+    "swap_route": "Swap route"
+  },
   "transaction_info": {
     "txid": "TxId",
     "confirmations_label": "Confirmations",
     "fee_label": "Fee",
     "value_label": "Value",
     "open_in_explorer": "Open in explorer",
+    "view_on_espo": "View on Espo",
     "copied": "Copied",
     "inputs": "Inputs",
     "outputs": "Outputs",
@@ -284,6 +312,8 @@
       "unwrap": "Unwrap",
       "split": "Split",
       "transfer": "Transfer",
+      "sent": "Sent",
+      "received": "Received",
       "add_liquidity": "Add liquidity",
       "remove_liquidity": "Remove liquidity",
       "create_pool": "Create pool",
@@ -347,7 +377,8 @@
     "home": "Home",
     "swap": "Swap",
     "activity": "Activity",
-    "search": "Search"
+    "search": "Search",
+    "unwraps": "Unwraps"
   },
   "forgot": {
     "description": "To reset your password, you will need to wipe your wallet. Espo Wallet cannot recover your password for you.",
@@ -371,5 +402,35 @@
     "trending": "Trending Tokens",
     "no_results": "No tokens found",
     "results_for": "Search results for"
+  },
+  "swap": {
+    "you_pay": "You pay",
+    "you_receive": "You receive",
+    "select": "Select",
+    "select_asset": "Select asset",
+    "balance": "Balance",
+    "flip": "Flip direction",
+    "swap_action": "Swap",
+    "enter_amount": "Enter an amount",
+    "select_asset_first": "Select an asset",
+    "no_route": "No pool for this pair",
+    "insufficient_balance": "Insufficient balance",
+    "building": "Building transaction...",
+    "min_received": "Minimum received",
+    "slippage": "Slippage",
+    "route_via_frbtc": "Routed via frBTC",
+    "transaction_settings": "Transaction settings",
+    "max_sent": "Maximum sent",
+    "deadline_blocks": "Deadline (blocks)",
+    "transaction_fee": "Transaction fee"
+  },
+  "unwraps": {
+    "title": "Unwraps",
+    "no_unwraps": "No unwraps yet",
+    "state_unconfirmed": "Unconfirmed",
+    "state_confirmed": "Confirmed",
+    "state_fulfilled": "Fulfilled",
+    "pending_fulfillment": "Pending fulfillment...",
+    "fulfillment": "Fulfillment"
   }
 }

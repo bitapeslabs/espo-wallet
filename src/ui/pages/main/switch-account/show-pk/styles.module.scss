@@ -1,35 +1,42 @@
 .showPk {
   width: 100%;
   height: 100%;
-  padding: 0 16px 24px;
+  padding: 16px 16px 24px;
   display: flex;
   flex-direction: column;
 }
 
-.showPkDiv {
-  display: flex;
-  flex-direction: column;
+/* private key card + primary copy button, segmented like the receive screen:
+   squared inner edges, small gap, rounded outer corners */
+.secretGroup {
   width: 100%;
-}
-
-.secretContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+}
+
+.secretCard {
+  width: 100%;
+  margin-top: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .secret {
   overflow-wrap: anywhere;
   overflow-y: auto;
   max-height: 320px;
+  color: var(--text);
   font-size: 14px;
+  font-weight: 600;
   line-height: 1.55;
 }
 
 .copyBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   width: 100%;
+  gap: 8px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }

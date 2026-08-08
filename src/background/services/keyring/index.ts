@@ -1,6 +1,7 @@
 import { KeyringServiceError } from "./consts";
 import type { Hex, Json, SendBTC, UserToSignInput } from "./types";
 import { storageService } from "@/background/services";
+import { espoProvider } from "@/background/services/espoProvider";
 import { Network, payments, Psbt } from "bitcoinjs-lib";
 import { toXOnly } from "@/shared/utils/transactions";
 import { createSendBtc } from "./txBuilder";
@@ -14,13 +15,14 @@ import HDSimpleKey from "./hdw/simple";
 import { INewWalletProps } from "@/shared/interfaces";
 import apiController from "@/background/controllers/apiController";
 import { hdPathForAddressType } from "@/shared/constant";
-import { networkInfo, networkSlug } from "@/shared/networks";
 import {
-  Provider,
   getProtostoneUnsignedPsbtBase64,
   consumeOrThrow,
+  buildSwapTransactions,
   type SingularTransfer,
+  type SwapAssetRef,
 } from "alkanesjs";
+import { networkInfo, parseAlkaneId } from "@/shared/networks";
 
 export const KEYRING_SDK_TYPES = {
   SimpleKey,
@@ -248,23 +250,7 @@ class KeyringService {
     const account = storageService.currentAccount;
     if (!account?.address) throw new Error("No current account");
 
-    const network = storageService.appState.network;
-    const slug = networkSlug(network);
-    const espoUrl = (
-      storageService.appState.rpcUrl?.[slug]?.trim() ||
-      networkInfo(network).rpcUrl
-    ).replace(/\/+$/, "");
-
-    const provider = new Provider({
-      // Transfers pull UTXOs from espo and take an explicit feeRate, so the
-      // sandshrew/electrum surfaces aren't exercised (espoUrl is a safe stand-in).
-      sandshrewUrl: espoUrl,
-      electrumApiUrl: espoUrl,
-      espoUrl,
-      network,
-      explorerUrl: networkInfo(network).explorerUrl,
-      btcTicker: "BTC",
-    });
+    const provider = espoProvider();
 
     let transfer: SingularTransfer;
     if (params.assetId === "btc") {
@@ -299,6 +285,98 @@ class KeyringService {
       psbt.finalizeAllInputs();
     }
     return { rawtx: psbt.extractTransaction().toHex(), fee };
+  }
+
+  /**
+   * Build (and sign) a swap. Depending on the pair this is one transaction or a
+   * CPFP package of two — BTC->token wraps then swaps, token->BTC swaps then
+   * unwraps — with the parent at the relay floor and the child paying so the
+   * PACKAGE hits the chosen feerate. Nothing is broadcast here; the caller
+   * broadcasts `txs` IN ORDER (parent first, since the child spends its output).
+   */
+  async buildSwapPackage(params: {
+    fromId: string; // "btc" or "block:tx"
+    toId: string;
+    /** exactIn: the amount spent. exactOut: the MAXIMUM spendable. */
+    rawAmountIn: string;
+    /** exactIn: the slippage floor. exactOut: the EXACT output requested. */
+    minAmountOut: string;
+    feeRate: number;
+    mode?: "exactIn" | "exactOut";
+    /** Expiry in blocks from the current tip; omitted/0 means no deadline. */
+    deadlineBlocks?: number;
+    /** FULL AMM-leg token path ("block:tx", BTC mapped to frBTC). */
+    path?: string[];
+  }): Promise<{
+    txs: { hex: string; txid: string; label: string; vsize: number; fee: number }[];
+    packageFeeRate?: number;
+  }> {
+    const account = storageService.currentAccount;
+    if (!account?.address) throw new Error("No current account");
+
+    const network = storageService.appState.network;
+    const provider = espoProvider();
+    const factoryId = parseAlkaneId(networkInfo(network).ammFactoryId);
+    const asRef = (id: string): SwapAssetRef =>
+      id === "btc" ? "btc" : parseAlkaneId(id);
+
+    // The SDK expects a FINALIZED raw tx hex back, not a signed PSBT.
+    const signPsbt = async (psbtBase64: string): Promise<string> => {
+      const psbt = Psbt.fromBase64(psbtBase64);
+      this.signPsbt(psbt);
+      if (
+        psbt.data.inputs.some((i) => !i.finalScriptWitness && !i.finalScriptSig)
+      ) {
+        psbt.finalizeAllInputs();
+      }
+      return psbt.extractTransaction().toHex();
+    };
+
+    // The contract compares the deadline against the block height, so turn the
+    // user's "expire in N blocks" into an absolute height. 0 = no deadline.
+    let deadline = 0n;
+    if (params.deadlineBlocks && params.deadlineBlocks > 0) {
+      const tip = await apiController.getLastBlock();
+      if (tip) deadline = BigInt(tip + params.deadlineBlocks);
+    }
+
+    const result = consumeOrThrow(
+      await buildSwapTransactions(
+        account.address,
+        {
+          provider,
+          network,
+          from: asRef(params.fromId),
+          to: asRef(params.toId),
+          amountIn: BigInt(params.rawAmountIn),
+          minAmountOut: BigInt(params.minAmountOut),
+          feeRate: params.feeRate,
+          factoryId,
+          mode: params.mode ?? "exactIn",
+          deadline,
+          ...(params.path && params.path.length >= 2
+            ? {
+                path: params.path.map((id) => {
+                  const [block, tx] = id.split(":");
+                  return { block: BigInt(block), tx: BigInt(tx) };
+                }),
+              }
+            : {}),
+        },
+        signPsbt
+      )
+    );
+
+    return {
+      txs: result.txs.map((tx) => ({
+        hex: tx.hex,
+        txid: tx.txid,
+        label: tx.label,
+        vsize: tx.vsize,
+        fee: tx.fee,
+      })),
+      packageFeeRate: result.packageFeeRate,
+    };
   }
 
   changeAddressType(index: number, addressType: AddressType): string[] {
