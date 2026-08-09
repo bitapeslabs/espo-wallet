@@ -81,6 +81,12 @@ export default defineConfig({
     return manifest;
   },
   vite: () => ({
+    resolve: {
+      // The monorepo root hoists react@19 for other workspaces; wallet deps
+      // hoisted there would resolve it and bundle a second React (null
+      // dispatcher crash). Force every react import to this package's copy.
+      dedupe: ["react", "react-dom"],
+    },
     define: {
       "process.browser": "false",
       "process.env.VERSION": JSON.stringify(pkg.version),
