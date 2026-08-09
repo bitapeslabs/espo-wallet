@@ -21,18 +21,14 @@ import { DEFAULT_FEES } from "@/shared/constant";
 import { networkInfo, networkSlug } from "@/shared/networks";
 import { espoProvider } from "../services/espoProvider";
 import { decodeCellpackHex } from "@/shared/utils/cellpack";
+import { AlkaneId, Contract } from "alkanesjs";
+import { FrBTCAbi } from "alkanesjs/abis";
+import { quoteExactIn, quoteExactOut } from "alkanesjs/utils/amm";
 import {
-  DEFAULT_POOL_FEE_PER_1000,
-  FRBTC_ALKANE_ID,
-  FRBTC_PREMIUM_DENOMINATOR,
-  alkaneIdKey,
   applyFrbtcPremium,
   DEFAULT_FRBTC_PREMIUM,
-  getFrbtcPremium,
-  quoteExactIn,
-  quoteExactOut,
-  isBoxedError,
-} from "alkanesjs";
+  FRBTC_PREMIUM_DENOMINATOR,
+} from "alkanesjs/utils/frbtc";
 
 /** A quote for one side of the swap form. */
 export interface ISwapQuote {
@@ -422,6 +418,13 @@ interface EspoTxSummary {
 /** The frBTC synth contract (block 32, tx 0) and its wrap/unwrap opcodes. */
 const FRBTC_CONTRACT = { block: 32, tx: 0 };
 const FRBTC_ID = `${FRBTC_CONTRACT.block}:${FRBTC_CONTRACT.tx}`; // "32:0"
+
+/**
+ * The Oyl AMM's default total fee per 1000 (0.1% + 0.9% = 10/1000). The SDK
+ * stopped shipping this constant; pools can override it on-chain, but the
+ * quoter uses the default like espo's own projection does.
+ */
+const DEFAULT_POOL_FEE_PER_1000 = 10n;
 const FRBTC_WRAP_OP = 0x4d;
 const FRBTC_UNWRAP_OP = 0x4e;
 
@@ -783,9 +786,15 @@ class ApiController implements IApiController {
 
   async pushTx(rawTx: string) {
     try {
-      const data = await this.call<{ txid: string }>("broadcast_transaction", {
-        raw_tx: rawTx,
-      });
+      // btc.broadcast_transaction is the current espo method; the old root
+      // `broadcast_transaction` alias is gone from newer nodes (regtest
+      // answers it with "Method not found").
+      const data = await this.call<{ txid: string }>(
+        "btc.broadcast_transaction",
+        {
+          raw_tx: rawTx,
+        }
+      );
       if (data?.txid) return { txid: data.txid };
       return { error: "Broadcast failed" };
     } catch (e) {
@@ -1787,15 +1796,24 @@ class ApiController implements IApiController {
       const amount = BigInt(rawAmount);
       if (amount <= 0n) return undefined;
 
-      const frbtcKey = alkaneIdKey(FRBTC_ALKANE_ID);
+      const frbtcKey = FRBTC_ID;
       const fromIsBtc = fromId === "btc";
       const toIsBtc = toId === "btc";
       if (fromIsBtc && toIsBtc) return undefined;
 
       const provider = espoProvider();
-      const premiumOf = async () => {
-        const p = await getFrbtcPremium(provider);
-        return isBoxedError(p) ? 0n : p.data;
+      // The live premium, read from the contract (opcode 104) via simulation.
+      const premiumOf = async (): Promise<bigint> => {
+        try {
+          const frbtc = new Contract(
+            FrBTCAbi,
+            AlkaneId.fromString(FRBTC_ID),
+            provider
+          );
+          return (await frbtc.getPremium().unwrap()) as bigint;
+        } catch {
+          return 0n;
+        }
       };
 
       // BTC -> frBTC is a plain wrap (premium deducted); frBTC -> BTC is a 1:1

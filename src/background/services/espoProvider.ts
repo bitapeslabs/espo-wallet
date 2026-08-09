@@ -15,19 +15,17 @@ export function espoRpcUrl(): string {
 }
 
 /**
- * An alkanesjs Provider bound to the active network's espo endpoint. Transfers
- * and swaps pull UTXOs from espo and take an explicit feeRate, so the
- * sandshrew/electrum surfaces aren't exercised (espoUrl is a safe stand-in).
+ * An alkanesjs Provider bound to the active network. espo carries the index,
+ * UTXO selection, fee estimates and broadcast; metashrew/kirby carries contract
+ * views and simulation (the frBTC premium read, for one). Constructed fresh on
+ * every call so it always reflects the current network + RPC override.
  */
 export function espoProvider(): Provider {
   const network = storageService.appState.network;
-  const espoUrl = espoRpcUrl();
   return new Provider({
-    sandshrewUrl: espoUrl,
-    electrumApiUrl: espoUrl,
-    espoUrl,
+    metashrewUrl: networkInfo(network).metashrewUrl,
+    espoUrl: espoRpcUrl(),
     network,
-    explorerUrl: networkInfo(network).explorerUrl,
     btcTicker: "BTC",
   });
 }

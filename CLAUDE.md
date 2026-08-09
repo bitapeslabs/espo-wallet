@@ -135,8 +135,9 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
   BTC balance is derived by summing those outpoint `value`s (no balance
   RPC exists). History is `essentials.get_address_transactions`
   ({address, page, limit, only_alkane_txs:false}) mapped onto the wallet's
-  esplora-shaped `ITransaction`. Broadcast is root `broadcast_transaction`
-  ({raw_tx})→{txid}; chain tip is root `get_espo_height`→{height}; fees are
+  esplora-shaped `ITransaction`. Broadcast is `btc.broadcast_transaction`
+  ({raw_tx})→{txid} — the old root `broadcast_transaction` alias is GONE from
+  newer espo nodes; chain tip is root `get_espo_height`→{height}; fees are
   root `fee_estimates` (absent on older nodes → falls back to
   `DEFAULT_FEES`). BTC/USD price is `ammdata.get_btc_usd_price` (price =
   decimal string USD×10^16); there is NO mempool.space fallback anywhere
@@ -198,17 +199,41 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
   decimals (`ALKANE_DECIMALS`). Alkane icons come from the ordiscan CDN like
   the espo explorer: `https://cdn.ordiscan.com/alkanes/{block}_{tx}` with the
   explorer's per-id overrides, via `alkaneIconUrl` + the `AlkaneIcon`
-  component (letter-avatar fallback on load error). BTC AND alkane sending are
-  both wired through the `alkanesjs` SDK (local `file:` dep at
-  `.lib/alkanesjs`, `main` branch): the background `keyringService.sendTransfer`
-  ({assetId "btc"|"block:tx", toAddress, rawAmount string, feeRate}) builds the
-  PSBT via `getProtostoneUnsignedPsbtBase64` (espo-driven UTXOs, `callData:[]`
-  for plain transfers), signs it in-process (taproot auto-patched), and returns
-  the finalized raw tx. The asset-page Send passes the tapped `IPortfolioAsset`
-  to `/pages/create-send` as `location.state.sendAsset`; create-send renders
-  that asset's balance card above the address input and builds through
-  `useCreateTransferCallback`. Edit the SDK under `.lib/alkanesjs`, then
-  `npm run build` there + `bun install` here to re-sync.
+  component (letter-avatar fallback on load error).
+- alkanesjs (v1.3+, the abis/accounts SDK, consumed as the monorepo WORKSPACE
+  package `packages/alkanesjs`): all tx construction goes through an
+  `Account.fromSignPsbt` adapter (`keyringService.sdkAccount`) — the SDK hands
+  an unsigned base64 PSBT to the keyring's own `signPsbt`, which signs and
+  FINALIZES in-process; keys never reach the SDK. The Provider needs TWO urls
+  (`espoProvider.ts`): espo (index/utxos/broadcast, user-overridable) and
+  metashrew/kirby (`networkInfo(network).metashrewUrl` — views/simulation,
+  e.g. the frBTC premium read). Transfers: `keyringService.sendTransfer`
+  ({assetId "btc"|"block:tx", toAddress, rawAmount string, feeRate}) =
+  `account.tx().transfer(...)` — "sats" for BTC (a pure BTC send writes no
+  protostone), `{block,tx}` for an alkane. Swaps/wraps/unwraps:
+  `keyringService.buildSwapPackage` delegates to
+  `keyring/swapBuilder.ts` (`buildSwapPackageTxs`), which composes the five
+  shapes (wrap / unwrap / token swap / wrap+swap CPFP / swap+unwrap CPFP)
+  from `FrBTCAbi` + `OylAMMAbi` contracts. CPFP packages are built through
+  the SDK's `buildChain` so parent and child share ONE coin-selection
+  context — building them separately double-spends the parent's inputs and
+  the node rejects the child. Both package txs are priced at the requested
+  feeRate (each must relay on its own; the old parent-at-relay-floor trick is
+  gone because the wallet broadcasts individually, not via submit_package).
+  Exact-in AMM swaps use factory opcode 13 (full path) standalone, opcode 29
+  implicit with the path's REMAINING hops as the wrap->swap child; exact-out
+  is opcode 14. `unwrap`'s first cellpack arg is the REAL vout of the signer
+  anchor: with the swapBuilder's composition that is always 2 (0 = alkanes
+  home output, 1 = own asset address bought by the frBTC handoff, 2 = the
+  signer dust output). All five shapes are regtest-verified on-chain.
+  NEVER import from `alkanesjs/boxed` in wallet code: its ESM bundle has no
+  static named re-exports of bxrs (vite build fails with MISSING_EXPORT) —
+  bxrs responses carry `.unwrap()` themselves. The asset-page Send passes the
+  tapped `IPortfolioAsset` to `/pages/create-send` as
+  `location.state.sendAsset`; create-send renders that asset's balance card
+  above the address input and builds through `useCreateTransferCallback`.
+  Edit the SDK under `packages/alkanesjs`, run its build, and the wallet
+  picks it up (workspace symlink).
 - Block explorer: each network has its own `explorerUrl` (mainnet
   https://espo.sh, regtest https://regtest.espo.sh), user-overridable from
   Settings > Network (`appState.explorerUrl`). `explorerTxUrl(network, txid,

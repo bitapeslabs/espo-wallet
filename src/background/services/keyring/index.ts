@@ -2,7 +2,7 @@ import { KeyringServiceError } from "./consts";
 import type { Hex, Json, SendBTC, UserToSignInput } from "./types";
 import { storageService } from "@/background/services";
 import { espoProvider } from "@/background/services/espoProvider";
-import { Network, payments, Psbt } from "bitcoinjs-lib";
+import { Network, payments, Psbt, Transaction } from "bitcoinjs-lib";
 import { toXOnly } from "@/shared/utils/transactions";
 import { createSendBtc } from "./txBuilder";
 import {
@@ -15,14 +15,9 @@ import HDSimpleKey from "./hdw/simple";
 import { INewWalletProps } from "@/shared/interfaces";
 import apiController from "@/background/controllers/apiController";
 import { hdPathForAddressType } from "@/shared/constant";
-import {
-  getProtostoneUnsignedPsbtBase64,
-  consumeOrThrow,
-  buildSwapTransactions,
-  type SingularTransfer,
-  type SwapAssetRef,
-} from "alkanesjs";
-import { networkInfo, parseAlkaneId } from "@/shared/networks";
+import { Account, type Provider } from "alkanesjs";
+import { buildSwapPackageTxs } from "./swapBuilder";
+import { networkInfo } from "@/shared/networks";
 
 export const KEYRING_SDK_TYPES = {
   SimpleKey,
@@ -233,13 +228,60 @@ class KeyringService {
   }
 
   /**
+   * The current account as an alkanesjs `Account`. The SDK never sees a key:
+   * it hands an unsigned base64 PSBT to this keyring's own `signPsbt`, which
+   * signs and FINALIZES it in-process (the SDK extracts the transaction from
+   * what comes back, so an unfinalized PSBT would throw).
+   */
+  private sdkAccount(provider: Provider, feeRate?: number): Account {
+    const account = storageService.currentAccount;
+    if (!account?.address) throw new Error("No current account");
+    return Account.fromSignPsbt(
+      async (unsignedPsbtBase64: string) => {
+        const psbt = Psbt.fromBase64(unsignedPsbtBase64);
+        this.signPsbt(psbt);
+        if (
+          psbt.data.inputs.some(
+            (i) => !i.finalScriptWitness && !i.finalScriptSig
+          )
+        ) {
+          psbt.finalizeAllInputs();
+        }
+        return psbt.toBase64();
+      },
+      account.address,
+      provider,
+      // The rate rides on the account because chained package builds
+      // (buildChain) take no per-build options.
+      feeRate !== undefined ? { feeRate } : {}
+    );
+  }
+
+  /** Fee actually paid by a built PSBT: input sum minus output sum. */
+  private psbtFee(psbtBase64: string): number {
+    const psbt = Psbt.fromBase64(psbtBase64);
+    let inSum = 0;
+    psbt.data.inputs.forEach((input, i) => {
+      if (input.witnessUtxo) {
+        inSum += input.witnessUtxo.value;
+      } else if (input.nonWitnessUtxo) {
+        const prev = Transaction.fromBuffer(input.nonWitnessUtxo);
+        inSum += prev.outs[psbt.txInputs[i].index].value;
+      }
+    });
+    const outSum = psbt.txOutputs.reduce((sum, out) => sum + out.value, 0);
+    return inSum - outSum;
+  }
+
+  /**
    * Build + sign a transfer (BTC or an alkane) with alkanesjs — the wallet's
-   * PSBT builder for both. It pulls UTXOs from espo (the same endpoint the rest
-   * of the wallet uses), builds the transfer PSBT, signs it with this account's
-   * keyring, and returns the finalized raw tx hex (the UI broadcasts it).
+   * PSBT builder for both. `account.tx().transfer(...)` pulls UTXOs from espo,
+   * builds the (protostone) transfer, signs through this keyring, and the
+   * finalized raw tx hex goes back to the UI, which broadcasts it.
    *
    * Amounts arrive as strings (sats for BTC, raw 8-decimal for an alkane) since
-   * bigints don't survive the port bridge.
+   * bigints don't survive the port bridge. A pure BTC send writes no protostone
+   * and no dust output — the builder omits them when nothing alkane rides in.
    */
   async sendTransfer(params: {
     assetId: string; // "btc" or "block:tx"
@@ -247,52 +289,32 @@ class KeyringService {
     rawAmount: string;
     feeRate: number;
   }): Promise<{ rawtx: string; fee: number }> {
-    const account = storageService.currentAccount;
-    if (!account?.address) throw new Error("No current account");
-
     const provider = espoProvider();
+    const me = this.sdkAccount(provider);
 
-    let transfer: SingularTransfer;
+    const tx = me.tx();
     if (params.assetId === "btc") {
-      transfer = {
-        asset: "btc",
-        amount: Number(params.rawAmount),
-        address: params.toAddress,
-      };
+      tx.transfer("sats", BigInt(params.rawAmount), params.toAddress);
     } else {
-      const [block, tx] = params.assetId.split(":");
-      transfer = {
-        asset: { block: BigInt(block), tx: BigInt(tx) },
-        amount: BigInt(params.rawAmount),
-        address: params.toAddress,
-      };
+      const [block, txPart] = params.assetId.split(":");
+      tx.transfer(
+        { block: BigInt(block), tx: BigInt(txPart) },
+        BigInt(params.rawAmount),
+        params.toAddress
+      );
     }
 
-    const { psbtBase64, fee } = consumeOrThrow(
-      await getProtostoneUnsignedPsbtBase64(account.address, {
-        provider,
-        transfers: [transfer],
-        callData: [],
-        feeRate: params.feeRate,
-      })
-    );
-
-    const psbt = Psbt.fromBase64(psbtBase64);
-    this.signPsbt(psbt);
-    if (
-      psbt.data.inputs.some((i) => !i.finalScriptWitness && !i.finalScriptSig)
-    ) {
-      psbt.finalizeAllInputs();
-    }
-    return { rawtx: psbt.extractTransaction().toHex(), fee };
+    const built = await tx.build({ feeRate: params.feeRate });
+    return { rawtx: built.hex, fee: this.psbtFee(built.psbtBase64) };
   }
 
   /**
    * Build (and sign) a swap. Depending on the pair this is one transaction or a
    * CPFP package of two — BTC->token wraps then swaps, token->BTC swaps then
-   * unwraps — with the parent at the relay floor and the child paying so the
-   * PACKAGE hits the chosen feerate. Nothing is broadcast here; the caller
-   * broadcasts `txs` IN ORDER (parent first, since the child spends its output).
+   * unwraps. Both package txs are built at the chosen feerate (each must relay
+   * on its own, since the wallet broadcasts them individually). Nothing is
+   * broadcast here; the caller broadcasts `txs` IN ORDER (parent first, since
+   * the child spends its output). Composition lives in ./swapBuilder.
    */
   async buildSwapPackage(params: {
     fromId: string; // "btc" or "block:tx"
@@ -311,26 +333,10 @@ class KeyringService {
     txs: { hex: string; txid: string; label: string; vsize: number; fee: number }[];
     packageFeeRate?: number;
   }> {
-    const account = storageService.currentAccount;
-    if (!account?.address) throw new Error("No current account");
-
     const network = storageService.appState.network;
     const provider = espoProvider();
-    const factoryId = parseAlkaneId(networkInfo(network).ammFactoryId);
-    const asRef = (id: string): SwapAssetRef =>
-      id === "btc" ? "btc" : parseAlkaneId(id);
-
-    // The SDK expects a FINALIZED raw tx hex back, not a signed PSBT.
-    const signPsbt = async (psbtBase64: string): Promise<string> => {
-      const psbt = Psbt.fromBase64(psbtBase64);
-      this.signPsbt(psbt);
-      if (
-        psbt.data.inputs.some((i) => !i.finalScriptWitness && !i.finalScriptSig)
-      ) {
-        psbt.finalizeAllInputs();
-      }
-      return psbt.extractTransaction().toHex();
-    };
+    const me = this.sdkAccount(provider, params.feeRate);
+    const info = networkInfo(network);
 
     // The contract compares the deadline against the block height, so turn the
     // user's "expire in N blocks" into an absolute height. 0 = no deadline.
@@ -340,43 +346,20 @@ class KeyringService {
       if (tip) deadline = BigInt(tip + params.deadlineBlocks);
     }
 
-    const result = consumeOrThrow(
-      await buildSwapTransactions(
-        account.address,
-        {
-          provider,
-          network,
-          from: asRef(params.fromId),
-          to: asRef(params.toId),
-          amountIn: BigInt(params.rawAmountIn),
-          minAmountOut: BigInt(params.minAmountOut),
-          feeRate: params.feeRate,
-          factoryId,
-          mode: params.mode ?? "exactIn",
-          deadline,
-          ...(params.path && params.path.length >= 2
-            ? {
-                path: params.path.map((id) => {
-                  const [block, tx] = id.split(":");
-                  return { block: BigInt(block), tx: BigInt(tx) };
-                }),
-              }
-            : {}),
-        },
-        signPsbt
-      )
-    );
-
-    return {
-      txs: result.txs.map((tx) => ({
-        hex: tx.hex,
-        txid: tx.txid,
-        label: tx.label,
-        vsize: tx.vsize,
-        fee: tx.fee,
-      })),
-      packageFeeRate: result.packageFeeRate,
-    };
+    return await buildSwapPackageTxs({
+      account: me,
+      provider,
+      fromId: params.fromId,
+      toId: params.toId,
+      amountIn: BigInt(params.rawAmountIn),
+      minAmountOut: BigInt(params.minAmountOut),
+      feeRate: params.feeRate,
+      mode: params.mode ?? "exactIn",
+      deadline,
+      factoryId: info.ammFactoryId,
+      frbtcId: info.frbtcId,
+      ...(params.path && params.path.length >= 2 ? { path: params.path } : {}),
+    });
   }
 
   changeAddressType(index: number, addressType: AddressType): string[] {
