@@ -5,7 +5,6 @@ import permission from "@/background/services/permission";
 import apiController from "../apiController";
 import type { IEspoProvider, NetworkType } from "@/shared/interfaces/providerApi";
 import { networkFromSlug, networkSlug } from "@/shared/networks";
-import { gptFeeCalculate } from "@/ui/utils";
 import { ethErrors } from "eth-rpc-errors";
 import walletController from "../walletController";
 
@@ -141,41 +140,15 @@ class ProviderController implements IProviderController {
 
     const network = storageService.appState.network;
 
-    let utxos = await apiController.getUtxos(
-      storageService.currentAccount.address,
-      {
-        amount:
-          payload.amount +
-          (payload.receiverToPayFee
-            ? 0
-            : gptFeeCalculate(2, 2, payload.feeRate)),
-      }
-    );
-
-    if ((utxos?.length ?? 0) > 500) throw new Error("Consolidate utxos");
-
-    if ((utxos?.length ?? 0) > 5 && !payload.receiverToPayFee) {
-      utxos = await apiController.getUtxos(
-        storageService.currentAccount.address,
-        {
-          amount:
-            payload.amount + gptFeeCalculate(utxos!.length, 2, payload.feeRate),
-        }
-      );
-    }
-
-    if (!utxos?.length) throw new Error("Not enough utxos");
-
-    const tx = await keyringService.sendBTC({
+    // UTXO selection lives inside the alkanesjs builder; sendBTC returns the
+    // finalized raw tx hex directly.
+    return await keyringService.sendBTC({
       to: payload.to,
       amount: payload.amount,
       receiverToPayFee: payload.receiverToPayFee,
       feeRate: payload.feeRate,
-      utxos,
       network,
     });
-    const psbt = Psbt.fromHex(tx);
-    return psbt.extractTransaction(true).toHex();
   };
 
   @Reflect.metadata("APPROVAL", ["signPsbt"])

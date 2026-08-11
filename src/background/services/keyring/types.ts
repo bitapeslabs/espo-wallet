@@ -1,4 +1,3 @@
-import type { ApiUTXO } from "@/shared/interfaces/api";
 import { Network } from "bitcoinjs-lib";
 
 export type Json = any;
@@ -11,16 +10,16 @@ export type Eip1024EncryptedData = {
   ciphertext: string;
 };
 
-interface SendBase {
+/**
+ * A plain BTC send (the dapp `createTx` path). UTXO selection happens inside
+ * the alkanesjs builder now, so no utxo list travels with it.
+ */
+export interface SendBTC {
   to: string;
   amount: number;
   receiverToPayFee: boolean;
   feeRate: number;
   network: Network;
-}
-
-export interface SendBTC extends SendBase {
-  utxos: ApiUTXO[];
 }
 
 interface BaseUserToSignInput {

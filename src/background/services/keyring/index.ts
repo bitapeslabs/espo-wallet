@@ -4,7 +4,6 @@ import { storageService } from "@/background/services";
 import { espoProvider } from "@/background/services/espoProvider";
 import { Network, payments, Psbt, Transaction } from "bitcoinjs-lib";
 import { toXOnly } from "@/shared/utils/transactions";
-import { createSendBtc } from "./txBuilder";
 import {
   SimpleKey,
   HDPrivateKey,
@@ -200,31 +199,29 @@ class KeyringService {
     return keyring.exportPublicKey(address);
   }
 
-  async sendBTC(data: SendBTC) {
-    const account = storageService.currentAccount;
-    const wallet = storageService.currentWallet;
-    if (!account?.address || !wallet)
-      throw new Error(
-        "Error when trying to get the current account or current account address or wallet"
-      );
+  /**
+   * A plain BTC send for the dapp `createTx` API, built through the same
+   * alkanesjs account as everything else (espo-driven, token-safe UTXO
+   * selection; no protostone on a pure BTC send). `receiverToPayFee` (the fee
+   * comes out of the recipient's amount) has no SDK switch, so it is emulated:
+   * build once to learn the fee, rebuild with the reduced amount — the
+   * structure is unchanged, so the fee carries over. Returns the FINALIZED
+   * raw tx hex.
+   */
+  async sendBTC(data: SendBTC): Promise<string> {
+    const provider = espoProvider();
+    const me = this.sdkAccount(provider, data.feeRate);
+    const build = (sats: bigint) =>
+      me.tx().transfer("sats", sats, data.to).build({ feeRate: data.feeRate });
 
-    const publicKey = this.exportPublicKey(account.address);
-
-    const psbt = await createSendBtc({
-      utxos: data.utxos,
-      toAddress: data.to,
-      toAmount: data.amount,
-      feeRate: data.feeRate,
-      network: data.network,
-      changeAddress: account.address,
-      receiverToPayFee: data.receiverToPayFee,
-      publicKey,
-      addressType: wallet.addressType,
-      signPsbt: (psbt) => this.signPsbt(psbt),
-      getTxHex: (txid) => apiController.getTransactionHex(txid),
-    });
-
-    return psbt.toHex();
+    let built = await build(BigInt(data.amount));
+    if (data.receiverToPayFee) {
+      const fee = this.psbtFee(built.psbtBase64);
+      if (fee >= data.amount)
+        throw new Error("Fee exceeds the amount to send");
+      built = await build(BigInt(data.amount - fee));
+    }
+    return built.hex;
   }
 
   /**

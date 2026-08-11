@@ -121,9 +121,11 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
   original wallet. secp backend is @bitcoinerlab/secp256k1 (no wasm).
   Do NOT upgrade to bitcoinjs-lib v7 / bip32 v5 / ecpair v3 casually: those
   are Uint8Array rewrites and the codebase uses the Buffer API.
-- Transactions: `txBuilder.ts` does greedy coin selection + PSBT; P2PKH
-  inputs fetch prev-tx hex for nonWitnessUtxo; taproot inputs get
-  tapInternalKey. Dust limit 546.
+- Transactions: ALL tx construction (wallet sends, swaps, and the dapp
+  `createTx` path) goes through the alkanesjs SDK — see the alkanesjs note
+  under Portfolio/assets. The old hand-rolled `txBuilder.ts` is deleted;
+  `sendBTC` emulates `receiverToPayFee` by building once to learn the fee and
+  rebuilding with the reduced amount.
 - API: `apiController.ts` talks to espo over JSON-RPC 2.0 (`espoRpc` in
   `src/shared/utils`, POST to the network's `/rpc` endpoint, named-object
   params, `{result}` / `{error}` envelope; module methods also carry an
