@@ -272,7 +272,9 @@
     "opcode": "опкод",
     "sat_vb": "sat/vB",
     "decode_error": "Не удалось декодировать эту транзакцию",
-    "swap_route": "Маршрут обмена"
+    "swap_route": "Маршрут обмена",
+    "deploy": "Деплой",
+    "new_instance_of": "новый экземпляр {{name}}"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -322,7 +324,11 @@
   "provider": {
     "to_sign": "К подписи",
     "utxo_txid": "Txid UTXO: ",
-    "value": "Значение"
+    "value": "Значение",
+    "deploy": "Деплой",
+    "deploy_commit_desc": "Новый контракт: commit-транзакция ({{size}} КБ wasm). Reveal-транзакция с кодом последует автоматически.",
+    "deploy_commit_desc_nosize": "Новый контракт: commit-транзакция. Reveal-транзакция с кодом последует автоматически.",
+    "overview_unavailable": "Обзор недоступен"
   },
   "nav": {
     "home": "Главная",

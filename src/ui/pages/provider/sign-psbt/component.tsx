@@ -39,7 +39,9 @@ class OverviewBoundary extends Component<
     if (this.state.error) {
       return (
         <div className="review-card stat">
-          <div className="stat-label">overview unavailable</div>
+          <div className="stat-label">
+            {t("provider.overview_unavailable")}
+          </div>
           <div className="stat-value">{this.state.error.message}</div>
         </div>
       );
@@ -117,13 +119,13 @@ const SignPsbt = () => {
 
         {deployContext ? (
           <div className={`review-card stat ${s.deployCard}`}>
-            <div className="stat-label">Deploy</div>
+            <div className="stat-label">{t("provider.deploy")}</div>
             <div className="stat-value">
-              New contract — commit transaction
               {deployContext.wasmBytes
-                ? ` (${Math.round(deployContext.wasmBytes / 1024)} KB wasm)`
-                : ""}
-              . The reveal carrying the code follows automatically.
+                ? t("provider.deploy_commit_desc", {
+                    size: Math.round(deployContext.wasmBytes / 1024),
+                  })
+                : t("provider.deploy_commit_desc_nosize")}
             </div>
           </div>
         ) : null}

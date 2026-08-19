@@ -266,7 +266,9 @@
     "opcode": "操作码",
     "sat_vb": "sat/vB",
     "decode_error": "无法解码此交易",
-    "swap_route": "兑换路径"
+    "swap_route": "兑换路径",
+    "deploy": "部署",
+    "new_instance_of": "创建 {{name}} 的新实例"
   },
   "transaction_info": {
     "txid": "交易 ID",
@@ -316,7 +318,11 @@
   "provider": {
     "to_sign": "待签名",
     "utxo_txid": "UTXO 交易 ID：",
-    "value": "数值"
+    "value": "数值",
+    "deploy": "部署",
+    "deploy_commit_desc": "新合约：commit 交易（{{size}} KB wasm）。携带代码的 reveal 交易将自动跟进。",
+    "deploy_commit_desc_nosize": "新合约：commit 交易。携带代码的 reveal 交易将自动跟进。",
+    "overview_unavailable": "无法显示交易概览"
   },
   "nav": {
     "home": "首页",

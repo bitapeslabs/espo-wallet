@@ -292,7 +292,9 @@
     "opcode": "opcode",
     "sat_vb": "sat/vB",
     "decode_error": "Could not decode this transaction",
-    "swap_route": "Swap route"
+    "swap_route": "Swap route",
+    "deploy": "Deploy",
+    "new_instance_of": "new instance of {{name}}"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -362,7 +364,11 @@
     "switch_network_request": "Switch network request",
     "to_sign": "To sign",
     "utxo_txid": "Utxo txid: ",
-    "value": "Value"
+    "value": "Value",
+    "deploy": "Deploy",
+    "deploy_commit_desc": "New contract: commit transaction ({{size}} KB wasm). The reveal carrying the code follows automatically.",
+    "deploy_commit_desc_nosize": "New contract: commit transaction. The reveal carrying the code follows automatically.",
+    "overview_unavailable": "Overview unavailable"
   },
   "network_settings": {
     "rpc_url": "espo RPC URL",

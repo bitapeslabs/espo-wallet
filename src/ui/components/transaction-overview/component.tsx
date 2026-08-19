@@ -965,14 +965,17 @@ const TransactionOverview: FC<Props> = ({
     const contractName =
       CONTRACT_NAME_OVERRIDES[targetId] ?? info?.name ?? targetId;
     const method = isDeploy
-      ? `new instance of ${contractName}`
+      ? t("transaction_overview.new_instance_of", { name: contractName })
       : info?.methods.find((m) => m.opcode === Number(cell.opcode))?.name ??
         opcodeLabel(targetId, cell.opcode) ??
         t("transaction_overview.call_generic");
     return (
       <div className="trace-summary">
         <span className="trace-summary-label">
-          {isDeploy ? "Deploy" : t("transaction_overview.contract_call")}:
+          {isDeploy
+            ? t("transaction_overview.deploy")
+            : t("transaction_overview.contract_call")}
+          :
         </span>
         <div className="trace-contract-row">
           <span className="trace-contract-icon" aria-hidden="true">

@@ -264,7 +264,9 @@
     "opcode": "opcode",
     "sat_vb": "sat/vB",
     "decode_error": "이 거래를 디코딩할 수 없습니다",
-    "swap_route": "스왑 경로"
+    "swap_route": "스왑 경로",
+    "deploy": "배포",
+    "new_instance_of": "{{name}}의 새 인스턴스"
   },
   "transaction_info": {
     "txid": "TxId",
@@ -314,7 +316,11 @@
   "provider": {
     "to_sign": "서명 대상",
     "utxo_txid": "UTXO 거래 ID: ",
-    "value": "값"
+    "value": "값",
+    "deploy": "배포",
+    "deploy_commit_desc": "새 컨트랙트: 커밋 트랜잭션 ({{size}} KB wasm). 코드를 담은 리빌 트랜잭션이 자동으로 이어집니다.",
+    "deploy_commit_desc_nosize": "새 컨트랙트: 커밋 트랜잭션. 코드를 담은 리빌 트랜잭션이 자동으로 이어집니다.",
+    "overview_unavailable": "개요를 표시할 수 없습니다"
   },
   "nav": {
     "home": "홈",
