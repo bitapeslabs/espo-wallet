@@ -159,6 +159,22 @@ class ProviderController implements IProviderController {
   }: Payload<"signPsbt">) => {
     const psbt = Psbt.fromBase64(psbtBase64);
     await keyringService.signPsbtWithoutFinalizing(psbt, options?.toSignInputs);
+    /*
+      autoFinalized: dapps driving the alkanesjs tx builder (Account.
+      fromSignPsbt) need a FINALIZED psbt back — the SDK extracts the raw tx
+      from it directly. Finalize only the inputs we actually signed; inputs
+      that already carry final scripts (eg a chained parent's) are left be.
+    */
+    if (options?.autoFinalized !== false) {
+      psbt.data.inputs.forEach((input, index) => {
+        if (input.finalScriptWitness || input.finalScriptSig) return;
+        try {
+          psbt.finalizeInput(index);
+        } catch {
+          // an input we could not sign (not ours) — leave it unfinalized
+        }
+      });
+    }
     return psbt.toBase64();
   };
 
