@@ -736,6 +736,19 @@ const TransactionOverview: FC<Props> = ({
     };
   }, [data, decoded, pkgDecoded, activeIndex, fromAddress, projData, network]);
 
+  /*
+    Deploy-style cellpack targets: {5,n}/{6,n} clone a factory ({2,n}/{4,n} is
+    the CODE source), {1,*}/{3,*} deploy new wasm. For display + ABI lookups
+    the factory source is the real contract; the call is a deployment.
+  */
+  const deployTargetOf = (cell: Cellpack): { sourceId: string; isDeploy: boolean } => {
+    const b = cell.target.block;
+    if (b === 5n) return { sourceId: `2:${cell.target.tx}`, isDeploy: true };
+    if (b === 6n) return { sourceId: `4:${cell.target.tx}`, isDeploy: true };
+    const isDeploy = b === 1n || b === 3n || b === 4n;
+    return { sourceId: `${cell.target.block}:${cell.target.tx}`, isDeploy };
+  };
+
   // The contract targets of every decoded cellpack, so espo's ABI names/method
   // names can be resolved (essentials.get_alkane_info), the way the explorer does.
   const targetIds = useMemo(() => {
@@ -743,7 +756,7 @@ const TransactionOverview: FC<Props> = ({
     for (const ps of view?.protostones ?? []) {
       if (ps.message && ps.message.length) {
         const cell = decodeCellpack(ps.message);
-        if (cell) ids.add(`${cell.target.block}:${cell.target.tx}`);
+        if (cell) ids.add(deployTargetOf(cell).sourceId);
       }
     }
     return [...ids];
@@ -943,20 +956,23 @@ const TransactionOverview: FC<Props> = ({
     </div>
   );
 
-  /** Per-cellpack contract-call summary (espo render_trace_summary shape). */
+  /** Per-cellpack contract-call summary (espo render_trace_summary shape).
+      Deploy-style targets (factory clones {5,n}/{6,n}, new wasm {1..4})
+      render as "Deploy:" with the CODE-source contract named. */
   const traceSummary = (cell: Cellpack) => {
-    const targetId = `${cell.target.block}:${cell.target.tx}`;
+    const { sourceId: targetId, isDeploy } = deployTargetOf(cell);
     const info = infoMap?.[targetId];
     const contractName =
       CONTRACT_NAME_OVERRIDES[targetId] ?? info?.name ?? targetId;
-    const method =
-      info?.methods.find((m) => m.opcode === Number(cell.opcode))?.name ??
-      opcodeLabel(targetId, cell.opcode) ??
-      t("transaction_overview.call_generic");
+    const method = isDeploy
+      ? `new instance of ${contractName}`
+      : info?.methods.find((m) => m.opcode === Number(cell.opcode))?.name ??
+        opcodeLabel(targetId, cell.opcode) ??
+        t("transaction_overview.call_generic");
     return (
       <div className="trace-summary">
         <span className="trace-summary-label">
-          {t("transaction_overview.contract_call")}:
+          {isDeploy ? "Deploy" : t("transaction_overview.contract_call")}:
         </span>
         <div className="trace-contract-row">
           <span className="trace-contract-icon" aria-hidden="true">

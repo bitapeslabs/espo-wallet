@@ -34,6 +34,9 @@ export type UserToSignInput = AddressUserToSignInput | PublicKeyUserToSignInput;
 export interface SignPsbtOptions {
   autoFinalized: boolean;
   toSignInputs?: UserToSignInput[];
+  /** Dapp-provided purpose hint, shown on the approval screen
+      (eg alkanesjs deploy commits: { kind: "deploy-commit", wasmBytes }). */
+  context?: { kind?: string; wasmBytes?: number };
 }
 
 export interface ToSignInput {

@@ -2,6 +2,19 @@
   margin-top: 10px;
 }
 
+.deployCard {
+  margin-bottom: 10px;
+}
+
+.warnCard {
+  margin-bottom: 10px;
+
+  .stat-value,
+  :global(.stat-value) {
+    color: var(--warning, #ffb74a);
+  }
+}
+
 .modalBody {
   font-size: 14px;
   color: var(--muted);

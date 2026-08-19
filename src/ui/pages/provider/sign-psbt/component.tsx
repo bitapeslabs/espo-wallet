@@ -1,47 +1,64 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Layout from "../layout";
 import { TailSpin } from "react-loading-icons";
-import { IField } from "@/shared/interfaces/provider";
-import { useDecodePsbtInputs as useGetPsbtFields } from "@/ui/hooks/provider";
 import { t } from "i18next";
-import Modal from "@/ui/components/modal";
-import SignPsbtFileds from "@/ui/components/sign-psbt-fileds";
+import { Psbt } from "bitcoinjs-lib";
 import notificationController from "@/background/controllers/notificationController";
-import toast from "react-hot-toast";
+import TransactionOverview from "@/ui/components/transaction-overview";
+import { useGetCurrentAccount } from "@/ui/states/walletState";
+import { useAppState } from "@/ui/states/appState";
+import { ss } from "@/ui/utils";
+import type { SignPsbtOptions } from "@/shared/interfaces/provider";
 import s from "./styles.module.scss";
 
+/*
+  Dapp signPsbt approval. Renders the SAME transaction-overview card the
+  wallet's own swap/transfer confirmations use: decoded protostones, the
+  projected alkanes on every vout, contract-call trace summaries — instead
+  of the old bare BTC in/out field list. The tx is still unsigned here, so
+  the overview decodes the psbt's embedded unsigned transaction.
+*/
+
+const SIGHASH_SINGLE_ANYONECANPAY = 131;
+
 const SignPsbt = () => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [fields, setFields] = useState<IField[]>([]);
-  const [modalInputIndex, setModalInputIndex] = useState<number | undefined>(
+  const currentAccount = useGetCurrentAccount();
+  const { network } = useAppState(ss(["network"]));
+  const [rawTx, setRawTx] = useState<string | undefined>(undefined);
+  const [options, setOptions] = useState<SignPsbtOptions | undefined>(
     undefined
   );
-  const [fee, setFee] = useState<string>("");
-  const getPsbtFields = useGetPsbtFields();
-
-  const updateFields = useCallback(async () => {
-    if (fields.length <= 0) setLoading(true);
-    const resultFields = await getPsbtFields();
-    if (resultFields === undefined) {
-      await notificationController.rejectApproval("Invalid psbt");
-      return;
-    }
-    setFields(resultFields.fields[0]);
-    setFee(resultFields.fee + " BTC");
-    setLoading(false);
-  }, [getPsbtFields, fields]);
 
   useEffect(() => {
-    if (fields.length) return;
-    updateFields().catch((e) => {
-      if ((e as Error).message) {
-        toast.error(e.message);
+    void (async () => {
+      const approval = await notificationController.getApproval();
+      const params = approval?.params?.data as
+        | [string, SignPsbtOptions?]
+        | undefined;
+      if (!params || typeof params[0] !== "string") {
+        await notificationController.rejectApproval("Invalid psbt");
+        return;
       }
-    });
-  }, [updateFields, fields]);
+      try {
+        const psbt = Psbt.fromBase64(params[0], { network });
+        setRawTx(
+          psbt.data.globalMap.unsignedTx.toBuffer().toString("hex")
+        );
+        setOptions(params[1]);
+      } catch {
+        await notificationController.rejectApproval("Invalid psbt");
+      }
+    })();
+  }, [network]);
 
-  if (loading) return <TailSpin className="animate-spin" />;
+  const deployContext =
+    options?.context?.kind === "deploy-commit" ? options.context : undefined;
+  const dangerousSighash = (options?.toSignInputs ?? []).some((input) =>
+    (input.sighashTypes ?? []).includes(SIGHASH_SINGLE_ANYONECANPAY)
+  );
+
+  if (!rawTx) return <TailSpin className="animate-spin" />;
 
   return (
     <Layout
@@ -51,26 +68,35 @@ const SignPsbt = () => {
     >
       <div className="panel">
         <div className="panel-head">{t("provider.sign_tx")}</div>
-        <SignPsbtFileds
-          fields={fields}
-          setModalInputIndexHandler={setModalInputIndex}
+
+        {deployContext ? (
+          <div className={`review-card stat ${s.deployCard}`}>
+            <div className="stat-label">Deploy</div>
+            <div className="stat-value">
+              New contract — commit transaction
+              {deployContext.wasmBytes
+                ? ` (${Math.round(deployContext.wasmBytes / 1024)} KB wasm)`
+                : ""}
+              . The reveal carrying the code follows automatically.
+            </div>
+          </div>
+        ) : null}
+
+        {dangerousSighash ? (
+          <div className={`review-card stat ${s.warnCard}`}>
+            <div className="stat-label">{t("provider.warning")}</div>
+            <div className="stat-value">
+              {t("provider.anyone_can_pay_warning")}
+            </div>
+          </div>
+        ) : null}
+
+        <TransactionOverview
+          rawTx={rawTx}
+          network={network}
+          fromAddress={currentAccount?.address}
         />
-        <div className={`review-card stat ${s.feeCard}`}>
-          <div className="stat-label">{t("provider.fee")}</div>
-          <div className="stat-value">{fee}</div>
-        </div>
       </div>
-      <Modal
-        open={modalInputIndex !== undefined}
-        onClose={() => {
-          setModalInputIndex(undefined);
-        }}
-        title={t("provider.warning")}
-      >
-        <div className={s.modalBody}>
-          {t("provider.anyone_can_pay_warning")}
-        </div>
-      </Modal>
     </Layout>
   );
 };
