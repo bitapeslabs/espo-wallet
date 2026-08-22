@@ -4,10 +4,10 @@ import Layout from "../layout";
 import { TailSpin } from "react-loading-icons";
 import { t } from "i18next";
 import { Psbt } from "bitcoinjs-lib";
-import notificationController from "@/background/controllers/notificationController";
 import TransactionOverview from "@/ui/components/transaction-overview";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAppState } from "@/ui/states/appState";
+import { useControllersState } from "@/ui/states/controllerState";
 import { ss } from "@/ui/utils";
 import type { SignPsbtOptions } from "@/shared/interfaces/provider";
 import s from "./styles.module.scss";
@@ -53,6 +53,15 @@ class OverviewBoundary extends Component<
 const SignPsbt = () => {
   const currentAccount = useGetCurrentAccount();
   const { network } = useAppState(ss(["network"]));
+  /*
+    MUST be the port-backed proxy: importing the background controller
+    module directly executes against a fresh in-popup NotificationService
+    whose approval slot is always empty (the real one lives in the service
+    worker), so getApproval would answer undefined forever.
+  */
+  const { notificationController } = useControllersState(
+    ss(["notificationController"])
+  );
   const [rawTx, setRawTx] = useState<string | undefined>(undefined);
   const [options, setOptions] = useState<SignPsbtOptions | undefined>(
     undefined
@@ -80,7 +89,7 @@ const SignPsbt = () => {
         setLoadError(e instanceof Error ? e.message : String(e));
       }
     })();
-  }, [network]);
+  }, [network, notificationController]);
 
   const deployContext =
     options?.context?.kind === "deploy-commit" ? options.context : undefined;
