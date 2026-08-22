@@ -320,9 +320,11 @@
     "utxo_txid": "UTXO 交易 ID：",
     "value": "数值",
     "deploy": "部署",
-    "deploy_commit_desc": "新合约：commit 交易（{{size}} KB wasm）。携带代码的 reveal 交易将自动跟进。",
-    "deploy_commit_desc_nosize": "新合约：commit 交易。携带代码的 reveal 交易将自动跟进。",
-    "overview_unavailable": "无法显示交易概览"
+    "overview_unavailable": "无法显示交易概览",
+    "deploy_new_contract": "新合约",
+    "deploy_commit_tx": "commit 交易",
+    "deploy_wasm_size": "{{size}} KB wasm",
+    "deploy_reveal_note": "携带代码的 reveal 交易将自动跟进。"
   },
   "nav": {
     "home": "首页",

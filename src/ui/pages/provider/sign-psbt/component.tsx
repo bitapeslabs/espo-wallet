@@ -5,6 +5,7 @@ import { TailSpin } from "react-loading-icons";
 import { t } from "i18next";
 import { Psbt } from "bitcoinjs-lib";
 import TransactionOverview from "@/ui/components/transaction-overview";
+import { StarBoldIcon } from "@/ui/icons/phosphor";
 import { useGetCurrentAccount } from "@/ui/states/walletState";
 import { useAppState } from "@/ui/states/appState";
 import { useControllersState } from "@/ui/states/controllerState";
@@ -127,15 +128,35 @@ const SignPsbt = () => {
         <div className="panel-head">{t("provider.sign_tx")}</div>
 
         {deployContext ? (
-          <div className={`review-card stat ${s.deployCard}`}>
-            <div className="stat-label">{t("provider.deploy")}</div>
-            <div className="stat-value">
-              {deployContext.wasmBytes
-                ? t("provider.deploy_commit_desc", {
-                    size: Math.round(deployContext.wasmBytes / 1024),
-                  })
-                : t("provider.deploy_commit_desc_nosize")}
+          <div className={`trace-summary ${s.deploySummary}`}>
+            <span className="trace-summary-label">
+              {t("provider.deploy")}:
+            </span>
+            <div className="trace-contract-row">
+              <span className="trace-contract-icon" aria-hidden="true">
+                <StarBoldIcon size={14} />
+              </span>
+              <div className="trace-contract-meta">
+                <span className="trace-contract-name">
+                  {t("provider.deploy_new_contract")}
+                </span>
+              </div>
             </div>
+            <div className="trace-method-pill">
+              <span className="trace-method-name">
+                {t("provider.deploy_commit_tx")}
+              </span>
+              {deployContext.wasmBytes ? (
+                <span className="trace-opcode">
+                  {t("provider.deploy_wasm_size", {
+                    size: Math.round(deployContext.wasmBytes / 1024),
+                  })}
+                </span>
+              ) : null}
+            </div>
+            <span className="trace-status">
+              {t("provider.deploy_reveal_note")}
+            </span>
           </div>
         ) : null}
 

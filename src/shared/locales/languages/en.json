@@ -366,9 +366,11 @@
     "utxo_txid": "Utxo txid: ",
     "value": "Value",
     "deploy": "Deploy",
-    "deploy_commit_desc": "New contract: commit transaction ({{size}} KB wasm). The reveal carrying the code follows automatically.",
-    "deploy_commit_desc_nosize": "New contract: commit transaction. The reveal carrying the code follows automatically.",
-    "overview_unavailable": "Overview unavailable"
+    "overview_unavailable": "Overview unavailable",
+    "deploy_new_contract": "New contract",
+    "deploy_commit_tx": "commit transaction",
+    "deploy_wasm_size": "{{size}} KB wasm",
+    "deploy_reveal_note": "The reveal carrying the code follows automatically."
   },
   "network_settings": {
     "rpc_url": "espo RPC URL",

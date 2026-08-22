@@ -326,9 +326,11 @@
     "utxo_txid": "Txid UTXO: ",
     "value": "Значение",
     "deploy": "Деплой",
-    "deploy_commit_desc": "Новый контракт: commit-транзакция ({{size}} КБ wasm). Reveal-транзакция с кодом последует автоматически.",
-    "deploy_commit_desc_nosize": "Новый контракт: commit-транзакция. Reveal-транзакция с кодом последует автоматически.",
-    "overview_unavailable": "Обзор недоступен"
+    "overview_unavailable": "Обзор недоступен",
+    "deploy_new_contract": "Новый контракт",
+    "deploy_commit_tx": "commit-транзакция",
+    "deploy_wasm_size": "{{size}} КБ wasm",
+    "deploy_reveal_note": "Reveal-транзакция с кодом последует автоматически."
   },
   "nav": {
     "home": "Главная",

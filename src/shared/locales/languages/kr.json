@@ -318,9 +318,11 @@
     "utxo_txid": "UTXO 거래 ID: ",
     "value": "값",
     "deploy": "배포",
-    "deploy_commit_desc": "새 컨트랙트: 커밋 트랜잭션 ({{size}} KB wasm). 코드를 담은 리빌 트랜잭션이 자동으로 이어집니다.",
-    "deploy_commit_desc_nosize": "새 컨트랙트: 커밋 트랜잭션. 코드를 담은 리빌 트랜잭션이 자동으로 이어집니다.",
-    "overview_unavailable": "개요를 표시할 수 없습니다"
+    "overview_unavailable": "개요를 표시할 수 없습니다",
+    "deploy_new_contract": "새 컨트랙트",
+    "deploy_commit_tx": "커밋 트랜잭션",
+    "deploy_wasm_size": "{{size}} KB wasm",
+    "deploy_reveal_note": "코드를 담은 리빌 트랜잭션이 자동으로 이어집니다."
   },
   "nav": {
     "home": "홈",
