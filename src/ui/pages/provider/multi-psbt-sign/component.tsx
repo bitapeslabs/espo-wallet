@@ -115,7 +115,21 @@ const MultiPsbtSign = () => {
       resolveBtnText={t("provider.sign_all_count", { count: rawTxs.length })}
     >
       <div className="panel">
-        <div className="panel-head">{t("provider.sign_multiple_txs")}</div>
+        <div className="panel-head">
+          {t("provider.sign_multiple_txs_count", {
+            n: index + 1,
+            m: rawTxs.length,
+          })}
+        </div>
+
+        <OverviewBoundary key={index}>
+          <TransactionOverview
+            rawTx={rawTxs[index]}
+            chainRawTxs={chainRawTxs}
+            network={network}
+            fromAddress={currentAccount?.address}
+          />
+        </OverviewBoundary>
 
         <div className={s.pager}>
           <button
@@ -126,9 +140,6 @@ const MultiPsbtSign = () => {
           >
             <CaretLeftBoldIcon size={14} />
           </button>
-          <span className={s.pagerLabel}>
-            {t("provider.tx_n_of_m", { n: index + 1, m: rawTxs.length })}
-          </span>
           <button
             className={`btn ghost small ${s.pagerBtn}`}
             disabled={index === rawTxs.length - 1}
@@ -140,15 +151,6 @@ const MultiPsbtSign = () => {
             <CaretRightBoldIcon size={14} />
           </button>
         </div>
-
-        <OverviewBoundary key={index}>
-          <TransactionOverview
-            rawTx={rawTxs[index]}
-            chainRawTxs={chainRawTxs}
-            network={network}
-            fromAddress={currentAccount?.address}
-          />
-        </OverviewBoundary>
       </div>
     </Layout>
   );

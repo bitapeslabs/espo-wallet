@@ -373,9 +373,9 @@
     "deploy_reveal_note": "The reveal carrying the code follows automatically.",
     "sign_multiple_txs": "Sign multiple transactions",
     "sign_all_count": "Sign all ({{count}})",
-    "tx_n_of_m": "Transaction {{n}} of {{m}}",
     "previous_tx": "Previous transaction",
-    "next_tx": "Next transaction"
+    "next_tx": "Next transaction",
+    "sign_multiple_txs_count": "Sign multiple transactions ({{n}}/{{m}})"
   },
   "network_settings": {
     "rpc_url": "espo RPC URL",
