@@ -184,6 +184,19 @@ class ProviderController implements IProviderController {
       params: [items],
     },
   }: Payload<"multiPsbtSign">) => {
+    // Same finalize contract as signPsbt: dapps driving the alkanesjs
+    // builder need FINALIZED psbts back (autoFinalized defaults on).
+    const finalizeSigned = (psbt: Psbt, autoFinalized?: boolean) => {
+      if (autoFinalized === false) return;
+      psbt.data.inputs.forEach((input, index) => {
+        if (input.finalScriptWitness || input.finalScriptSig) return;
+        try {
+          psbt.finalizeInput(index);
+        } catch {
+          // an input we could not sign (not ours) — leave it unfinalized
+        }
+      });
+    };
     return await Promise.all(
       items.map(async (f) => {
         const psbt = Psbt.fromBase64(f.psbtBase64);
@@ -191,6 +204,7 @@ class ProviderController implements IProviderController {
           psbt,
           f.options?.toSignInputs
         );
+        finalizeSigned(psbt, f.options?.autoFinalized);
         return psbt.toBase64();
       })
     );

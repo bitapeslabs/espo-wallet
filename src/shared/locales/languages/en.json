@@ -370,7 +370,12 @@
     "deploy_new_contract": "New contract",
     "deploy_commit_tx": "commit transaction",
     "deploy_wasm_size": "{{size}} KB wasm",
-    "deploy_reveal_note": "The reveal carrying the code follows automatically."
+    "deploy_reveal_note": "The reveal carrying the code follows automatically.",
+    "sign_multiple_txs": "Sign multiple transactions",
+    "sign_all_count": "Sign all ({{count}})",
+    "tx_n_of_m": "Transaction {{n}} of {{m}}",
+    "previous_tx": "Previous transaction",
+    "next_tx": "Next transaction"
   },
   "network_settings": {
     "rpc_url": "espo RPC URL",

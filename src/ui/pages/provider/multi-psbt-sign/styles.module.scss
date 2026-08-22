@@ -1,23 +1,22 @@
-.txGroup {
-  margin-bottom: 14px;
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.txHeading {
-  color: var(--muted);
-  font-size: 12.5px;
+.pagerBtn {
+  width: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagerLabel {
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 8px;
-}
-
-.feeCard {
-  margin-top: 10px;
-}
-
-.modalBody {
-  font-size: 14px;
   color: var(--muted);
-  padding-top: 4px;
+  min-width: 140px;
   text-align: center;
 }

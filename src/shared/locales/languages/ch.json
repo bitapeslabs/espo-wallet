@@ -324,7 +324,12 @@
     "deploy_new_contract": "新合约",
     "deploy_commit_tx": "commit 交易",
     "deploy_wasm_size": "{{size}} KB wasm",
-    "deploy_reveal_note": "携带代码的 reveal 交易将自动跟进。"
+    "deploy_reveal_note": "携带代码的 reveal 交易将自动跟进。",
+    "sign_multiple_txs": "签署多笔交易",
+    "sign_all_count": "全部签署（{{count}}）",
+    "tx_n_of_m": "第 {{n}} 笔，共 {{m}} 笔",
+    "previous_tx": "上一笔交易",
+    "next_tx": "下一笔交易"
   },
   "nav": {
     "home": "首页",

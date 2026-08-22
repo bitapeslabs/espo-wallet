@@ -322,7 +322,12 @@
     "deploy_new_contract": "새 컨트랙트",
     "deploy_commit_tx": "커밋 트랜잭션",
     "deploy_wasm_size": "{{size}} KB wasm",
-    "deploy_reveal_note": "코드를 담은 리빌 트랜잭션이 자동으로 이어집니다."
+    "deploy_reveal_note": "코드를 담은 리빌 트랜잭션이 자동으로 이어집니다.",
+    "sign_multiple_txs": "여러 트랜잭션 서명",
+    "sign_all_count": "모두 서명 ({{count}})",
+    "tx_n_of_m": "트랜잭션 {{n}} / {{m}}",
+    "previous_tx": "이전 트랜잭션",
+    "next_tx": "다음 트랜잭션"
   },
   "nav": {
     "home": "홈",
