@@ -293,6 +293,14 @@ may import from it; the tsconfig excludes it. Copy assets into `src/` or
 
 ## Known traps
 
+- NEVER import `@/background/controllers/*` directly in UI code. Those
+  modules instantiate the REAL background services in whatever context
+  imports them — in a popup that's a fresh, empty copy (e.g. a
+  NotificationService whose approval slot is always undefined, so an
+  approval screen spins forever). UI code talks to the background ONLY
+  through the port-backed proxies from `useControllersState(ss([...]))`
+  (controller/openapi/state/keyring/notification).
+
 - App startup order matters: in `App.tsx` setupApp, wallet state
   (vaultIsEmpty) must reach the store BEFORE isReady flips, or the guest
   router mounts against defaults and strands users on the wrong screen.
