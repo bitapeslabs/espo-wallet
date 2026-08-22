@@ -98,6 +98,13 @@ class NotificationService extends Events {
   };
 
   openNotification = (winProps?: OpenNotificationProps) => {
+    /*
+      isLocked guards against double-opening while a window is being
+      created. It MUST be released again on every failure path: it is only
+      otherwise cleared by resolve/reject, so a swallowed windows.create
+      error used to leave it stuck true and every later approval request
+      was silently dropped — the dapp hung forever with no window.
+    */
     if (this.isLocked) return;
     this.lock();
     if (this.notifiWindowId) {
@@ -109,9 +116,26 @@ class NotificationService extends Events {
       .then((winId) => {
         if (winId !== undefined) {
           this.notifiWindowId = winId;
+        } else {
+          // no window came back: release the lock and fail the request
+          // visibly instead of leaving the dapp waiting on nothing
+          this.unLock();
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.rejectApproval("approval window failed to open", false, true);
         }
       })
-      .catch(console.error);
+      .catch((e) => {
+        console.error("openNotification failed", e);
+        this.unLock();
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.rejectApproval(
+          `approval window failed to open: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+          false,
+          true
+        );
+      });
   };
 }
 

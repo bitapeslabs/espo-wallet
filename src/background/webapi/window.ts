@@ -29,29 +29,49 @@ const create = async ({
   url,
   ...rest
 }: CreateNotificationProps): Promise<number | undefined> => {
-  const {
-    top: cTop,
-    left: cLeft,
-    width,
-  } = (await browserWindowsGetCurrent({
-    windowTypes: ["normal"],
-  })) as any;
-
-  const top = cTop + BROWSER_HEADER;
-  const left = cLeft + width - WINDOW_SIZE.width;
+  /*
+    Position top-right of the user's browser window WHEN we can. From the
+    MV3 service worker, windows.getCurrent may resolve to a window without
+    bounds (or throw) depending on what's focused — the old unconditional
+    `cLeft + width - 354` then produced NaN, windows.create rejected the
+    bounds, and the approval window silently never opened. Bounds are now
+    best-effort: no numbers, no positioning — Chrome places the popup.
+  */
+  let top: number | undefined;
+  let left: number | undefined;
+  try {
+    const current = (await browserWindowsGetCurrent({
+      windowTypes: ["normal"],
+    })) as any;
+    if (
+      current &&
+      typeof current.top === "number" &&
+      typeof current.left === "number" &&
+      typeof current.width === "number"
+    ) {
+      top = current.top + BROWSER_HEADER;
+      left = current.left + current.width - WINDOW_SIZE.width;
+    }
+  } catch {
+    // no usable current window — let Chrome pick the position
+  }
+  const positioned =
+    top !== undefined &&
+    left !== undefined &&
+    Number.isFinite(top) &&
+    Number.isFinite(left);
 
   const win = await browserWindowsCreate({
     focused: true,
     url,
     type: "popup",
-    top,
-    left,
+    ...(positioned ? { top, left } : {}),
     ...WINDOW_SIZE,
     ...rest,
   });
 
   // shim firefox
-  if (win.left !== left && win.id !== undefined) {
+  if (positioned && win.left !== left && win.id !== undefined) {
     await browserWindowsUpdate(win.id, { left, top });
   }
   return win.id;
