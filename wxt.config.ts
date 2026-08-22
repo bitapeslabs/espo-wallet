@@ -26,6 +26,14 @@ function loadDotEnvDefines(): Record<string, string> {
 export default defineConfig({
   srcDir: "src",
   modules: ["@wxt-dev/module-react"],
+  // Keep the extension dev server OFF port 3000: in the monorepo it races
+  // the Next.js frontend for it (whoever binds first wins and the other
+  // falls to 3001, breaking the expected localhost:3000).
+  dev: {
+    server: {
+      port: 3010,
+    },
+  },
   manifest: ({ browser, command }) => {
     const manifest: Record<string, unknown> = {
       name: "Espo Wallet",
