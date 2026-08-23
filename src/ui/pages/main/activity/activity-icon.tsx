@@ -6,7 +6,7 @@ import type { IActivityEntry } from "@/shared/interfaces/api";
 import NetworkIcon from "@/ui/components/network-icon";
 import AlkaneIcon from "@/ui/components/alkane-icon";
 import {
-  ArrowDownFillIcon,
+  ArrowDownBoldIcon,
   PaperPlaneRightFillIcon,
   ScissorsFillIcon,
 } from "@/ui/icons/phosphor";
@@ -88,7 +88,7 @@ const ActivityIcon: FC<Props> = ({ entry, network, sym }) => {
   const badge = pending ? (
     <TailSpin className={s.badgeSpin} strokeWidth={6} />
   ) : entry.kind === "receive" ? (
-    <ArrowDownFillIcon size={11} />
+    <ArrowDownBoldIcon size={11} />
   ) : entry.kind === "send" ? (
     <PaperPlaneRightFillIcon size={11} />
   ) : entry.kind === "split" ? (
