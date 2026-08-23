@@ -459,6 +459,13 @@ class KeyringService {
       });
     }
 
+    /*
+      Signing failures are NOT swallowed: a dapp that asked us to sign an
+      input we cannot sign (eg it connected with an address that is no
+      longer the active account) must hear the real reason. Silently
+      returning the unsigned psbt surfaced downstream as bitcoinjs's
+      opaque "Not finalized" when the dapp extracted the transaction.
+    */
     try {
       keyring.signInputsWithoutFinalizing(
         psbt,
@@ -473,7 +480,12 @@ class KeyringService {
         }))
       );
     } catch (e) {
-      console.error(e);
+      console.error("signPsbt failed", e);
+      const reason = e instanceof Error ? e.message : String(e);
+      throw new Error(
+        `Espo Wallet could not sign this transaction with the active account ` +
+          `(${storageService.currentAccount.address}): ${reason}`
+      );
     }
   }
 
